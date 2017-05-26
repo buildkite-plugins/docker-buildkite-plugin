@@ -10,7 +10,7 @@ The following pipeline will run `yarn install` and `yarn test` inside a Docker c
 steps:
   - command: yarn install && yarn run test
     plugins:
-      docker#v0.0.1:
+      docker#v1.0.0:
         image: "node:7"
         workdir: /app
 ```
