@@ -4,7 +4,7 @@ A simple [Buildkite](https://buildkite.com/) Docker plugin allowing you to run a
 
 ## Example
 
-The following pipeline will run `yarn install` and `yarn test` inside a Docker container using the [node:7 Docker image](https://hub.docker.com/_/node/):
+The following pipeline will run `yarn install` and `yarn run test` inside a Docker container using the [node:7 Docker image](https://hub.docker.com/_/node/):
 
 ```yml
 steps:
