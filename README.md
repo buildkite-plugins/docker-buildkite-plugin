@@ -1,6 +1,8 @@
 # Docker Buildkite Plugin
 
-A simple [Buildkite](https://buildkite.com/) Docker plugin allowing you to run a command in a Docker container. If you need more control, please see the [docker-compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin).
+A [Buildkite](https://buildkite.com/) Docker plugin allowing you to run a command in a [Docker](https://www.docker.com/) container.
+
+If you need more control, please see the [docker-compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin).
 
 ## Example
 
@@ -17,13 +19,17 @@ steps:
 
 ## Configuration
 
-### `image`
+### `image` (required)
 
-The name of the Docker image to use. For example, `node:7`.
+The name of the Docker image to use.
 
-### `workdir`
+Example: `node:7`
 
-The working directory where the pipeline’s code will be mounted to, and run from, inside the container. For example, `/app`.
+### `workdir` (required)
+
+The working directory where the pipeline’s code will be mounted to, and run from, inside the container.
+
+Example: `/app`
 
 ## License
 
