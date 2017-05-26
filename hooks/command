@@ -6,5 +6,6 @@ docker run \
   -it \
   --rm \
   -v "$(pwd):${BUILDKITE_PLUGIN_DOCKER_WORKDIR}" \
+  --workdir "${BUILDKITE_PLUGIN_DOCKER_WORKDIR}" \
   "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" \
   bash -c "${BUILDKITE_COMMAND}"

@@ -10,7 +10,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="command1 \"a string\" && command2"
 
   stub docker \
-    "run -it --rm -v $PWD:/app image:tag bash -c 'command1 \"a string\" && command2' : echo ran command in docker"
+    "run -it --rm -v $PWD:/app --workdir /app image:tag bash -c 'command1 \"a string\" && command2' : echo ran command in docker"
 
   run $PWD/hooks/command
 
