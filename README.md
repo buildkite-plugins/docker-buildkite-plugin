@@ -1,6 +1,6 @@
 # Docker Buildkite Plugin
 
-A [Buildkite](https://buildkite.com/) Docker plugin allowing you to run a command in a [Docker](https://www.docker.com/) container.
+A [Buildkite](https://buildkite.com/) plugin for running pipeline steps in [Docker](https://www.docker.com/) containers
 
 If you need more control, please see the [docker-compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin).
 
