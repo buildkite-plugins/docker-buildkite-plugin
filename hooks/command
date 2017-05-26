@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -euo pipefail
+
+docker run \
+  -it \
+  --rm \
+  -v "$(pwd):${BUILDKITE_PLUGIN_DOCKER_WORKDIR}" \
+  "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" \
+  bash -c "${BUILDKITE_COMMAND}"

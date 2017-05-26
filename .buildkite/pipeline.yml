@@ -1,0 +1,6 @@
+steps:
+  - label: run bats tests
+    command: tests/
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        run: tests

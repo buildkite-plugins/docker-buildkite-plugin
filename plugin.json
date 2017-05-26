@@ -1,0 +1,7 @@
+{
+  "name": "docker",
+  "description": "Run any CI step in an isolated Docker containers using Docker",
+  "author": "@buildkite",
+  "public": true,
+  "requirements": ["docker"]
+}
