@@ -1,0 +1,6 @@
+steps:
+  - label: run bats tests
+    command: tests/
+    plugins:
+      docker-compose#v1.3.1:
+        run: tests
