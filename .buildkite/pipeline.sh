@@ -18,6 +18,6 @@ steps:
   - label: run bats tests
     command: tests/
     plugins:
-      ${BUILDKITE_REPO}#${commit}:
+      docker#${commit}:
         run: tests
 YAML
