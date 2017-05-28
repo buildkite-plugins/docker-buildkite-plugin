@@ -2,7 +2,8 @@
 
 load '/usr/local/lib/bats/load.bash'
 
-export DOCKER_STUB_DEBUG=/dev/tty
+# Uncomment to enable stub debug output:
+# export DOCKER_STUB_DEBUG=/dev/tty
 
 @test "Runs the command using docker" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
@@ -14,7 +15,11 @@ export DOCKER_STUB_DEBUG=/dev/tty
 
   run $PWD/hooks/command
 
-  unstub docker
   assert_success
   assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
 }

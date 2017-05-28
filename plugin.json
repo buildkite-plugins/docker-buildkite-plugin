@@ -1,6 +1,6 @@
 {
   "name": "docker",
-  "description": "A simple Docker runner for Buildkite pipeline steps",
+  "description": "Runs your build steps in Docker containers",
   "author": "@buildkite",
   "public": true,
   "requirements": ["docker"]
