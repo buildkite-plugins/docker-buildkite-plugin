@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-if [[ -n "${BUILDKITE_BIN:-}" ]] ; then
+if [[ -z "${BUILDKITE_BIN:-}" ]] ; then
   BUILDKITE_BIN=$(which buildkite-agent)
 fi
 
