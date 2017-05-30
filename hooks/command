@@ -2,9 +2,14 @@
 
 set -euo pipefail
 
+if [[ -n "${BUILDKITE_BIN_PATH:-}" ]] ; then
+  BUILDKITE_BIN_PATH=$(which buildkite-agent)
+fi
+
 docker run \
   -it \
   --rm \
+  -v "$BUILDKITE_BIN_PATH:/usr/bin/buildkite-agent" \
   -v "$(pwd):${BUILDKITE_PLUGIN_DOCKER_WORKDIR}" \
   --workdir "${BUILDKITE_PLUGIN_DOCKER_WORKDIR}" \
   "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" \
