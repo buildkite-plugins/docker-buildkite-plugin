@@ -12,10 +12,10 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="command1 \"a string\" && command2"
 
   stub which \
-    "buildkite-agent : echo /opt/llamas/buildkite-agent"
+    "buildkite-agent : echo /buildkite-agent"
 
   stub docker \
-    "run -it --rm   -e BUILDKITE_JOB_ID  -e BUILDKITE_BUILD_ID -e BUILDKITE_AGENT_ACCESS_TOKEN -v /opt/llamas/buildkite-agent:/usr/bin/buildkite-agent -v $PWD:/app --workdir /app image:tag bash -c 'command1 \"a string\" && command2' : echo ran command in docker"
+    "run -it --rm -v $PWD:/app --workdir /app -e BUILDKITE_JOB_ID  -e BUILDKITE_BUILD_ID -e BUILDKITE_AGENT_ACCESS_TOKEN -v /buildkite-agent:/usr/bin/buildkite-agent image:tag bash -c 'command1 \"a string\" && command2' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -24,6 +24,26 @@ load '/usr/local/lib/bats/load.bash'
 
   unstub docker
   unstub which
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+}
+
+@test "Runs the command using docker with buildkite-agent-bin disabled" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_BUILDKITE_AGENT_BIN=false
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -it --rm -v $PWD:/app --workdir /app image:tag bash -c 'pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
