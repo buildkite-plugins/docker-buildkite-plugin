@@ -2,6 +2,8 @@
 
 A [Buildkite](https://buildkite.com/) plugin for running pipeline steps in [Docker](https://www.docker.com/) containers
 
+The `buildkite-agent` command line tool (and required environment variables) will also be mounted into the container, allowing you to use it for artifact download, etc.
+
 If you need more control, please see the [docker-compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin).
 
 The docker container has the host buildkite-agent binary mounted in to `/usr/bin/buildkite-agent` and the required environment variables set. 
@@ -33,11 +35,9 @@ The working directory where the pipeline’s code will be mounted to, and run fr
 
 Example: `/app`
 
-### `buildkite-agent-bin` (optional)
+### `mount-buildkite-agent` (optional)
 
-The path on the host for `buildkite-agent`. If not set, defaults to to `buildkite-agent` from the `$PATH`. 
-
-If set to `false` then no agent binary will be mounted and no env will be passed to the container. Make sure to pass this as a string, otherwise YAML will interpret it incorrectly.
+Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true`. Set to `false` if you want to disable, or if you already have your own binary in the image.
 
 ## License
 
