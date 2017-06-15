@@ -21,6 +21,19 @@ steps:
         workdir: /app
 ```
 
+You can pass in additional environment variables:
+
+```yml
+steps:
+  - command: yarn install && yarn run test
+    plugins:
+      docker#v1.0.0:
+        image: "node:7"
+        workdir: /app
+        environment:
+          - MY_SPECIAL_VALUE=1
+```
+
 ## Configuration
 
 ### `image` (required)
@@ -38,6 +51,10 @@ Example: `/app`
 ### `mount-buildkite-agent` (optional)
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true`. Set to `false` if you want to disable, or if you already have your own binary in the image.
+
+### `environment` (optional)
+
+Extra environment variables to pass to the docker container, in an array of KEY=VALUE params.
 
 ## License
 

@@ -6,7 +6,7 @@ load '/usr/local/lib/bats/load.bash'
 export DOCKER_STUB_DEBUG=/dev/tty
 # export WHICH_STUB_DEBUG=/dev/tty
 
-@test "Runs the command using docker" {
+@test "Run command" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_COMMAND="command1 \"a string\" && command2"
@@ -29,7 +29,20 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_COMMAND
 }
 
-@test "Runs the command using docker with buildkite-agent-bin disabled" {
+@test "Run command without a workdir fails" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_COMMAND="echo blah"
+
+  run $PWD/hooks/command
+
+  assert_failure
+  assert_output --partial "Must set a workdir"
+
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+}
+
+@test "Runs the command with mount-buildkite-agent disabled" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
@@ -47,4 +60,30 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+}
+
+
+@test "Runs command with environment" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0=MY_TAG=value
+  export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1=ANOTHER_TAG=$'llamas\nalpacas'
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/app --workdir /app --env MY_TAG=value --env ANOTHER_TAG=$'llamas\nalpacas' image:tag bash -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
 }
