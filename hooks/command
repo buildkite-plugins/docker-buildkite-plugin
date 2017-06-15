@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+if [[ -z "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] ; then
+  echo "Must set a workdir"
+  exit 1
+fi
+
 args=(
   "-it"
   "--rm"
@@ -9,7 +14,7 @@ args=(
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
 )
 
-
+# Handle the mount-buildkite-agent option
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]] ; then
   args+=(
     "--env" "BUILDKITE_JOB_ID"
@@ -18,6 +23,13 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]]
     "--volume" "$(which buildkite-agent):/usr/bin/buildkite-agent"
   )
 fi
+
+# Handle any extra environment variables
+while IFS='=' read -r name _ ; do
+  if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_[0-9]+) ]] ; then
+    args+=( "--env" "${!name}" )
+  fi
+done < <(env | sort)
 
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
