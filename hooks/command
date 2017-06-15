@@ -5,20 +5,19 @@ set -euo pipefail
 args=(
   "-it"
   "--rm"
-  "-v" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
+  "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
 )
 
-if [[ -z "${BUILDKITE_PLUGIN_DOCKER_BUILDKITE_AGENT_BIN:-}" ]] ; then
-  BUILDKITE_PLUGIN_DOCKER_BUILDKITE_AGENT_BIN=$(which buildkite-agent || echo "false")
-fi
 
-[[ "${BUILDKITE_PLUGIN_DOCKER_BUILDKITE_AGENT_BIN}" != "false" ]] && args+=(
-  "-e" "BUILDKITE_JOB_ID"
-  "-e" "BUILDKITE_BUILD_ID"
-  "-e" "BUILDKITE_AGENT_ACCESS_TOKEN"
-  "-v" "${BUILDKITE_PLUGIN_DOCKER_BUILDKITE_AGENT_BIN}:/usr/bin/buildkite-agent"
-)
+if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]] ; then
+  args+=(
+    "--env" "BUILDKITE_JOB_ID"
+    "--env" "BUILDKITE_BUILD_ID"
+    "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
+    "--volume" "$(which buildkite-agent):/usr/bin/buildkite-agent"
+  )
+fi
 
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
