@@ -11,18 +11,18 @@ if [[ -z "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]] ; then
   BUILDKITE_PLUGIN_DOCKER_SHELL="bash"
 fi
 
-if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
-  args+=(
-    "-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}"
-  )
-fi
-
 args=(
   "-it"
   "--rm"
   "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
 )
+
+if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
+  args+=(
+    "-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}"
+  )
+fi
 
 # Handle the mount-buildkite-agent option
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]] ; then
