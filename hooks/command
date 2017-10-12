@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 set -euo pipefail
 
@@ -9,6 +9,12 @@ fi
 
 if [[ -z "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]] ; then
   BUILDKITE_PLUGIN_DOCKER_SHELL="bash"
+fi
+
+if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
+  args+=(
+    "-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}"
+  )
 fi
 
 args=(
