@@ -7,6 +7,10 @@ if [[ -z "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] ; then
   exit 1
 fi
 
+if [[ -z "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]] ; then
+  BUILDKITE_PLUGIN_DOCKER_SHELL="bash"
+fi
+
 args=(
   "-it"
   "--rm"
@@ -32,4 +36,4 @@ while IFS='=' read -r name _ ; do
 done < <(env | sort)
 
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
-docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
+docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" "${BUILDKITE_PLUGIN_DOCKER_SHELL}" -c "${BUILDKITE_COMMAND}"
