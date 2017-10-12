@@ -87,3 +87,69 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0
   unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
 }
+
+@test "Runs command with user" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_USER=foo
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/app --workdir /app -u foo image:tag bash -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_USER
+}
+
+@test "Runs with debug mode" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_DEBUG=true
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/app --workdir /app image:tag bash -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "Enabling debug mode"
+  assert_output --partial "Running: docker run"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+  unset BUILDKITE_PLUGIN_DOCKER_DEBUG
+  unset BUILDKITE_COMMAND
+}
+
+@test "Builds image" {
+  export BUILDKITE_PLUGIN_DOCKER_BUILD=true
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_FILE=tests/assets/Dockerfile
+  # export BUILDKITE_PLUGIN_DOCKER_DEBUG=true
+
+  stub docker \
+    "build -f tests/assets/Dockerfile -t image:tag . : echo Building image:tag with tests/Dockerfile"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "Building image:tag with tests/assets/Dockerfile"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_BUILD
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_PLUGIN_DOCKER_FILE
+}
