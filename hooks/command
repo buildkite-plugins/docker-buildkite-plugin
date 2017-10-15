@@ -3,7 +3,7 @@
 set -euo pipefail
 
 debug_mode='off'
-if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]]
+if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
   echo "--- :hammer: Enabling debug mode"
   debug_mode='on'
   set -x
