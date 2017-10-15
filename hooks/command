@@ -49,5 +49,5 @@ while IFS='=' read -r name _ ; do
 done < <(env | sort)
 
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
-[[ "${debug_mode:off}" =~ (on) ]] && echo docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" "${BUILDKITE_PLUGIN_DOCKER_SHELL}" -c "${BUILDKITE_COMMAND}"
+[[ "${debug_mode:-off}" =~ (on) ]] && echo docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" "${BUILDKITE_PLUGIN_DOCKER_SHELL}" -c "${BUILDKITE_COMMAND}"
 docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" "${BUILDKITE_PLUGIN_DOCKER_SHELL}" -c "${BUILDKITE_COMMAND}"
