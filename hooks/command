@@ -9,9 +9,11 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
   set -x
 fi
 
-if [[ -z "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" -a "${BUILDKITE_PLUGIN_DOCKER_BUILD:-true}" =~ (true|on|1) ]] ]] ; then
-  echo "Must set a workdir"
-  exit 1
+if [[ -z "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] ; then
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_BUILD:-false}" =~ (false|off|0) ]] ]] ; then
+    echo "Must set a workdir"
+    exit 1
+  fi
 fi
 
 if [[ -z "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]] ; then
