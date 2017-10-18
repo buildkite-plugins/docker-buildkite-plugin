@@ -6,7 +6,7 @@ The `buildkite-agent` command line tool (and required environment variables) wil
 
 If you need more control, please see the [docker-compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin).
 
-The docker container has the host buildkite-agent binary mounted in to `/usr/bin/buildkite-agent` and the required environment variables set. 
+The docker container has the host buildkite-agent binary mounted in to `/usr/bin/buildkite-agent` and the required environment variables set.
 
 ## Example
 
@@ -55,6 +55,46 @@ Whether to automatically mount the `buildkite-agent` binary from the host agent 
 ### `environment` (optional)
 
 Extra environment variables to pass to the docker container, in an array of KEY=VALUE params.
+
+### `shell` (optional)
+
+Plugin will run command under the bash shell by default, this allows selection of alternative shells.
+
+Example: `ash`
+
+### `user` (optional)
+
+Allows a user to be set, and override the USER entry in the Dockerfile
+
+Example: `root`
+
+### `build` (optional)
+
+Builds a image with the tag set by the `image` parameter.
+By default Dockerfile in the current directory is used.
+
+Example: `true`
+
+### `file` (optional)
+
+Uses the nominated Dockerfile when building an image.
+
+Example: `Dockerfile-new`
+
+```
+- label: ':docker: build test image'
+  plugins:
+    docker#v1.0.0:
+      image: app/test:${BUILDKITE_COMMIT}
+      build: true
+      file: Dockerfile-new
+```
+
+### `debug` (optional)
+
+Outputs the command to be run, and enables xtrace in the plugin
+
+Example: `true`
 
 ## License
 
