@@ -10,7 +10,7 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
 fi
 
 if [[ -z "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] ; then
-  if [[ "${BUILDKITE_PLUGIN_DOCKER_BUILD:-false}" =~ (false|off|0) ]] ]] ; then
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_BUILD:-false}" =~ (false|off|0) ]] ; then
     echo "Must set a workdir"
     exit 1
   fi
@@ -20,12 +20,20 @@ if [[ -z "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]] ; then
   BUILDKITE_PLUGIN_DOCKER_SHELL="bash"
 fi
 
-args=(
-  "-it"
-  "--rm"
-  "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
-  "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
-)
+if [[ "${BUILDKITE_PLUGIN_DOCKER_BUILD:-false}" =~ (true|on|1) ]] ; then
+  args=(
+    "-f" "${BUILDKITE_PLUGIN_DOCKER_FILE:-Dockerfile}"
+    "-t" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+  )
+  BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+else
+  args=(
+    "-it"
+    "--rm"
+    "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
+    "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
+  )
+fi
 
 if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
   args+=(
@@ -50,10 +58,10 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
-[[ "${BUILDKITE_PLUGIN_DOCKER_BUILD:-false}" =~ (true|on|1) ]] ;then
-  echo "--- :docker: Building ${BUILDKITE_PLUGIN_DOCKER_IMAGE} in ${PWD}"
+if [[ "${BUILDKITE_PLUGIN_DOCKER_BUILD:-false}" =~ (true|on|1) ]] ; then
+  echo "--- :docker: Building ${BUILDKITE_PLUGIN_DOCKER_IMAGE} with ${BUILDKITE_PLUGIN_DOCKER_FILE:-Dockerfile}"
   [[ "${debug_mode:-off}" =~ (on) ]] && echo Running: docker build -t "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" .
-  docker build -t "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" .
+  docker build "${args[@]}" .
 else
   echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
   [[ "${debug_mode:-off}" =~ (on) ]] && echo Running: docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" "${BUILDKITE_PLUGIN_DOCKER_SHELL}" -c "${BUILDKITE_COMMAND}"
