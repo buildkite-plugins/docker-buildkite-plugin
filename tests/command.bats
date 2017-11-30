@@ -133,23 +133,3 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_PLUGIN_DOCKER_DEBUG
   unset BUILDKITE_COMMAND
 }
-
-@test "Builds image" {
-  export BUILDKITE_PLUGIN_DOCKER_BUILD=true
-  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
-  export BUILDKITE_PLUGIN_DOCKER_FILE=tests/assets/Dockerfile
-  # export BUILDKITE_PLUGIN_DOCKER_DEBUG=true
-
-  stub docker \
-    "build -f tests/assets/Dockerfile -t image:tag . : echo Building image:tag with tests/Dockerfile"
-
-  run $PWD/hooks/command
-
-  assert_success
-  assert_output --partial "Building image:tag with tests/assets/Dockerfile"
-
-  unstub docker
-  unset BUILDKITE_PLUGIN_DOCKER_BUILD
-  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
-  unset BUILDKITE_PLUGIN_DOCKER_FILE
-}
