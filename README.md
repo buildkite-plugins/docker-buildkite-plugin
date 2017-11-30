@@ -68,28 +68,6 @@ Allows a user to be set, and override the USER entry in the Dockerfile
 
 Example: `root`
 
-### `build` (optional)
-
-Builds a image with the tag set by the `image` parameter.
-By default Dockerfile in the current directory is used.
-
-Example: `true`
-
-### `file` (optional)
-
-Uses the nominated Dockerfile when building an image.
-
-Example: `Dockerfile-new`
-
-```
-- label: ':docker: build test image'
-  plugins:
-    docker#v1.0.0:
-      image: app/test:${BUILDKITE_COMMIT}
-      build: true
-      file: Dockerfile-new
-```
-
 ### `debug` (optional)
 
 Outputs the command to be run, and enables xtrace in the plugin
