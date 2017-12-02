@@ -31,5 +31,11 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
+if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ (true|on|1) ]] ; then
+  echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+  docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+fi
+
+
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"

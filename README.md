@@ -48,6 +48,10 @@ The working directory where the pipeline’s code will be mounted to, and run fr
 
 Example: `/app`
 
+### `always-pull` (optional)
+
+Whether to always pull the latest image before running the command. Useful if the image has a `latest` tag. The default is false, the image will only get pulled if not present. 
+
 ### `mount-buildkite-agent` (optional)
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true`. Set to `false` if you want to disable, or if you already have your own binary in the image.

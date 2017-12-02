@@ -42,6 +42,32 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_COMMAND
 }
 
+@test "Pull image first before running the command with mount-buildkite-agent disabled" {
+  export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "pull image:tag : echo pulled latest image" \
+    "run -it --rm --volume $PWD:/app --workdir /app image:tag bash -c 'pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "pulled latest image"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+}
+
+
 @test "Runs the command with mount-buildkite-agent disabled" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
