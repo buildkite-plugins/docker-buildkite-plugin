@@ -36,6 +36,12 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ (true|on|1) ]] ; then
   docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 fi
 
+# Handle extra volumes
+while IFS='=' read -r name _ ; do
+  if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_MOUNTS_[0-9]+) ]] ; then
+    args+=( "--volume" "${!name}" )
+  fi
+done < <(env | sort)
 
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
