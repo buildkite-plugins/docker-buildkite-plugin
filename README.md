@@ -34,6 +34,18 @@ steps:
           - MY_SPECIAL_VALUE=1
 ```
 
+You can pass in additional volume mounts. This is useful for docker-in-docker:
+
+```yml
+steps:
+  - command: docker build . -t image:tag
+    plugins:
+      docker#v1.0.0:
+        image: "docker:latest"
+        mounts:
+          - /var/run/docker.sock:/var/run/docker.sock
+```
+
 ## Configuration
 
 ### `image` (required)
@@ -52,9 +64,17 @@ Example: `/app`
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true`. Set to `false` if you want to disable, or if you already have your own binary in the image.
 
+### `mounts` (optional)
+
+Extra volume mounts to pass to the docker container, in an array of `SOURCE:TARGET` params
+
+Example: `/var/run/docker.sock:/var/run/docker.sock`
+
 ### `environment` (optional)
 
-Extra environment variables to pass to the docker container, in an array of KEY=VALUE params.
+Extra environment variables to pass to the docker container, in an array of `KEY=VALUE` params.
+
+Example: `MY_SPECIAL_VALUE=1`
 
 ## License
 

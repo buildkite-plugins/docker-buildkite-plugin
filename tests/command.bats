@@ -63,6 +63,30 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
 }
 
+@test "Runs command with volumes" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_MOUNTS_0=/hello:/hello-world
+  export BUILDKITE_PLUGIN_DOCKER_MOUNTS_1=/var/run/docker.sock:/var/run/docker.sock
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/app --workdir /app --volume /hello:/hello-world --volume /var/run/docker.sock:/var/run/docker.sock image:tag bash -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
+}
+
 
 @test "Runs command with environment" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
