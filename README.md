@@ -54,9 +54,9 @@ The name of the Docker image to use.
 
 Example: `node:7`
 
-### `workdir` (required)
+### `workdir`(optional)
 
-The working directory where the pipeline’s code will be mounted to, and run from, inside the container.
+The working directory where the pipeline’s code will be mounted to, and run from, inside the container. The default is `/workdir`.
 
 Example: `/app`
 
