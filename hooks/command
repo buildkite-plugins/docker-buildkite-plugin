@@ -31,6 +31,11 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
+if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ (true|on|1) ]] ; then
+  echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+  docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+fi
+
 # Handle extra volumes
 while IFS='=' read -r name _ ; do
   if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_MOUNTS_[0-9]+) ]] ; then
