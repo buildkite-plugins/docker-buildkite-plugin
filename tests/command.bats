@@ -29,15 +29,24 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_COMMAND
 }
 
-@test "Run command without a workdir fails" {
+@test "Run command without a workdir should not fail" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
-  export BUILDKITE_COMMAND="echo blah"
+  export BUILDKITE_COMMAND="command1 \"a string\" && command2"
+
+  stub which \
+    "buildkite-agent : echo /buildkite-agent"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID  --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent image:tag bash -c 'command1 \"a string\" && command2' : echo ran command in docker"
 
   run $PWD/hooks/command
 
-  assert_failure
-  assert_output --partial "Must set a workdir"
+  assert_success
+  assert_output --partial "ran command in docker"
 
+  unstub docker
+  unstub which
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
 }
