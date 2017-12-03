@@ -2,8 +2,19 @@
 
 set -euo pipefail
 
+debug_mode='off'
+if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
+  echo "--- :hammer: Enabling debug mode"
+  debug_mode='on'
+  set -x
+fi
+
 if [[ -z "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] ; then
   BUILDKITE_PLUGIN_DOCKER_WORKDIR="/workdir"
+fi
+
+if [[ -z "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]] ; then
+  BUILDKITE_PLUGIN_DOCKER_SHELL="bash"
 fi
 
 args=(
@@ -12,6 +23,12 @@ args=(
   "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR}"
 )
+
+if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
+  args+=(
+    "-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}"
+  )
+fi
 
 # Handle the mount-buildkite-agent option
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]] ; then
@@ -43,4 +60,5 @@ while IFS='=' read -r name _ ; do
 done < <(env | sort)
 
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
-docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
+[[ "${debug_mode:-off}" =~ (on) ]] && echo Running: docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" "${BUILDKITE_PLUGIN_DOCKER_SHELL}" -c "${BUILDKITE_COMMAND}"
+docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" "${BUILDKITE_PLUGIN_DOCKER_SHELL}" -c "${BUILDKITE_COMMAND}"
