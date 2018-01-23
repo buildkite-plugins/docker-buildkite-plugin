@@ -16,7 +16,7 @@ The following pipeline will run `yarn install` and `yarn run test` inside a Dock
 steps:
   - command: yarn install && yarn run test
     plugins:
-      docker#v1.0.0:
+      docker#v1.1.0:
         image: "node:7"
         workdir: /app
 ```
@@ -27,7 +27,7 @@ You can pass in additional environment variables:
 steps:
   - command: yarn install && yarn run test
     plugins:
-      docker#v1.0.0:
+      docker#v1.1.0:
         image: "node:7"
         workdir: /app
         environment:
@@ -40,7 +40,7 @@ You can pass in additional volume mounts. This is useful for docker-in-docker:
 steps:
   - command: docker build . -t image:tag
     plugins:
-      docker#v1.0.0:
+      docker#v1.1.0:
         image: "docker:latest"
         mounts:
           - /var/run/docker.sock:/var/run/docker.sock
@@ -62,7 +62,7 @@ Example: `/app`
 
 ### `always-pull` (optional)
 
-Whether to always pull the latest image before running the command. Useful if the image has a `latest` tag. The default is false, the image will only get pulled if not present. 
+Whether to always pull the latest image before running the command. Useful if the image has a `latest` tag. The default is false, the image will only get pulled if not present.
 
 ### `mount-buildkite-agent` (optional)
 
