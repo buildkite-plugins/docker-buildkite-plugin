@@ -59,8 +59,4 @@ if [[ "${debug_mode:-off}" =~ (on) ]] ; then
     "${BUILDKITE_COMMAND}" >&2
 fi
 
-# The eval statements below are used to allow $BUILDKITE_COMMAND to be interpolated correctly
-# for complex quoted commands. The set -f ensures we don't expand globs in $BUILDKITE_COMMAND
-
-set -f
-eval "docker run \${args[*]} ${BUILDKITE_PLUGIN_DOCKER_IMAGE} ${BUILDKITE_COMMAND}"
+docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
