@@ -183,7 +183,7 @@ load '/usr/local/lib/bats/load.bash'
 
   assert_success
   assert_output --partial "Enabling debug mode"
-  assert_output --partial "Running: docker run"
+  assert_output --partial "$ docker run"
 
   unstub docker
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
