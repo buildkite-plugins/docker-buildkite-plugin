@@ -80,15 +80,9 @@ Extra environment variables to pass to the docker container, in an array of `KEY
 
 Example: `MY_SPECIAL_VALUE=1`
 
-### `shell` (optional)
-
-Plugin will run command under the bash shell by default, this allows selection of alternative shells.
-
-Example: `ash`
-
 ### `user` (optional)
 
-Allows a user to be set, and override the USER entry in the Dockerfile
+Allows a user to be set, and override the USER entry in the Dockerfile. See https://docs.docker.com/engine/reference/run/#user for more details.
 
 Example: `root`
 
