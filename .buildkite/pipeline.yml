@@ -1,4 +1,7 @@
 steps:
+  - label: "shellcheck"
+    command: .buildkite/steps/shellcheck.sh
+
   - label: ":docker: :hammer:"
     plugins:
       docker-compose#v1.3.1:
