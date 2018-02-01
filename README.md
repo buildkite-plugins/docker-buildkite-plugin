@@ -46,6 +46,17 @@ steps:
           - /var/run/docker.sock:/var/run/docker.sock
 ```
 
+You can specify a docker network to join. This will be created if it does not already exist:
+
+```yml
+steps:
+  - command: docker build . -t image:tag
+    plugins:
+      docker#v1.1.1:
+        image: "docker:latest"
+        network: "test-network"
+```
+
 ## Configuration
 
 ### `image` (required)
@@ -85,6 +96,12 @@ Example: `MY_SPECIAL_VALUE=1`
 Allows a user to be set, and override the USER entry in the Dockerfile. See https://docs.docker.com/engine/reference/run/#user for more details.
 
 Example: `root`
+
+### `network` (optional)
+
+Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details. 
+
+Example: `test-network`
 
 ### `debug` (optional)
 
