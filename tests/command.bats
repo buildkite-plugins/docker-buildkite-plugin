@@ -174,16 +174,14 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_PLUGIN_DOCKER_NETWORK=foo
-  # export BUILDKITE_PLUGIN_DOCKER_DEBUG=true
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "network create foo : creating network foo" \
+    "network ls --quiet --filter 'name=foo' : echo " \
+    "network create foo : echo creating network foo" \
     "run -it --rm --volume $PWD:/app --workdir /app --network foo image:tag bash -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
-  echo "status = ${status}"
-  echo "output = ${output}"
 
   assert_success
   assert_output --partial "creating network foo"
@@ -195,6 +193,7 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_COMMAND
   unset BUILDKITE_PLUGIN_DOCKER_NETWORK
 }
+
 
 @test "Runs with debug mode" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
