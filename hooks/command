@@ -51,6 +51,18 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
+# Parse network and create it if it don't exist. 
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}" ]] ; then
+  DOCKER_NETWORK_ID=$(docker network ls --quiet --filter "name=${BUILDKITE_PLUGIN_DOCKER_NETWORK}")
+  if [[ -z ${DOCKER_NETWORK_ID} ]] ; then
+    echo "creating network ${BUILDKITE_PLUGIN_DOCKER_NETWORK}"
+    docker network create ${BUILDKITE_PLUGIN_DOCKER_NETWORK}
+  else 
+    echo "docker network ${BUILDKITE_PLUGIN_DOCKER_NETWORK} already exists"
+  fi
+  args+=("--network" "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}")
+fi
+
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 
 if [[ "${debug_mode:-off}" =~ (on) ]] ; then

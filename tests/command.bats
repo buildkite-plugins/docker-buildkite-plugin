@@ -169,6 +169,32 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_USER
 }
 
+@test "Runs command with network that doesn't exist" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_NETWORK=foo
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "network ls --quiet --filter 'name=foo' : echo " \
+    "network create foo : echo creating network foo" \
+    "run -it --rm --volume $PWD:/app --workdir /app --network foo image:tag bash -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "creating network foo"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_NETWORK
+}
+
+
 @test "Runs with debug mode" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
