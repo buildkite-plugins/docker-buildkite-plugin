@@ -11,6 +11,9 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_COMMAND='command1 "a string"'
 
+  stub realpath \
+    "$PWD/./ : echo $PWD"
+
   stub which \
     "buildkite-agent : echo /buildkite-agent"
 
@@ -24,6 +27,7 @@ load '/usr/local/lib/bats/load.bash'
 
   unstub docker
   unstub which
+  unstub realpath
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
@@ -32,6 +36,9 @@ load '/usr/local/lib/bats/load.bash'
 @test "Run command without a workdir should not fail" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_COMMAND="command1 \"a string\""
+
+  stub realpath \
+    "$PWD/./ : echo $PWD"
 
   stub which \
     "buildkite-agent : echo /buildkite-agent"
@@ -46,6 +53,7 @@ load '/usr/local/lib/bats/load.bash'
 
   unstub docker
   unstub which
+  unstub realpath
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
@@ -58,6 +66,9 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_COMMAND="pwd"
 
+  stub realpath \
+    "$PWD/./ : echo $PWD"
+
   stub docker \
     "pull image:tag : echo pulled latest image" \
     "run -it --rm --volume $PWD:/app --workdir /app image:tag bash -c 'pwd' : echo ran command in docker"
@@ -69,6 +80,7 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "ran command in docker"
 
   unstub docker
+  unstub realpath
   unset BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
@@ -83,6 +95,9 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_COMMAND="pwd"
 
+  stub realpath \
+    "$PWD/./ : echo $PWD"
+
   stub docker \
     "run -it --rm --volume $PWD:/app --workdir /app image:tag bash -c 'pwd' : echo ran command in docker"
 
@@ -92,6 +107,7 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "ran command in docker"
 
   unstub docker
+  unstub realpath
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
@@ -106,6 +122,9 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_MOUNTS_1=/var/run/docker.sock:/var/run/docker.sock
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
+  stub realpath \
+    "$PWD/./ : echo $PWD"
+
   stub docker \
     "run -it --rm --volume $PWD:/app --workdir /app --volume /hello:/hello-world --volume /var/run/docker.sock:/var/run/docker.sock image:tag bash -c 'echo hello world; pwd' : echo ran command in docker"
 
@@ -115,6 +134,7 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "ran command in docker"
 
   unstub docker
+  unstub realpath
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
@@ -131,6 +151,9 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1=ANOTHER_TAG=llamas
   export BUILDKITE_COMMAND="echo hello world"
 
+  stub realpath \
+    "$PWD/./ : echo $PWD"
+
   stub docker \
     "run -it --rm --volume $PWD:/app --workdir /app --env MY_TAG=value --env ANOTHER_TAG=llamas image:tag bash -c 'echo hello world' : echo ran command in docker"
 
@@ -140,6 +163,7 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "ran command in docker"
 
   unstub docker
+  unstub realpath
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
@@ -154,6 +178,9 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_USER=foo
   export BUILDKITE_COMMAND="echo hello world"
 
+  stub realpath \
+    "$PWD/./ : echo $PWD"
+
   stub docker \
     "run -it --rm --volume $PWD:/app --workdir /app -u foo image:tag bash -c 'echo hello world' : echo ran command in docker"
 
@@ -163,6 +190,7 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "ran command in docker"
 
   unstub docker
+  unstub realpath
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
@@ -202,6 +230,9 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_DEBUG=true
   export BUILDKITE_COMMAND="echo hello world"
 
+  stub realpath \
+    "$PWD/./ : echo $PWD"
+
   stub docker \
     "run -it --rm --volume $PWD:/app --workdir /app image:tag bash -c 'echo hello world' : echo ran command in docker"
 
@@ -212,9 +243,40 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "$ docker run"
 
   unstub docker
+  unstub realpath
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
   unset BUILDKITE_PLUGIN_DOCKER_DEBUG
+  unset BUILDKITE_COMMAND
+}
+
+
+@test "Runs command with special src directory" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_SRCDIR=./dir
+  export BUILDKITE_COMMAND='command1 "a string"'
+
+  stub realpath \
+    "$PWD/./dir : echo $PWD/dir"
+
+  stub which \
+    "buildkite-agent : echo /buildkite-agent"
+
+  stub docker \
+    "run -it --rm --volume $PWD/dir:/app --workdir /app --env BUILDKITE_JOB_ID  --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent image:tag bash -c 'command1 \"a string\"' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unstub which
+  unstub realpath
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_PLUGIN_DOCKER_SRCDIR
   unset BUILDKITE_COMMAND
 }
