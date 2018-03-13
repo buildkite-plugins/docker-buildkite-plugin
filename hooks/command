@@ -9,10 +9,12 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
   set -x
 fi
 
+srcdir=$(realpath $PWD/${BUILDKITE_PLUGIN_DOCKER_SRCDIR:-./})
+
 args=(
   "-it"
   "--rm"
-  "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
+  "--volume" "$srcdir:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
 )
 
@@ -51,13 +53,13 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
-# Parse network and create it if it don't exist. 
+# Parse network and create it if it don't exist.
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}" ]] ; then
   DOCKER_NETWORK_ID=$(docker network ls --quiet --filter "name=${BUILDKITE_PLUGIN_DOCKER_NETWORK}")
   if [[ -z ${DOCKER_NETWORK_ID} ]] ; then
     echo "creating network ${BUILDKITE_PLUGIN_DOCKER_NETWORK}"
     docker network create ${BUILDKITE_PLUGIN_DOCKER_NETWORK}
-  else 
+  else
     echo "docker network ${BUILDKITE_PLUGIN_DOCKER_NETWORK} already exists"
   fi
   args+=("--network" "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}")

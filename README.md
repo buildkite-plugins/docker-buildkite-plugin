@@ -71,6 +71,12 @@ The working directory where the pipeline’s code will be mounted to, and run fr
 
 Example: `/app`
 
+### `srcdir` (optional)
+
+The relative path to the source directory you wish to mount into the running container. The default is `./`.
+
+Example: `./components/my-source`
+
 ### `always-pull` (optional)
 
 Whether to always pull the latest image before running the command. Useful if the image has a `latest` tag. The default is false, the image will only get pulled if not present.
@@ -99,7 +105,7 @@ Example: `root`
 
 ### `network` (optional)
 
-Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details. 
+Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details.
 
 Example: `test-network`
 
