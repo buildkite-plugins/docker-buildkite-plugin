@@ -1,12 +1,10 @@
 # Docker Buildkite Plugin ![Build status](https://badge.buildkite.com/3a4b0903b26c979f265c049c932fb4ff3c055af7a199a17216.svg)
 
-A [Buildkite](https://buildkite.com/) plugin for running pipeline steps in [Docker](https://www.docker.com/) containers
+A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) for running pipeline steps in [Docker](https://www.docker.com/) containers.
 
-The `buildkite-agent` command line tool (and required environment variables) will also be mounted into the container, allowing you to use it for artifact download, etc.
+The docker container has the host buildkite-agent binary mounted in to `/usr/bin/buildkite-agent` and the required environment variables set, allowing you to use it for artifact download, etc.
 
 If you need more control, please see the [docker-compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin).
-
-The docker container has the host buildkite-agent binary mounted in to `/usr/bin/buildkite-agent` and the required environment variables set.
 
 ## Example
 
