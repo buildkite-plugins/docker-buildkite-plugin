@@ -21,6 +21,13 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
   args+=("-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}")
 fi
 
+# Support docker run --group-add
+while IFS='=' read -r name _ ; do
+  if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ADDITIONAL_GROUPS_[0-9]+) ]] ; then
+    args+=( "--group-add" "${!name}" )
+  fi
+done < <(env | sort)
+
 # Handle the mount-buildkite-agent option
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]] ; then
   args+=(
