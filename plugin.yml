@@ -4,25 +4,27 @@ author: https://github.com/buildkite
 requirements:
   - docker
 configuration:
-  image:
-    type: string
-  workdir:
-    type: string
-  always-pull:
-    type: string
-  mount-buildkite-agent:
-    type: boolean
-  mounts:
-    type: array
-  environment:
-    type: array
-  user:
-    type: string
-  additional_groups:
-    type: array
-  network:
-    type: string
-  debug:
-    type: boolean
+  properties:
+    image:
+      type: string
+    workdir:
+      type: string
+    always-pull:
+      type: string
+    mount-buildkite-agent:
+      type: boolean
+    mounts:
+      type: array
+    environment:
+      type: array
+    user:
+      type: string
+    additional_groups:
+      type: array
+    network:
+      type: string
+    debug:
+      type: boolean
   required:
     - image
+  additionalProperties: false
