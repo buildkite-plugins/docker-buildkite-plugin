@@ -1,7 +1,0 @@
-{
-  "name": "docker",
-  "description": "Runs your build steps in Docker containers",
-  "author": "@buildkite",
-  "public": true,
-  "requirements": ["docker"]
-}
