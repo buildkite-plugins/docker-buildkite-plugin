@@ -2,6 +2,11 @@ steps:
   - label: "shellcheck"
     command: .buildkite/steps/shellcheck.sh
 
+  - label: ":sparkles:"
+    plugins:
+      plugin-linter#v1.0.0:
+        name: docker
+
   - label: ":docker: :hammer:"
     plugins:
       docker-compose#v1.3.1:
