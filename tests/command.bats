@@ -4,15 +4,12 @@ load '/usr/local/lib/bats/load.bash'
 
 # Uncomment to enable stub debug output:
 # export DOCKER_STUB_DEBUG=/dev/tty
-# export WHICH_STUB_DEBUG=/dev/tty
 
 @test "Run command" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_COMMAND='command1 "a string"'
-
-  stub which \
-    "buildkite-agent : echo /buildkite-agent"
+  export BUILDKITE_AGENT_BINARY_PATH="/buildkite-agent"
 
   stub docker \
     "run -it --rm --volume $PWD:/app --workdir /app --env BUILDKITE_JOB_ID  --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent image:tag bash -c 'command1 \"a string\"' : echo ran command in docker"
@@ -23,7 +20,6 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "ran command in docker"
 
   unstub docker
-  unstub which
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
@@ -32,9 +28,7 @@ load '/usr/local/lib/bats/load.bash'
 @test "Run command without a workdir should not fail" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_COMMAND="command1 \"a string\""
-
-  stub which \
-    "buildkite-agent : echo /buildkite-agent"
+  export BUILDKITE_AGENT_BINARY_PATH="/buildkite-agent"
 
   stub docker \
     "run -it --rm --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID  --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent image:tag bash -c 'command1 \"a string\"' : echo ran command in docker"
@@ -45,7 +39,6 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "ran command in docker"
 
   unstub docker
-  unstub which
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_COMMAND
