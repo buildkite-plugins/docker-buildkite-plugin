@@ -34,7 +34,7 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]]
     "--env" "BUILDKITE_JOB_ID"
     "--env" "BUILDKITE_BUILD_ID"
     "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
-    "--volume" "$(which buildkite-agent):/usr/bin/buildkite-agent"
+    "--volume" "$(command -v buildkite-agent):/usr/bin/buildkite-agent"
   )
 fi
 
@@ -63,7 +63,7 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}" ]] ; then
   DOCKER_NETWORK_ID=$(docker network ls --quiet --filter "name=${BUILDKITE_PLUGIN_DOCKER_NETWORK}")
   if [[ -z ${DOCKER_NETWORK_ID} ]] ; then
     echo "creating network ${BUILDKITE_PLUGIN_DOCKER_NETWORK}"
-    docker network create ${BUILDKITE_PLUGIN_DOCKER_NETWORK}
+    docker network create "${BUILDKITE_PLUGIN_DOCKER_NETWORK}"
   else 
     echo "docker network ${BUILDKITE_PLUGIN_DOCKER_NETWORK} already exists"
   fi
