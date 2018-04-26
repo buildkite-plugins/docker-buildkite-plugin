@@ -1,6 +1,8 @@
 steps:
-  - label: "shellcheck"
-    command: .buildkite/steps/shellcheck.sh
+  - label: ":shell: Shellcheck"
+    plugins:
+      shellcheck#v1.0.0:
+        files: hooks/**
 
   - label: ":sparkles:"
     plugins:
