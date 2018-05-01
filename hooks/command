@@ -17,8 +17,8 @@ args=(
 )
 
 # built-in support for the "USER_UID" and "USER_GID" environment variables, initialized to the BuildKite agent's user
-args+=( "--env" "USER_UID=${UID}" )
-args+=( "--env" "USER_GID=${GID}" )
+args+=( "--env" "USER_UID=$(id -u)" )
+args+=( "--env" "USER_GID=$(id -g)" )
 
 # add custom hosts to container's "/etc/hosts" by sending "--add host" arg to docker command
 if [[ -f "/etc/buildkite-agent/hosts" ]]; then
