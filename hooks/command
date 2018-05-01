@@ -16,6 +16,10 @@ args=(
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
 )
 
+# built-in support for the "USER_UID" and "USER_GID" environment variables, initialized to the BuildKite agent's user
+args+=( "--env" "USER_UID=${UID}" )
+args+=( "--env" "USER_GID=${GID}" )
+
 # add custom hosts to container's "/etc/hosts" by sending "--add host" arg to docker command
 if [[ -f "/etc/buildkite-agent/hosts" ]]; then
     while IFS='' read -r line || [[ -n "$line" ]]; do
