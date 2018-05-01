@@ -16,6 +16,13 @@ args=(
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
 )
 
+# add custom hosts to container's "/etc/hosts" by sending "--add host" arg to docker command
+if [[ -f "/etc/buildkite-agent/hosts" ]]; then
+    while IFS='' read -r line || [[ -n "$line" ]]; do
+        args+=("--add-host" "${line}")
+    done < "/etc/buildkite-agent/hosts"
+fi
+
 # Support docker run --user
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
   args+=("-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}")
