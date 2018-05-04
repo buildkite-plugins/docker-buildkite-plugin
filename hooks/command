@@ -11,14 +11,31 @@ fi
 
 args=(
   "-it"
+  "--entrypoint" "bash"
   "--rm"
   "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
 )
 
+# built-in support for the "USER_UID" and "USER_GID" environment variables, initialized to the BuildKite agent's user
+args+=( "--env" "SOURCE_UID=$(id -u)" )
+args+=( "--env" "SOURCE_GID=$(id -g)" )
+
+# add custom hosts to container's "/etc/hosts" by sending "--add host" arg to docker command
+if [[ -f "/etc/buildkite-agent/hosts" ]]; then
+    while IFS='' read -r line || [[ -n "$line" ]]; do
+        args+=("--add-host" "${line}")
+    done < "/etc/buildkite-agent/hosts"
+fi
+
 # Support docker run --user
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
   args+=("-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}")
+fi
+
+# Support docker run --entrypoint
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}" ]] ; then
+  args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
 fi
 
 # Support docker run --group-add
@@ -79,7 +96,7 @@ echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMA
 if [[ "${debug_mode:-off}" =~ (on) ]] ; then
   printf "$ docker run ${args[*]} %q  %q" \
     "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" \
-    "${BUILDKITE_COMMAND}" >&2
+    "${BUILDKITE_COMMAND}\n" >&2
 fi
 
-docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
+docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" -c "${BUILDKITE_COMMAND}"
