@@ -17,8 +17,8 @@ args=(
 )
 
 # built-in support for the "USER_UID" and "USER_GID" environment variables, initialized to the BuildKite agent's user
-args+=( "--env" "USER_UID=$(id -u)" )
-args+=( "--env" "USER_GID=$(id -g)" )
+args+=( "--env" "SOURCE_UID=$(id -u)" )
+args+=( "--env" "SOURCE_GID=$(id -g)" )
 
 # add custom hosts to container's "/etc/hosts" by sending "--add host" arg to docker command
 if [[ -f "/etc/buildkite-agent/hosts" ]]; then
@@ -90,7 +90,7 @@ echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMA
 if [[ "${debug_mode:-off}" =~ (on) ]] ; then
   printf "$ docker run ${args[*]} %q  %q" \
     "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" \
-    "${BUILDKITE_COMMAND}" >&2
+    "${BUILDKITE_COMMAND}\n" >&2
 fi
 
-docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
+bash -c "docker run \"${args[@]}\" \"${BUILDKITE_PLUGIN_DOCKER_IMAGE}\" ${BUILDKITE_COMMAND}"
