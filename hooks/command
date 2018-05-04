@@ -32,6 +32,11 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
   args+=("-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}")
 fi
 
+# Support docker run --entrypoint
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}" ]] ; then
+  args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
+fi
+
 # Support docker run --group-add
 while IFS='=' read -r name _ ; do
   if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ADDITIONAL_GROUPS_[0-9]+) ]] ; then
