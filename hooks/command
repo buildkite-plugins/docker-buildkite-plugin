@@ -11,6 +11,7 @@ fi
 
 args=(
   "-it"
+  "--entrypoint" "bash"
   "--rm"
   "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
   "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
@@ -98,4 +99,4 @@ if [[ "${debug_mode:-off}" =~ (on) ]] ; then
     "${BUILDKITE_COMMAND}\n" >&2
 fi
 
-bash -c "docker run \"${args[@]}\" \"${BUILDKITE_PLUGIN_DOCKER_IMAGE}\" ${BUILDKITE_COMMAND}"
+docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" -c "${BUILDKITE_COMMAND}"
