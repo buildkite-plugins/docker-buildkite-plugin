@@ -25,6 +25,8 @@ configuration:
       type: string
     debug:
       type: boolean
+    runtime:
+      type: string
   required:
     - image
   additionalProperties: false

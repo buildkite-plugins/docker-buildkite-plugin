@@ -74,6 +74,11 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}" ]] ; then
   args+=("--network" "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}")
 fi
 
+# Support docker run --runtime
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}" ]] ; then
+  args+=("--runtime" "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}")
+fi
+
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 
 if [[ "${debug_mode:-off}" =~ (on) ]] ; then
