@@ -113,6 +113,12 @@ Outputs the command to be run, and enables xtrace in the plugin
 
 Example: `true`
 
+### `runtime` (optional)
+
+Specify an explicit docker runtime. See https://docs.docker.com/engine/reference/commandline/run/#options for more details.
+
+Example: `nvidia`
+
 ## License
 
 MIT (see [LICENSE](LICENSE))
