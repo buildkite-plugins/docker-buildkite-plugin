@@ -29,7 +29,8 @@ steps:
         image: "node:7"
         workdir: /app
         environment:
-          - MY_SPECIAL_VALUE=1
+          - MY_SECRET_KEY
+          - MY_SPECIAL_BUT_PUBLIC_VALUE=kittens
 ```
 
 You can pass in additional volume mounts. This is useful for docker-in-docker:
@@ -79,15 +80,15 @@ Whether to automatically mount the `buildkite-agent` binary from the host agent 
 
 ### `mounts` (optional)
 
-Extra volume mounts to pass to the docker container, in an array of `SOURCE:TARGET` params
+Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter.
 
 Example: `/var/run/docker.sock:/var/run/docker.sock`
 
 ### `environment` (optional)
 
-Extra environment variables to pass to the docker container, in an array of `KEY=VALUE` params.
+Extra environment variables to pass to the docker container, in an array. Items can be specified as either `KEY` or `KEY=value`. Each entry corresponds to a Docker CLI `--env` parameter. Values specified as variable names will be passed through from the outer environment.
 
-Example: `MY_SPECIAL_VALUE=1`
+Examples: `MY_SECRET_KEY`, `MY_SPECIAL_BUT_PUBLIC_VALUE=kittens`
 
 ### `user` (optional)
 
