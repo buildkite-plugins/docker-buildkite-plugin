@@ -14,7 +14,7 @@ The following pipeline will run `yarn install` and `yarn run test` inside a Dock
 steps:
   - command: yarn install && yarn run test
     plugins:
-      docker#v1.2.0:
+      docker#v1.2.1:
         image: "node:7"
         workdir: /app
 ```
@@ -25,7 +25,7 @@ You can pass in additional environment variables:
 steps:
   - command: yarn install && yarn run test
     plugins:
-      docker#v1.2.0:
+      docker#v1.2.1:
         image: "node:7"
         workdir: /app
         environment:
@@ -39,7 +39,7 @@ You can pass in additional volume mounts. This is useful for docker-in-docker:
 steps:
   - command: docker build . -t image:tag
     plugins:
-      docker#v1.2.0:
+      docker#v1.2.1:
         image: "docker:latest"
         mounts:
           - /var/run/docker.sock:/var/run/docker.sock
@@ -51,7 +51,7 @@ You can specify a docker network to join. This will be created if it does not al
 steps:
   - command: docker build . -t image:tag
     plugins:
-      docker#v1.2.0:
+      docker#v1.2.1:
         image: "docker:latest"
         network: "test-network"
 ```
