@@ -45,7 +45,7 @@ fi
 # Parse extra env vars and add them to the docker args
 while IFS='=' read -r name _ ; do
   if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_[0-9]+) ]] ; then
-    echo "parsed env[$name] = [${!name}]"
+    echo "parsed env[$name]"
     args+=( "--env" "${!name}" )
   fi
 done < <(env | sort)
