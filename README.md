@@ -116,9 +116,15 @@ Example: `true`
 
 ### `runtime` (optional)
 
-Specify an explicit docker runtime. See https://docs.docker.com/engine/reference/commandline/run/#options for more details.
+Specify an explicit docker runtime. See the [docker run options documentation](https://docs.docker.com/engine/reference/commandline/run/#options) for more details.
 
 Example: `nvidia`
+
+### `entrypoint` (optional)
+
+Override the image’s default entrypoint. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details.
+
+Example: `/my/custom/entrypoint.sh`
 
 ## License
 
