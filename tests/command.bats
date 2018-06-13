@@ -258,3 +258,26 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_RUNTIME
   unset BUILDKITE_COMMAND
 }
+
+@test "Runs with entrypoint option" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=/some/custom/entry/point
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/app --workdir /app --entrypoint /some/custom/entry/point image:tag bash -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+  unset BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT
+  unset BUILDKITE_COMMAND
+}
