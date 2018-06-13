@@ -116,7 +116,7 @@ Example: `true`
 
 ### `runtime` (optional)
 
-Specify an explicit docker runtime. See https://docs.docker.com/engine/reference/commandline/run/#options for more details.
+Specify an explicit docker runtime. See the [docker run options documentation](https://docs.docker.com/engine/reference/commandline/run/#options) for more details.
 
 Example: `nvidia`
 
