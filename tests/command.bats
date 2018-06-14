@@ -263,11 +263,11 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=/some/custom/entry/point
-  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=/bin/echo
+  export BUILDKITE_COMMAND="hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/app --workdir /app --entrypoint /some/custom/entry/point image:tag bash -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --volume $PWD:/app --workdir /app --entrypoint /bin/echo image:tag 'hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
