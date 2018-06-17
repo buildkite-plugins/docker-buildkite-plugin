@@ -90,16 +90,18 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_INTERPRETER}" =~ ^(false|off|0)$ ]] ; then
   BUILDKITE_PLUGIN_DOCKER_INTERPRETER=''
 fi
 
+args+=("${BUILDKITE_PLUGIN_DOCKER_IMAGE}")
+
+if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_INTERPRETER:-}" ]]; then
+  args+=(${BUILDKITE_PLUGIN_DOCKER_INTERPRETER} "${BUILDKITE_COMMAND}")
+else
+  args+=(${BUILDKITE_COMMAND})
+fi
+
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 
 if [[ "${debug_mode:-off}" =~ (on) ]] ; then
-  printf "$ docker run ${args[*]} %q  %q" \
-    "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" \
-    "${BUILDKITE_COMMAND}" >&2
+  echo "$ docker run ${args[*]}" >&2
 fi
 
-if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_INTERPRETER:-}" ]]; then
-  docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" ${BUILDKITE_PLUGIN_DOCKER_INTERPRETER} "${BUILDKITE_COMMAND}"
-else
-  docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" ${BUILDKITE_COMMAND}
-fi
+docker run "${args[@]}"
