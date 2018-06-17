@@ -29,6 +29,8 @@ configuration:
       type: boolean
     runtime:
       type: string
+    interpreter:
+      type: string
   required:
     - image
   additionalProperties: false
