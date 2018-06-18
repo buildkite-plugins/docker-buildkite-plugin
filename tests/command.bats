@@ -259,7 +259,7 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_COMMAND
 }
 
-@test "Runs with entrypoint option w/o interpreter by default" {
+@test "Runs with entrypoint option w/o shell by default" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
@@ -282,12 +282,12 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_COMMAND
 }
 
-@test "Runs with entrypoint option w/ explicit interpreter" {
+@test "Runs with entrypoint option w/ explicit shell" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=/some/custom/entry/point
-  export BUILDKITE_PLUGIN_DOCKER_INTERPRETER='custom-bash -a -b'
+  export BUILDKITE_PLUGIN_DOCKER_SHELL='custom-bash -a -b'
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
@@ -303,15 +303,15 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
   unset BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT
-  unset BUILDKITE_PLUGIN_DOCKER_INTERPRETER
+  unset BUILDKITE_PLUGIN_DOCKER_SHELL
   unset BUILDKITE_COMMAND
 }
 
-@test "Runs with interpreter option" {
+@test "Runs with shell option" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_INTERPRETER='custom-bash -a -b'
+  export BUILDKITE_PLUGIN_DOCKER_SHELL='custom-bash -a -b'
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
@@ -326,15 +326,15 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
-  unset BUILDKITE_PLUGIN_DOCKER_INTERPRETER
+  unset BUILDKITE_PLUGIN_DOCKER_SHELL
   unset BUILDKITE_COMMAND
 }
 
-@test "Runs with interpreter disabled" {
+@test "Runs with shell disabled" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_INTERPRETER=false
+  export BUILDKITE_PLUGIN_DOCKER_SHELL=false
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
@@ -349,6 +349,6 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
-  unset BUILDKITE_PLUGIN_DOCKER_INTERPRETER
+  unset BUILDKITE_PLUGIN_DOCKER_SHELL
   unset BUILDKITE_COMMAND
 }

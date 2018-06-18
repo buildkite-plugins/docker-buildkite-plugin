@@ -120,15 +120,15 @@ Specify an explicit docker runtime. See the [docker run options documentation](h
 
 Example: `nvidia`
 
-### `interpreter` (optional)
+### `shell` (optional)
 
-Set the interpreter to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `bash -c`.
+Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `bash -c`.
 
 Example: `powershell -Command`
 
 ### `entrypoint` (optional)
 
-Override the image’s default entrypoint, and defaults the `interpreter` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details.
+Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details.
 
 Example: `/my/custom/entrypoint.sh`
 

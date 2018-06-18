@@ -29,7 +29,7 @@ configuration:
       type: boolean
     runtime:
       type: string
-    interpreter:
+    shell:
       type: string
   required:
     - image
