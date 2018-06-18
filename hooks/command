@@ -93,8 +93,10 @@ fi
 args+=("${BUILDKITE_PLUGIN_DOCKER_IMAGE}")
 
 if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_INTERPRETER:-}" ]]; then
+  # shellcheck disable=SC2206 # We want the word splits
   args+=(${BUILDKITE_PLUGIN_DOCKER_INTERPRETER} "${BUILDKITE_COMMAND}")
 else
+  # shellcheck disable=SC2206 # We want the word splits
   args+=(${BUILDKITE_COMMAND})
 fi
 
