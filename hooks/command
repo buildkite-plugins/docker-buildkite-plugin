@@ -81,6 +81,8 @@ fi
 # Support docker run --entrypoint
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}" ]] ; then
   args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
+else
+  BUILDKITE_COMMAND="bash -c ${BUILDKITE_COMMAND}"
 fi
 
 echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
@@ -91,4 +93,4 @@ if [[ "${debug_mode:-off}" =~ (on) ]] ; then
     "${BUILDKITE_COMMAND}" >&2
 fi
 
-docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" bash -c "${BUILDKITE_COMMAND}"
+docker run "${args[@]}" "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" "${BUILDKITE_COMMAND}"
