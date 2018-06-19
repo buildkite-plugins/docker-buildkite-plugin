@@ -259,7 +259,7 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_COMMAND
 }
 
-@test "Runs with entrypoint option" {
+@test "Runs with entrypoint option w/o shell by default" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
@@ -267,7 +267,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/app --workdir /app --entrypoint /some/custom/entry/point image:tag bash -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --volume $PWD:/app --workdir /app --entrypoint /some/custom/entry/point image:tag echo hello world : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -279,5 +279,76 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
   unset BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT
+  unset BUILDKITE_COMMAND
+}
+
+@test "Runs with entrypoint option w/ explicit shell" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=/some/custom/entry/point
+  export BUILDKITE_PLUGIN_DOCKER_SHELL='custom-bash -a -b'
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/app --workdir /app --entrypoint /some/custom/entry/point image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+  unset BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT
+  unset BUILDKITE_PLUGIN_DOCKER_SHELL
+  unset BUILDKITE_COMMAND
+}
+
+@test "Runs with shell option" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_SHELL='custom-bash -a -b'
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/app --workdir /app image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+  unset BUILDKITE_PLUGIN_DOCKER_SHELL
+  unset BUILDKITE_COMMAND
+}
+
+@test "Runs with shell disabled" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_SHELL=false
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/app --workdir /app image:tag echo hello world : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_WORKDIR
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+  unset BUILDKITE_PLUGIN_DOCKER_SHELL
   unset BUILDKITE_COMMAND
 }
