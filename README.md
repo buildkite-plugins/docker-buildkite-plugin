@@ -122,7 +122,7 @@ Example: `nvidia`
 
 ### `shell` (optional)
 
-Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `bash -c`.
+Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `bash -e -c`.
 
 Example: `powershell -Command`
 
