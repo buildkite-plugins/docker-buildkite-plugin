@@ -2,7 +2,7 @@
 
 A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) for running pipeline steps in [Docker](https://www.docker.com/) containers.
 
-The docker container has the host buildkite-agent binary mounted in to `/usr/bin/buildkite-agent` and the required environment variables set, allowing you to use it for artifact download, etc.
+The Docker container will have host’s `buildkite-agent` binary mounted in to `/usr/bin/buildkite-agent`, and the three required environment variables set for using the artifact upload, download, annotate, etc commands.
 
 If you need more control, please see the [docker-compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin).
 
@@ -86,9 +86,9 @@ Example: `/var/run/docker.sock:/var/run/docker.sock`
 
 ### `environment` (optional)
 
-Extra environment variables to pass to the docker container, in an array. Items can be specified as either `KEY` or `KEY=value`. Each entry corresponds to a Docker CLI `--env` parameter. Values specified as variable names will be passed through from the outer environment.
+An array of additional environment variables to pass into to the docker container. Items can be specified as either `KEY` or `KEY=value`. Each entry corresponds to a Docker CLI `--env` parameter. Values specified as variable names will be passed through from the outer environment.
 
-Examples: `MY_SECRET_KEY`, `MY_SPECIAL_BUT_PUBLIC_VALUE=kittens`
+Examples: `BUILDKITE_MESSAGE`, `MY_SECRET_KEY`, `MY_SPECIAL_BUT_PUBLIC_VALUE=kittens`
 
 ### `user` (optional)
 
