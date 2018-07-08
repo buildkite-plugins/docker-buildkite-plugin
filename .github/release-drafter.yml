@@ -14,5 +14,6 @@ template: |
       plugins:
   -      docker#$PREVIOUS_TAG:
   +      docker#TODO:
-          run: app
+          image: someimage
+          workdir: /app
   ```
