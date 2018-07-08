@@ -12,7 +12,7 @@ template: |
   steps:
     - command: test.sh
       plugins:
-  -      docker-compose#$PREVIOUS_TAG:
-  +      docker-compose#TODO:
+  -      docker#$PREVIOUS_TAG:
+  +      docker#TODO:
           run: app
   ```
