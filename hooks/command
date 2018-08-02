@@ -16,7 +16,7 @@ args=(
 # Handle the mount-checkout-path option
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT_PATH:-true}" =~ (true|on|1) ]] ; then
   args+=(
-    "--volume" "${BUILDKITE_BUILD_CHECKOUT_PATH}:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
+    "--volume" "${PWD}:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
     "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
   )
 fi
