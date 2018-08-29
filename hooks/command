@@ -8,12 +8,26 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
   debug_mode='on'
 fi
 
-args=(
-  "-it"
-  "--rm"
-  "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
-  "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
-)
+windows_image () { [[ "${BUILDKITE_PLUGIN_DOCKER_WINDOWS_IMAGE:-false}" =~ (true|on|1) ]]; }
+
+args=("--rm")
+
+if ! windows_image; then
+  args+=("-it")
+fi
+
+if windows_image; then
+  pwd=$(powershell -Command echo $PWD)
+  args+=(
+    "--volume" "$pwd:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-C:\workdir}"
+    "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-C:\workdir}"
+  )
+else
+  args+=(
+    "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
+    "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
+  )
+fi
 
 # Support docker run --user
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
@@ -29,16 +43,23 @@ done < <(env | sort)
 
 # Handle the mount-buildkite-agent option
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]] ; then
-  if [[ -z "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
-    BUILDKITE_AGENT_BINARY_PATH=$(command -v buildkite-agent)
-  fi
+  if windows_image; then
+    # reference: https://github.com/moby/moby/issues/30555#issuecomment-279170073
+    # reference: https://docs.docker.com/engine/reference/commandline/run/#mount-volume--v---read-only
+    echo "WARNING: Mounting the buildkite-agent binary into a Windows container is not possible."
+    echo "         Set 'mount-buildkite-agent: false' to remove this warning."
+  else
+    if [[ -z "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+      BUILDKITE_AGENT_BINARY_PATH=$(command -v buildkite-agent)
+    fi
 
-  args+=(
-    "--env" "BUILDKITE_JOB_ID"
-    "--env" "BUILDKITE_BUILD_ID"
-    "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
-    "--volume" "$BUILDKITE_AGENT_BINARY_PATH:/usr/bin/buildkite-agent"
-  )
+    args+=(
+      "--env" "BUILDKITE_JOB_ID"
+      "--env" "BUILDKITE_BUILD_ID"
+      "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
+      "--volume" "$BUILDKITE_AGENT_BINARY_PATH:/usr/bin/buildkite-agent"
+    )
+  fi
 fi
 
 # Parse extra env vars and add them to the docker args
@@ -84,7 +105,16 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}" ]] ; then
   BUILDKITE_PLUGIN_DOCKER_SHELL="${BUILDKITE_PLUGIN_DOCKER_SHELL:-false}"
 fi
 
-BUILDKITE_PLUGIN_DOCKER_SHELL="${BUILDKITE_PLUGIN_DOCKER_SHELL:-bash -e -c}"
+if [[ -z ${BUILDKITE_PLUGIN_DOCKER_SHELL:-} ]]; then
+  if windows_image; then
+    # Stop running the powershell command(s) when an error occurs
+    BUILDKITE_PLUGIN_DOCKER_SHELL="powershell -Command Set-Variable -Name ErrorActionPreference -Value Stop"
+    # Prepend a newline to the BUILDKITE_COMMAND to give room for the Set-Variable command
+    BUILDKITE_COMMAND=$'\n'"$BUILDKITE_COMMAND"
+  else
+    BUILDKITE_PLUGIN_DOCKER_SHELL="bash -e -c"
+  fi
+fi
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_SHELL}" =~ ^(false|off|0)$ ]] ; then
   BUILDKITE_PLUGIN_DOCKER_SHELL=''

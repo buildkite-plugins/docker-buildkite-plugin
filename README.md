@@ -132,6 +132,10 @@ Override the image’s default entrypoint, and defaults the `shell` option to `f
 
 Example: `/my/custom/entrypoint.sh`
 
+### `windows-image` (optional)
+
+Defaults to `false`. Set to `true` if you want to run commands in a Windows container.
+
 ## License
 
 MIT (see [LICENSE](LICENSE))

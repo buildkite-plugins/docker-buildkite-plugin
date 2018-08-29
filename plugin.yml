@@ -31,6 +31,8 @@ configuration:
       type: string
     shell:
       type: string
+    windows-image:
+      type: boolean
   required:
     - image
   additionalProperties: false
