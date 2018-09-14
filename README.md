@@ -104,7 +104,7 @@ Example: `docker`
 
 ### `network` (optional)
 
-Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details. 
+Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details.
 
 Example: `test-network`
 
@@ -122,7 +122,7 @@ Example: `nvidia`
 
 ### `shell` (optional)
 
-Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `bash -e -c`.
+Set the shell to use for the command. The default is no shell. If you command uses multiple lines or shell-isms like output redirection then a shell of `/bin/sh -e -c` is used.
 
 Example: `powershell -Command`
 
