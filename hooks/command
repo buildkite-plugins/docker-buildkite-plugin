@@ -2,6 +2,24 @@
 
 set -euo pipefail
 
+# Reads either a value or a list from plugin config
+function plugin_read_list() {
+  local prefix="$1"
+  local parameter="${prefix}_0"
+
+  if [[ -n "${!parameter:-}" ]]; then
+    local i=0
+    local parameter="${prefix}_${i}"
+    while [[ -n "${!parameter:-}" ]]; do
+      echo "${!parameter}"
+      i=$((i+1))
+      parameter="${prefix}_${i}"
+    done
+  elif [[ -n "${!prefix:-}" ]]; then
+    echo "${!prefix}"
+  fi
+}
+
 debug_mode='off'
 if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
   echo "--- :hammer: Enabling debug mode"
@@ -78,29 +96,71 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}" ]] ; then
   args+=("--runtime" "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}")
 fi
 
-# Support docker run --entrypoint
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}" ]] ; then
-  args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
-  BUILDKITE_PLUGIN_DOCKER_SHELL="${BUILDKITE_PLUGIN_DOCKER_SHELL:-false}"
+entrypoint=()
+
+# Parse entrypoint if provided
+for arg in $(plugin_read_list BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT) ; do
+  entrypoint+=("$arg")
+done
+
+if [[ ${#entrypoint[@]} -gt 0 ]] ; then
+  args+=("--entrypoint")
+  for entrypoint_arg in "${entrypoint[@]}" ; do
+    args+=("$entrypoint_arg")
+  done
 fi
 
-BUILDKITE_PLUGIN_DOCKER_SHELL="${BUILDKITE_PLUGIN_DOCKER_SHELL:-bash -e -c}"
+shell=()
+shell_disabled=''
 
-if [[ "${BUILDKITE_PLUGIN_DOCKER_SHELL}" =~ ^(false|off|0)$ ]] ; then
-  BUILDKITE_PLUGIN_DOCKER_SHELL=''
-fi
-
-args+=("${BUILDKITE_PLUGIN_DOCKER_IMAGE}")
-
-if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]]; then
-  # shellcheck disable=SC2206 # We want the word splits
-  args+=(${BUILDKITE_PLUGIN_DOCKER_SHELL} "${BUILDKITE_COMMAND}")
+# Either disable the shell or parse the shell arguments
+if [[ -z "${BUILDKITE_COMMAND}" ]] || [[ ! "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" =~ ^(false|off|0)$ ]] ; then
+  shell_disabled=1
 else
-  # shellcheck disable=SC2206 # We want the word splits
-  args+=(${BUILDKITE_COMMAND})
+  for arg in $(plugin_read_list BUILDKITE_PLUGIN_DOCKER_SHELL) ; do
+    shell+=("$arg")
+  done
 fi
 
-echo "--- :docker: Running ${BUILDKITE_COMMAND} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+# Set a default shell if one is needed
+if [[ -z $shell_disabled ]] && [[ ${#shell[@]} -eq 0 ]] ; then
+  shell+=("/bin/sh" "-e" "-c")
+fi
+
+command=()
+
+# Parse plugin command if provided
+for arg in $(plugin_read_list BUILDKITE_PLUGIN_DOCKER_COMMAND) ; do
+  command+=("$arg")
+done
+
+if [[ ${#command[@]} -gt 0 ]] && [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+  echo "+++ Error: Can't use both a step level command and the command parameter of the plugin"
+  exit 1
+fi
+
+# Assemble the shell and command arguments into the docker arguments
+
+display_command=()
+
+if [[ ${#shell[@]} -gt 0 ]] ; then
+  for shell_arg in "${shell[@]}" ; do
+    args+=("$shell_arg")
+    display_command+=("$shell_arg")
+  done
+fi
+
+if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
+  args+=("${BUILDKITE_COMMAND}")
+  display_command+=("'${BUILDKITE_COMMAND}'")
+elif [[ ${#command[@]} -gt 0 ]] ; then
+  for command_arg in "${command[@]}" ; do
+    args+=("$command_arg")
+    display_command+=("${command_arg}")
+  done
+fi
+
+echo "--- :docker: Running ${display_command[*]} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 
 if [[ "${debug_mode:-off}" =~ (on) ]] ; then
   echo "$ docker run ${args[*]}" >&2

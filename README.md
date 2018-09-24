@@ -19,6 +19,17 @@ steps:
         workdir: /app
 ```
 
+If you want to control how your command is passed to the docker container, you can use the `command` parameter on the plugin directly:
+
+```yml
+steps:
+    plugins:
+      docker#v1.4.0:
+        image: "koalaman/shellcheck"
+        command: ["--exclude=SC2207", "/app/script.sh"]
+        workdir: /app
+```
+
 You can pass in additional environment variables:
 
 ```yml
@@ -104,7 +115,7 @@ Example: `docker`
 
 ### `network` (optional)
 
-Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details. 
+Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details.
 
 Example: `test-network`
 
@@ -122,15 +133,22 @@ Example: `nvidia`
 
 ### `shell` (optional)
 
-Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `bash -e -c`.
+Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `["/bin/sh", "-e", "-c"]` unless you have provided an `entrypoint` or `command`.
 
-Example: `powershell -Command`
+Example: `["powershell", "-Command"]`
 
 ### `entrypoint` (optional)
 
 Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details.
 
-Example: `/my/custom/entrypoint.sh`
+Example: `["/my/custom/entrypoint.sh", "-arg"]`
+
+
+### `command` (optional)
+
+Override the image’s default command, and defaults the `shell` option to `false`.
+
+Example: `["/bin/mycommand", "-c", "test"]`
 
 ## License
 
