@@ -23,7 +23,7 @@ If you want to control how your command is passed to the docker container, you c
 
 ```yml
 steps:
-    plugins:
+  - plugins:
       docker#v1.4.0:
         image: "koalaman/shellcheck"
         command: ["--exclude=SC2207", "/app/script.sh"]
