@@ -15,8 +15,10 @@ configuration:
       type: boolean
     mounts:
       type: array
+    command:
+      type: [string, array]
     entrypoint:
-      type: string
+      type: [string, array]
     environment:
       type: array
     user:
@@ -30,7 +32,7 @@ configuration:
     runtime:
       type: string
     shell:
-      type: string
+      type: [string, array]
   required:
     - image
   additionalProperties: false
