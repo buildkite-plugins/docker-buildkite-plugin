@@ -18,7 +18,7 @@ configuration:
     command:
       type: [string, array]
     entrypoint:
-      type: [string, array]
+      type: string
     environment:
       type: array
     user:

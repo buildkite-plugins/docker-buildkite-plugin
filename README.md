@@ -141,7 +141,7 @@ Example: `["powershell", "-Command"]`
 
 Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details.
 
-Example: `["/my/custom/entrypoint.sh", "-arg"]`
+Example: `/my/custom/entrypoint.sh`
 
 
 ### `command` (optional)
