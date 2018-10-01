@@ -296,7 +296,7 @@ load '/usr/local/lib/bats/load.bash'
   run $PWD/hooks/command
 
   assert_failure
-  assert_output --partial "expected an array"
+  assert_output --partial "shell configuration option can no longer be specified as a string, but only as an array"
 
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
@@ -334,7 +334,7 @@ load '/usr/local/lib/bats/load.bash'
   run $PWD/hooks/command
 
   assert_failure
-  assert_output --partial "expected an array"
+  assert_output --partial "command configuration option must be an array"
 
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
