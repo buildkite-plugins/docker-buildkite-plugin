@@ -2,24 +2,24 @@
 
 set -euo pipefail
 
-# Reads either a value or a list from plugin config into a global result array
+# Reads a list from plugin config into a global result array
 # Returns success if values were read
 function plugin_read_list_into_result() {
   local prefix="$1"
-  local parameter="${prefix}_0"
+  local i=0
+  local parameter="${prefix}_${i}"
   result=()
 
-  if [[ -n "${!parameter:-}" ]]; then
-    local i=0
-    local parameter="${prefix}_${i}"
-    while [[ -n "${!parameter:-}" ]]; do
-      result+=("${!parameter}")
-      i=$((i+1))
-      parameter="${prefix}_${i}"
-    done
-  elif [[ -n "${!prefix:-}" ]]; then
-    result+=("${!prefix}")
+  if [[ -n "${!prefix:-}" ]] ; then
+    echo "🚨 Plugin received a string for $prefix, expected an array" >&2
+    exit 1
   fi
+
+  while [[ -n "${!parameter:-}" ]]; do
+    result+=("${!parameter}")
+    i=$((i+1))
+    parameter="${prefix}_${i}"
+  done
 
   [[ ${#result[@]} -gt 0 ]] || return 1
 }
