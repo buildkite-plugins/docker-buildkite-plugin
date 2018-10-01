@@ -80,7 +80,7 @@ Example: `/app`
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true`. Set to `false` if you want to disable, or if you already have your own binary in the image.
 
-### `mounts` (optional)
+### `mounts` (optional, array)
 
 Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter, with the addition of relative paths being converted to their full-path (e.g `.:/app`).
 
@@ -90,7 +90,7 @@ Example: `/var/run/docker.sock:/var/run/docker.sock`
 
 Whether to always pull the latest image before running the command. Useful if the image has a `latest` tag. The default is false, the image will only get pulled if not present.
 
-### `environment` (optional)
+### `environment` (optional, array)
 
 An array of additional environment variables to pass into to the docker container. Items can be specified as either `KEY` or `KEY=value`. Each entry corresponds to a Docker CLI `--env` parameter. Values specified as variable names will be passed through from the outer environment.
 
@@ -126,7 +126,7 @@ Specify an explicit docker runtime. See the [docker run options documentation](h
 
 Example: `nvidia`
 
-### `shell` (optional)
+### `shell` (optional, array)
 
 Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `["/bin/sh", "-e", "-c"]` unless you have provided an `entrypoint` or `command`.
 
@@ -138,7 +138,7 @@ Override the image’s default entrypoint, and defaults the `shell` option to `f
 
 Example: `/my/custom/entrypoint.sh`
 
-### `command` (optional)
+### `command` (optional, array)
 
 Override the image’s default command, and defaults the `shell` option to `false`.
 
