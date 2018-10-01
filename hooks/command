@@ -24,6 +24,18 @@ function plugin_read_list_into_result() {
   [[ ${#result[@]} -gt 0 ]] || return 1
 }
 
+# docker's -v arguments don't do local path expansion, so we add very simple support for .
+expand_relative_volume_path() {
+  local path="$1"
+  if [[ $path =~ ^\.: ]] ; then
+    printf "%s" "${PWD}${path#.}"
+  elif [[ $path =~ ^\.(/|\\) ]] ; then
+    printf "%s" "${PWD}/${path#.}"
+  else
+    echo "$path"
+  fi
+}
+
 debug_mode='off'
 if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
   echo "--- :hammer: Enabling debug mode"
@@ -33,9 +45,26 @@ fi
 args=(
   "-it"
   "--rm"
-  "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
-  "--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}"
 )
+
+default_mounts=1
+
+# Parse mounts and add them to the docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
+  default_mounts=''
+  for arg in "${result[@]}" ; do
+    args+=( "--volume" "$(expand_relative_volume_path "${arg}")" )
+  done
+
+# By default, mount $PWD onto $WORKDIR
+else
+  args+=( "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}" )
+fi
+
+# Set workdir if one is provided or if mounts is the default
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ -n "$default_mounts" ]]; then
+  args+=("--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}")
+fi
 
 # Support docker run --user
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
@@ -75,13 +104,6 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ (true|on|1) ]] ; then
   echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
   docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 fi
-
-# Parse extra mounts and add them to the docker args
-while IFS='=' read -r name _ ; do
-  if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_MOUNTS_[0-9]+) ]] ; then
-    args+=( "--volume" "${!name}" )
-  fi
-done < <(env | sort)
 
 # Parse network and create it if it don't exist.
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}" ]] ; then
