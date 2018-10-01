@@ -150,6 +150,9 @@ elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]] ; then
   echo -n "🚨 The Docker Plugin’s shell configuration option can no longer be specified as a string, "
   echo -n "but only as an array. Please update your pipeline.yml to use an array, "
   echo "for example: [\"/bin/sh\", \"-e\", \"-u\"]."
+  echo
+  echo -n "Note that the docker plugin will infer a shell if one is required, so you might be able to remove"
+  echo "the option entirely"
   exit 1
 
 # Handle shell being provided as a string or list
