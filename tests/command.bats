@@ -3,7 +3,7 @@
 load '/usr/local/lib/bats/load.bash'
 
 # Uncomment to enable stub debug output:
-export DOCKER_STUB_DEBUG=/dev/tty
+# export DOCKER_STUB_DEBUG=/dev/tty
 
 @test "Run with BUILDKITE_COMMAND" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
