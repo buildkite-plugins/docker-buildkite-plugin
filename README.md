@@ -82,7 +82,7 @@ Whether to automatically mount the `buildkite-agent` binary from the host agent 
 
 ### `mounts` (optional)
 
-Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter, except relative paths are allowed. in `SOURCE`.
+Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter, with the addition of relative paths being converted to their full-path (e.g `.:/app`).
 
 Example: `/var/run/docker.sock:/var/run/docker.sock`
 
