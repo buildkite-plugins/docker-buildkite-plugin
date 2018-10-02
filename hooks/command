@@ -135,8 +135,8 @@ if [[ -n "${BUILDKITE_COMMAND}" ]]; then
   shell_disabled=''
 fi
 
-# Handle entrypoint if provided, and default shell to disabled
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}" ]] ; then
+# Handle entrypoint if set (or empty), and default shell to disabled
+if [[ "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT-false}" != "false" ]] ; then
   args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
   shell_disabled=1
 fi
