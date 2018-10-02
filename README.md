@@ -40,14 +40,14 @@ steps:
       docker#v1.4.0:
         image: "node:7"
         workdir: /app
-        mounts:
+        volumes:
           - ./code:/app
         environment:
           - MY_SECRET_KEY
           - MY_SPECIAL_BUT_PUBLIC_VALUE=kittens
 ```
 
-You can pass in additional volume mounts. This disables the default mount behaviour of mounting `$PWD` to `/workdir`. This is useful for docker-in-docker:
+You can pass in additional volumes to be mounted. This disables the default mount behaviour of mounting `$PWD` to `/workdir`. This is useful for docker-in-docker:
 
 ```yml
 steps:
@@ -57,7 +57,7 @@ steps:
     plugins:
       docker#v1.4.0:
         image: "docker:latest"
-        mounts:
+        volumes:
           - .:/work
           - /var/run/docker.sock:/var/run/docker.sock
 ```
@@ -80,7 +80,7 @@ Example: `/app`
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true`. Set to `false` if you want to disable, or if you already have your own binary in the image.
 
-### `mounts` (optional, array)
+### `volumes` (optional, array)
 
 Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter, with the addition of relative paths being converted to their full-path (e.g `.:/app`).
 
