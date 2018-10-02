@@ -243,11 +243,13 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=/some/custom/entry/point
-  export BUILDKITE_PLUGIN_DOCKER_SHELL='custom-bash -a -b'
+  export BUILDKITE_PLUGIN_DOCKER_SHELL_0='custom-bash'
+  export BUILDKITE_PLUGIN_DOCKER_SHELL_1='-a'
+  export BUILDKITE_PLUGIN_DOCKER_SHELL_2='-b'
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag 'custom-bash -a -b' 'echo hello world' : echo ran command in docker"
+    "run -it --rm --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -262,7 +264,7 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_COMMAND
 }
 
-@test "Runs BUILDKITE_COMMAND with shell option as array" {
+@test "Runs BUILDKITE_COMMAND with shell" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_PLUGIN_DOCKER_SHELL_0='custom-bash'
@@ -291,15 +293,11 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_SHELL='custom-bash -a -b'
   export BUILDKITE_COMMAND="echo hello world"
 
-  stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag 'custom-bash -a -b' 'echo hello world' : echo ran command in docker"
-
   run $PWD/hooks/command
 
-  assert_success
-  assert_output --partial "ran command in docker"
+  assert_failure
+  assert_output --partial "shell configuration option can no longer be specified as a string, but only as an array"
 
-  unstub docker
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
   unset BUILDKITE_PLUGIN_DOCKER_SHELL
@@ -333,15 +331,11 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_COMMAND="echo hello world"
   export BUILDKITE_COMMAND=
 
-  stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag 'echo hello world' : echo ran command in docker"
-
   run $PWD/hooks/command
 
-  assert_success
-  assert_output --partial "ran command in docker"
+  assert_failure
+  assert_output --partial "command configuration option must be an array"
 
-  unstub docker
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
   unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
   unset BUILDKITE_PLUGIN_DOCKER_SHELL

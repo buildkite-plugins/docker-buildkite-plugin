@@ -2,24 +2,24 @@
 
 set -euo pipefail
 
-# Reads either a value or a list from plugin config into a global result array
+# Reads a list from plugin config into a global result array
 # Returns success if values were read
 function plugin_read_list_into_result() {
   local prefix="$1"
-  local parameter="${prefix}_0"
+  local i=0
+  local parameter="${prefix}_${i}"
   result=()
 
-  if [[ -n "${!parameter:-}" ]]; then
-    local i=0
-    local parameter="${prefix}_${i}"
-    while [[ -n "${!parameter:-}" ]]; do
-      result+=("${!parameter}")
-      i=$((i+1))
-      parameter="${prefix}_${i}"
-    done
-  elif [[ -n "${!prefix:-}" ]]; then
-    result+=("${!prefix}")
+  if [[ -n "${!prefix:-}" ]] ; then
+    echo "🚨 Plugin received a string for $prefix, expected an array" >&2
+    exit 1
   fi
+
+  while [[ -n "${!parameter:-}" ]]; do
+    result+=("${!parameter}")
+    i=$((i+1))
+    parameter="${prefix}_${i}"
+  done
 
   [[ ${#result[@]} -gt 0 ]] || return 1
 }
@@ -46,6 +46,12 @@ args=(
   "-it"
   "--rm"
 )
+
+# Show a helpful error message if string version of mounts is used
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" ]] ; then
+  echo -n "🚨 The Docker Plugin’s mounts configuration option must be an array."
+  exit 1
+fi
 
 default_mounts=1
 
@@ -139,6 +145,16 @@ fi
 if [[ "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" =~ ^(false|off|0)$ ]] ; then
   shell_disabled=1
 
+# Show a helpful error message if a string version of shell is used
+elif [[ -n "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" ]] ; then
+  echo -n "🚨 The Docker Plugin’s shell configuration option can no longer be specified as a string, "
+  echo -n "but only as an array. Please update your pipeline.yml to use an array, "
+  echo "for example: [\"/bin/sh\", \"-e\", \"-u\"]."
+  echo
+  echo -n "Note that the docker plugin will infer a shell if one is required, so you might be able to remove"
+  echo "the option entirely"
+  exit 1
+
 # Handle shell being provided as a string or list
 elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SHELL ; then
   shell_disabled=''
@@ -156,6 +172,12 @@ if [[ -z $shell_disabled ]] && [[ ${#shell[@]} -eq 0 ]] ; then
 fi
 
 command=()
+
+# Show a helpful error message if string version of command is used
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_COMMAND:-}" ]] ; then
+  echo -n "🚨 The Docker Plugin’s command configuration option must be an array."
+  exit 1
+fi
 
 # Parse plugin command if provided
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_COMMAND ; then
