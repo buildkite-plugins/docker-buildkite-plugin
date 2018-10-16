@@ -62,7 +62,7 @@ steps:
           - /var/run/docker.sock:/var/run/docker.sock
 ```
 
-You can disable all mounts, including the default by setting `mounts` to `false`:
+You can disable all mounts, including the default by setting `volumes` to `false`:
 
 ```yml
 steps:
@@ -70,7 +70,7 @@ steps:
     plugins:
       docker#v1.4.0:
         image: "node:7"
-        mounts: false
+        volumes: false
 ```
 
 ## Configuration
