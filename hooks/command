@@ -5,20 +5,22 @@ set -euo pipefail
 # Reads a list from plugin config into a global result array
 # Returns success if values were read
 function plugin_read_list_into_result() {
-  local prefix="$1"
-  local i=0
-  local parameter="${prefix}_${i}"
   result=()
 
-  if [[ -n "${!prefix:-}" ]] ; then
-    echo "🚨 Plugin received a string for $prefix, expected an array" >&2
-    exit 1
-  fi
+  for prefix in "$@" ; do
+    local i=0
+    local parameter="${prefix}_${i}"
 
-  while [[ -n "${!parameter:-}" ]]; do
-    result+=("${!parameter}")
-    i=$((i+1))
-    parameter="${prefix}_${i}"
+    if [[ -n "${!prefix:-}" ]] ; then
+      echo "🚨 Plugin received a string for $prefix, expected an array" >&2
+      exit 1
+    fi
+
+    while [[ -n "${!parameter:-}" ]]; do
+      result+=("${!parameter}")
+      i=$((i+1))
+      parameter="${prefix}_${i}"
+    done
   done
 
   [[ ${#result[@]} -gt 0 ]] || return 1
@@ -47,17 +49,21 @@ args=(
   "--rm"
 )
 
-# Show a helpful error message if string version of mounts is used
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" ]] ; then
   echo -n "🚨 The Docker Plugin’s mounts configuration option must be an array."
   exit 1
 fi
 
-default_mounts=1
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" ]] ; then
+  echo -n "🚨 The Docker Plugin’s volumes configuration option must be an array."
+  exit 1
+fi
 
-# Parse mounts and add them to the docker args
-if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
-  default_mounts=''
+default_volumes=1
+
+# Parse volumes (and deprecated mounts) and add them to the docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
+  default_volumes=''
   for arg in "${result[@]}" ; do
     args+=( "--volume" "$(expand_relative_volume_path "${arg}")" )
   done
@@ -68,7 +74,7 @@ else
 fi
 
 # Set workdir if one is provided or if mounts is the default
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ -n "$default_mounts" ]]; then
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ -n "$default_volumes" ]]; then
   args+=("--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}")
 fi
 
