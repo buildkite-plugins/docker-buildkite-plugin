@@ -14,9 +14,9 @@ configuration:
     mount-buildkite-agent:
       type: boolean
     mounts:
-      type: array
+      type: [boolean,array]
     volumes:
-      type: array
+      type: [boolean,array]
     command:
       type: array
     entrypoint:

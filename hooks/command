@@ -49,13 +49,13 @@ args=(
   "--rm"
 )
 
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" ]] ; then
-  echo -n "🚨 The Docker Plugin’s mounts configuration option must be an array."
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" && ! "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" =~ ^(true|false)$ ]] ; then
+  echo -n "🚨 The Docker Plugin’s mounts configuration option must be an array or a boolean."
   exit 1
 fi
 
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" ]] ; then
-  echo -n "🚨 The Docker Plugin’s volumes configuration option must be an array."
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" && ! "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" =~ ^(true|false)$ ]] ; then
+  echo -n "🚨 The Docker Plugin’s volumes configuration option must be an array or a boolean."
   exit 1
 fi
 
@@ -69,7 +69,7 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN
   done
 
 # By default, mount $PWD onto $WORKDIR
-else
+elif [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" != "false  " ]] ; then
   args+=( "--volume" "$PWD:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-/workdir}" )
 fi
 

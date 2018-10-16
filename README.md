@@ -62,6 +62,17 @@ steps:
           - /var/run/docker.sock:/var/run/docker.sock
 ```
 
+You can disable all mounts, including the default by setting `mounts` to `false`:
+
+```yml
+steps:
+  - command: "npm start"
+    plugins:
+      docker#v1.4.0:
+        image: "node:7"
+        mounts: false
+```
+
 ## Configuration
 
 ### `image` (required)
@@ -80,7 +91,7 @@ Example: `/app`
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true`. Set to `false` if you want to disable, or if you already have your own binary in the image.
 
-### `volumes` (optional, array)
+### `volumes` (optional, array or bool)
 
 Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter, with the addition of relative paths being converted to their full-path (e.g `.:/app`).
 
