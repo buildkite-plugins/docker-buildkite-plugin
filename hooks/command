@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Reads a list from plugin config into a global result array
 # Returns success if values were read
-function plugin_read_list_into_result() {
+plugin_read_list_into_result() {
   result=()
 
   for prefix in "$@" ; do
@@ -38,16 +38,41 @@ expand_relative_volume_path() {
   fi
 }
 
+is_windows() {
+  [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]]
+}
+
+is_macos() {
+  [[ "$OSTYPE" =~ ^(darwin) ]]
+}
+
 debug_mode='off'
 if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
   echo "--- :hammer: Enabling debug mode"
   debug_mode='on'
 fi
 
-args=(
-  "-it"
-  "--rm"
-)
+tty_default='on'
+mount_agent_default='on'
+
+# Set operating system specific defaults
+if is_windows ; then
+  tty_default=''
+  mount_agent_default=''
+elif is_macos ; then
+  mount_agent_default=''
+fi
+
+args=()
+
+# Support switching tty off
+if [[ "${BUILDKITE_PLUGIN_DOCKER_TTY:-$tty_default}" =~ ^(true|on|1)$ ]] ; then
+  args+=("-it")
+else
+  args+=("-i")
+fi
+
+args+=("--rm")
 
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" && ! "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" =~ ^(true|false)$ ]] ; then
   echo -n "🚨 The Docker Plugin’s mounts configuration option must be an array or a boolean."
@@ -91,7 +116,7 @@ while IFS='=' read -r name _ ; do
 done < <(env | sort)
 
 # Handle the mount-buildkite-agent option
-if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-true}" =~ (true|on|1) ]] ; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-$mount_agent_default}" =~ ^(true|on|1)$ ]] ; then
   if [[ -z "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
     BUILDKITE_AGENT_BINARY_PATH=$(command -v buildkite-agent)
   fi
@@ -112,7 +137,7 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
-if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ (true|on|1) ]] ; then
+if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
   docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 fi
