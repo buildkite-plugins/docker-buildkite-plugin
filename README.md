@@ -89,7 +89,7 @@ Example: `/app`
 
 ### `mount-buildkite-agent` (optional)
 
-Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true`. Set to `false` if you want to disable, or if you already have your own binary in the image.
+Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true` for Linux, but `false` for macOS and Windows. Set to `false` if you want to disable, or if you already have your own binary in the image.
 
 ### `volumes` (optional, array or bool)
 
@@ -106,6 +106,12 @@ Whether to always pull the latest image before running the command. Useful if th
 An array of additional environment variables to pass into to the docker container. Items can be specified as either `KEY` or `KEY=value`. Each entry corresponds to a Docker CLI `--env` parameter. Values specified as variable names will be passed through from the outer environment.
 
 Examples: `BUILDKITE_MESSAGE`, `MY_SECRET_KEY`, `MY_SPECIAL_BUT_PUBLIC_VALUE=kittens`
+
+### `tty` (optional)
+
+If set to false, doesn't allocate a TTY. This is useful in some situations where TTY's aren't supported, for instance windows.
+
+The default is `true` for linux or macOS, but `false` for windows.
 
 ### `user` (optional)
 
