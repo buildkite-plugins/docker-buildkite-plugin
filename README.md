@@ -26,9 +26,11 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      docker#v1.4.0:
-        image: "koalaman/shellcheck"
-        command: ["--exclude=SC2207", "./script.sh"]
+      docker#v2.0.0:
+        image: "mesosphere/aws-cli"
+        command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
+        volumes: [ "./:/app" ]
+    artifact_paths: "dist/**"
 ```
 
 You can pass in additional environment variables and customize what is mounted into the container:
