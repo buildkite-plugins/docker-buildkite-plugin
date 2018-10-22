@@ -119,7 +119,7 @@ Allows a user to be set, and override the USER entry in the Dockerfile. See http
 
 Example: `root`
 
-### `additional_groups` (optional)
+### `additional-groups` (optional)
 
 Additional groups to be added to the user in the container, in an array of group names (or ids). See https://docs.docker.com/engine/reference/run/#additional-groups for more details.
 
