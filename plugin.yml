@@ -5,36 +5,36 @@ requirements:
   - docker
 configuration:
   properties:
-    image:
-      type: string
-    workdir:
-      type: string
+    additional-groups:
+      type: array
     always-pull:
-      type: string
-    mount-buildkite-agent:
       type: boolean
-    mounts:
-      type: [boolean,array]
-    volumes:
-      type: [boolean,array]
     command:
       type: array
+    debug:
+      type: boolean
     entrypoint:
       type: string
     environment:
       type: array
-    user:
+    image:
       type: string
-    additional_groups:
-      type: array
+    mount-buildkite-agent:
+      type: boolean
     network:
       type: string
-    debug:
-      type: boolean
     runtime:
       type: string
     shell:
       type: [boolean, array]
+    tty:
+      type: boolean
+    user:
+      type: string
+    volumes:
+      type: [boolean, array]
+    workdir:
+      type: string
   required:
     - image
   additionalProperties: false
