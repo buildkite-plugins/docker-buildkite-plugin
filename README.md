@@ -35,6 +35,7 @@ steps:
   - plugins:
       - docker#v2.0.0:
           image: "mesosphere/aws-cli"
+          always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
           volumes: [ "./:/app" ]
     artifact_paths: "dist/**"
@@ -48,6 +49,7 @@ steps:
     plugins:
       - docker#v2.0.0:
           image: "node:7"
+          always-pull: true
           workdir: "/app"
           volumes:
             - "./code:/app"
@@ -66,6 +68,7 @@ steps:
     plugins:
       - docker#v2.0.0:
           image: "docker:latest"
+          always-pull: true
           volumes:
             - ".:/work"
             - "/var/run/docker.sock:/var/run/docker.sock"
@@ -79,6 +82,7 @@ steps:
     plugins:
       - docker#v2.0.0:
           image: "node:7"
+          always-pull: true
           volumes: false
 ```
 
