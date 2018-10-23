@@ -90,15 +90,24 @@ fi
 
 default_volumes=1
 
+# Handle volumes=true (meaning defaults), otherwise we get an error about it not being an array
+if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" == "true" || "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" == "true" ]] ; then
+  :
+
+# Handle volumes=false (meaning no volumes)
+elif [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" == "false" || "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" == "false" ]] ; then
+  default_volumes=''
+
 # Parse volumes (and deprecated mounts) and add them to the docker args
-if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
+elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
   default_volumes=''
   for arg in "${result[@]}" ; do
     args+=( "--volume" "$(expand_relative_volume_path "${arg}")" )
   done
+fi
 
 # By default, mount $PWD onto $WORKDIR
-elif [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" != "false  " ]] ; then
+if [[ -n "$default_volumes" ]] ; then
   args+=( "--volume" "${pwd_default}:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}" )
 fi
 
