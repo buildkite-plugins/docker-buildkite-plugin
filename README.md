@@ -45,7 +45,9 @@ You can pass in additional environment variables and customize what is mounted i
 
 ```yml
 steps:
-  - command: "yarn install && yarn run test"
+  - command:
+      - "yarn install"
+      - "yarn run test"
     plugins:
       - docker#v2.0.0:
           image: "node:7"
