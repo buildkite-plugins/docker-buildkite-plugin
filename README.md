@@ -2,34 +2,41 @@
 
 A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) for running pipeline steps in [Docker](https://www.docker.com/) containers.
 
-The Docker container will have the host’s `buildkite-agent` binary mounted in to `/usr/bin/buildkite-agent`, and the three required environment variables set for using the artifact upload, download, annotate, etc commands.
-
-If you need more control, please see the [docker-compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin).
+Also see the [Docker Compose Buildkite Plugin](https://github.com/buildkite-plugins/docker-compose-buildkite-plugin) which supports `docker-compose.yml`, multiple containers, and overriding many of Docker’s defaults.
 
 ## Example
 
-The following pipeline will build a binary in the dist directory using [golang:1.11 Docker image](https://hub.docker.com/_/golang/) and then uploaded as an artifact.
+The following pipeline will build a binary in the dist directory using [golang Docker image](https://hub.docker.com/_/golang/) and then uploaded as an artifact.
 
 ```yml
 steps:
-  - command: go build -o dist/my-app .
-    artifact_paths: ./dist/my-app
+  - command: "go build -o dist/my-app ."
+    artifact_paths: "./dist/my-app"
     plugins:
-      docker#v1.4.0:
-        image: "golang:1.11"
+      - docker#v2.0.0:
+          image: "golang:1.11"
 ```
 
-By default, this will mount in `$PWD` from the host that docker is running on into `/work` in the container, along with the `buildkite-agent` binary and relevant environmental variables.
+Windows images are also supported:
 
-If you want to control how your command is passed to the docker container, you can use the `command` parameter on the plugin directly:
+```yaml
+steps:
+  - command: "dotnet publish -c Release -o published"
+    plugins:
+      - docker#v2.0.0:
+          image: "microsoft/dotnet:latest"
+          always-pull: true
+```
+
+If you want to control how your command is passed to the docker container, you can use the `command` parameter on the plugin directly, which also disables the default volume mounts:
 
 ```yml
 steps:
   - plugins:
-      docker#v2.0.0:
-        image: "mesosphere/aws-cli"
-        command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
-        volumes: [ "./:/app" ]
+      - docker#v2.0.0:
+          image: "mesosphere/aws-cli"
+          command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
+          volumes: [ "./:/app" ]
     artifact_paths: "dist/**"
 ```
 
@@ -37,19 +44,19 @@ You can pass in additional environment variables and customize what is mounted i
 
 ```yml
 steps:
-  - command: yarn install && yarn run test
+  - command: "yarn install && yarn run test"
     plugins:
-      docker#v1.4.0:
-        image: "node:7"
-        workdir: /app
-        volumes:
-          - ./code:/app
-        environment:
-          - MY_SECRET_KEY
-          - MY_SPECIAL_BUT_PUBLIC_VALUE=kittens
+      - docker#v2.0.0:
+          image: "node:7"
+          workdir: "/app"
+          volumes:
+            - "./code:/app"
+          environment:
+            - "MY_SECRET_KEY"
+            - "MY_SPECIAL_BUT_PUBLIC_VALUE=kittens"
 ```
 
-You can pass in additional volumes to be mounted. This disables the default mount behaviour of mounting `$PWD` to `/workdir`. This is useful for docker-in-docker:
+You can pass in additional volumes to be mounted. This disables the default mount behaviour of mounting `$PWD` to `/workdir`. This is useful for running Docker :
 
 ```yml
 steps:
@@ -57,11 +64,11 @@ steps:
       - "docker build . -t image:tag"
       - "docker push image:tag"
     plugins:
-      docker#v1.4.0:
-        image: "docker:latest"
-        volumes:
-          - .:/work
-          - /var/run/docker.sock:/var/run/docker.sock
+      - docker#v2.0.0:
+          image: "docker:latest"
+          volumes:
+            - ".:/work"
+            - "/var/run/docker.sock:/var/run/docker.sock"
 ```
 
 You can disable all mounts, including the default by setting `volumes` to `false`:
@@ -70,9 +77,9 @@ You can disable all mounts, including the default by setting `volumes` to `false
 steps:
   - command: "npm start"
     plugins:
-      docker#v1.4.0:
-        image: "node:7"
-        volumes: false
+      - docker#v2.0.0:
+          image: "node:7"
+          volumes: false
 ```
 
 ## Configuration
@@ -91,29 +98,36 @@ Example: `/app`
 
 ### `mount-buildkite-agent` (optional)
 
-Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Defaults to `true` for Linux, but `false` for macOS and Windows. Set to `false` if you want to disable, or if you already have your own binary in the image.
+Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.
+
+Default: `true` for Linux, and `false` for macOS and Windows.
 
 ### `volumes` (optional, array or bool)
 
-Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter, with the addition of relative paths being converted to their full-path (e.g `.:/app`).
+Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter. Relative local paths are converted to their full-path (e.g `.:/app`).
 
-Example: `/var/run/docker.sock:/var/run/docker.sock`
+To disable the default mount mounts, set `volumes` to `false`.
+
+Default: `true`
+Example: `[ ".:/app", "/var/run/docker.sock:/var/run/docker.sock" ]`
 
 ### `always-pull` (optional)
 
-Whether to always pull the latest image before running the command. Useful if the image has a `latest` tag. The default is false, the image will only get pulled if not present.
+Whether to always pull the latest image before running the command. Useful if the image has a `latest` tag.
+
+Default: `false`
 
 ### `environment` (optional, array)
 
 An array of additional environment variables to pass into to the docker container. Items can be specified as either `KEY` or `KEY=value`. Each entry corresponds to a Docker CLI `--env` parameter. Values specified as variable names will be passed through from the outer environment.
 
-Examples: `BUILDKITE_MESSAGE`, `MY_SECRET_KEY`, `MY_SPECIAL_BUT_PUBLIC_VALUE=kittens`
+Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=kittens" ]`
 
 ### `tty` (optional)
 
 If set to false, doesn't allocate a TTY. This is useful in some situations where TTY's aren't supported, for instance windows.
 
-The default is `true` for linux or macOS, but `false` for windows.
+Default: `true` for Linux and macOS, and `false` for Windows.
 
 ### `user` (optional)
 
@@ -135,9 +149,9 @@ Example: `test-network`
 
 ### `debug` (optional)
 
-Outputs the command to be run, and enables xtrace in the plugin
+Enables debug mode, which outputs the full Docker commands that will be run on the agent machine.
 
-Example: `true`
+Default: `false`
 
 ### `runtime` (optional)
 
@@ -149,7 +163,7 @@ Example: `nvidia`
 
 Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `["/bin/sh", "-e", "-c"]` unless you have provided an `entrypoint` or `command`.
 
-Example: `["powershell", "-Command"]`
+Example: `[ "powershell", "-Command" ]`
 
 ### `entrypoint` (optional)
 
@@ -159,9 +173,11 @@ Example: `/my/custom/entrypoint.sh`
 
 ### `command` (optional, array)
 
-Override the image’s default command, and defaults the `shell` option to `false`.
+Sets the command for the Docker image, and defaults the `shell` option to `false`. Useful if the Docker image has an entrypoint, or doesn't contain a shell.
 
-Example: `["/bin/mycommand", "-c", "test"]`
+This option can't be used if your step already has a top-level, non-plugin `command` option present.
+
+Examples: `[ "/bin/mycommand", "-c", "test" ]`, `["arg1", "arg2"]`
 
 ## License
 
