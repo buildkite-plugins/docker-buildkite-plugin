@@ -84,25 +84,25 @@ steps:
 
 ## Configuration
 
-### `image` (required)
+### `image` (required, string)
 
 The name of the Docker image to use.
 
 Example: `node:7`
 
-### `workdir`(optional)
+### `workdir`(optional, string)
 
 The working directory to run the command in, inside the container. The default is `/workdir`.
 
 Example: `/app`
 
-### `mount-buildkite-agent` (optional)
+### `mount-buildkite-agent` (optional, boolean)
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.
 
 Default: `true` for Linux, and `false` for macOS and Windows.
 
-### `volumes` (optional, array or bool)
+### `volumes` (optional, array or boolean)
 
 Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter. Relative local paths are converted to their full-path (e.g `.:/app`).
 
@@ -111,7 +111,7 @@ To disable the default mount mounts, set `volumes` to `false`.
 Default: `true`
 Example: `[ ".:/app", "/var/run/docker.sock:/var/run/docker.sock" ]`
 
-### `always-pull` (optional)
+### `always-pull` (optional, boolean)
 
 Whether to always pull the latest image before running the command. Useful if the image has a `latest` tag.
 
@@ -123,49 +123,49 @@ An array of additional environment variables to pass into to the docker containe
 
 Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=kittens" ]`
 
-### `tty` (optional)
+### `tty` (optional, boolean)
 
 If set to false, doesn't allocate a TTY. This is useful in some situations where TTY's aren't supported, for instance windows.
 
 Default: `true` for Linux and macOS, and `false` for Windows.
 
-### `user` (optional)
+### `user` (optional, string)
 
 Allows a user to be set, and override the USER entry in the Dockerfile. See https://docs.docker.com/engine/reference/run/#user for more details.
 
 Example: `root`
 
-### `additional-groups` (optional)
+### `additional-groups` (optional, array)
 
 Additional groups to be added to the user in the container, in an array of group names (or ids). See https://docs.docker.com/engine/reference/run/#additional-groups for more details.
 
 Example: `docker`
 
-### `network` (optional)
+### `network` (optional, string)
 
 Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details.
 
 Example: `test-network`
 
-### `debug` (optional)
+### `debug` (optional, boolean)
 
 Enables debug mode, which outputs the full Docker commands that will be run on the agent machine.
 
 Default: `false`
 
-### `runtime` (optional)
+### `runtime` (optional, string)
 
 Specify an explicit docker runtime. See the [docker run options documentation](https://docs.docker.com/engine/reference/commandline/run/#options) for more details.
 
 Example: `nvidia`
 
-### `shell` (optional, array)
+### `shell` (optional, array or boolean)
 
 Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `["/bin/sh", "-e", "-c"]` unless you have provided an `entrypoint` or `command`.
 
 Example: `[ "powershell", "-Command" ]`
 
-### `entrypoint` (optional)
+### `entrypoint` (optional, string)
 
 Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details.
 
