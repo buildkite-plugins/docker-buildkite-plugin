@@ -60,6 +60,25 @@ steps:
             - "MY_SPECIAL_BUT_PUBLIC_VALUE=kittens"
 ```
 
+Environment variables available in the step can also automatically be propagated to the container:
+
+```yml
+steps:
+  - command:
+      - "yarn install"
+      - "yarn run test"
+    env:
+      MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
+    plugins:
+      - docker#v2.0.0:
+          image: "node:7"
+          always-pull: true
+          workdir: "/app"
+          volumes:
+            - "./code:/app"
+          propagate-environment: true
+```
+
 You can pass in additional volumes to be mounted. This disables the default mount behaviour of mounting `$PWD` to `/workdir`. This is useful for running Docker :
 
 ```yml
@@ -137,6 +156,12 @@ Example: `/my/custom/entrypoint.sh`
 An array of additional environment variables to pass into to the docker container. Items can be specified as either `KEY` or `KEY=value`. Each entry corresponds to a Docker CLI `--env` parameter. Values specified as variable names will be passed through from the outer environment.
 
 Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=kittens" ]`
+
+### `propagate-environment` (optional, boolean)
+
+Whether or not to automatically propagate all pipeline environment variables into the docker container. Avoiding the need to be specified with `environment`.
+
+Note that all Buildkite and pipeline environment variables will be propagated, this includes any secrets that may be in an environment variable.
 
 ### `mount-buildkite-agent` (optional, boolean)
 

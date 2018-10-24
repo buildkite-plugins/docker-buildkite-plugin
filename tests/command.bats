@@ -172,6 +172,29 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
 }
 
+@test "Runs BUILDKITE_COMMAND with propagate environment" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT=true
+  export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0=MY_TAG=value
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_ENV_FILE="/tmp/amazing"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env-file /tmp/amazing image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0
+}
+
 @test "Runs BUILDKITE_COMMAND with user" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false

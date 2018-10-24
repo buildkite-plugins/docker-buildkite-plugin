@@ -158,6 +158,15 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
+# Propagate all environment variables into the container if requested
+if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$ ]] ; then
+  if [[ -n "${BUILDKITE_ENV_FILE:-}" ]] ; then
+    args+=( "--env-file" "${BUILDKITE_ENV_FILE:-}" )
+  else
+    echo -n "🚨 Not propagating environment variables to container as \$BUILDKITE_ENV_FILE is not set"
+  fi
+fi
+
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
   docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
