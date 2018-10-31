@@ -161,7 +161,12 @@ done < <(env | sort)
 # Propagate all environment variables into the container if requested
 if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$ ]] ; then
   if [[ -n "${BUILDKITE_ENV_FILE:-}" ]] ; then
-    args+=( "--env-file" "${BUILDKITE_ENV_FILE:-}" )
+    # Read in the env file and convert to --env params for docker
+    # This is because --env-file doesn't support newlines or quotes per https://docs.docker.com/compose/env-file/#syntax-rules
+    while read -r var; do
+      echo "${var%%=*}"
+      args+=( --env "${var%%=*}" )
+    done < "$BUILDKITE_ENV_FILE"
   else
     echo -n "🚨 Not propagating environment variables to container as \$BUILDKITE_ENV_FILE is not set"
   fi

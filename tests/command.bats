@@ -180,8 +180,13 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_ENV_FILE="/tmp/amazing"
 
+  cat << EOF > $BUILDKITE_ENV_FILE
+FOO="BAR"
+A_VARIABLE="with\nnewline"
+EOF
+
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env-file /tmp/amazing image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env FOO --env A_VARIABLE image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
