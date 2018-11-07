@@ -107,6 +107,13 @@ elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUG
   done
 fi
 
+# Parse tmpfs property.
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_TMPFS ; then
+  for arg in "${result[@]}" ; do
+    args+=( "--tmpfs" "$(expand_relative_volume_path "${arg}")" )
+  done
+fi
+
 # By default, mount $PWD onto $WORKDIR
 if [[ -n "$default_volumes" ]] ; then
   args+=( "--volume" "${pwd_default}:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}" )

@@ -35,6 +35,8 @@ configuration:
       type: string
     volumes:
       type: [boolean, array]
+    tmpfs:
+      type: array
     workdir:
       type: string
     propagate-environment:
