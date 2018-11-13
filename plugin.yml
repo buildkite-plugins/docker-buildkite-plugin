@@ -35,6 +35,8 @@ configuration:
       type: [boolean, array]
     workdir:
       type: string
+    propagate-environment:
+      type: boolean
   required:
     - image
   additionalProperties: false
