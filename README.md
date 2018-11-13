@@ -161,7 +161,7 @@ Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=k
 
 Whether or not to automatically propagate all pipeline environment variables into the docker container. Avoiding the need to be specified with `environment`.
 
-Note that all Buildkite and pipeline environment variables will be propagated, this includes any secrets that may be in an environment variable.
+Note that only pipeline variables will automatically be propagated (what you see in the Buildkite UI). Variables set in proceeding hook scripts will not be propagated to the container.
 
 ### `mount-buildkite-agent` (optional, boolean)
 
