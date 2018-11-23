@@ -163,6 +163,10 @@ Whether or not to automatically propagate all pipeline environment variables int
 
 Note that only pipeline variables will automatically be propagated (what you see in the Buildkite UI). Variables set in proceeding hook scripts will not be propagated to the container.
 
+### `privileged` (optional, boolean)
+
+Whether or not to run the container in [privileged mode](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities)
+
 ### `mount-buildkite-agent` (optional, boolean)
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.

@@ -37,6 +37,8 @@ configuration:
       type: string
     propagate-environment:
       type: boolean
+    privileged:
+      type: boolean
   required:
     - image
   additionalProperties: false

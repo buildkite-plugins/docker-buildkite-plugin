@@ -158,6 +158,11 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
+# Privileged container
+if [[ "${BUILDKITE_PLUGIN_DOCKER_PRIVILEGED:-false}" =~ ^(true|on|1)$ ]] ; then
+    args+=( "--privileged" )
+fi
+
 # Propagate all environment variables into the container if requested
 if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$ ]] ; then
   if [[ -n "${BUILDKITE_ENV_FILE:-}" ]] ; then
