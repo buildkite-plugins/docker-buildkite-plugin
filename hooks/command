@@ -273,8 +273,15 @@ if [[ ${#shell[@]} -gt 0 ]] ; then
 fi
 
 if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
-  args+=("${BUILDKITE_COMMAND}")
-  display_command+=("'${BUILDKITE_COMMAND}'")
+  if is_windows ; then
+    # The windows CMD shell only supports multiple commands with &&.
+    windows_multi_command=${BUILDKITE_COMMAND//$'\n'/ && }
+    args+=("${windows_multi_command}")
+    display_command+=("'${windows_multi_command}'")
+  else 
+    args+=("${BUILDKITE_COMMAND}")
+    display_command+=("'${BUILDKITE_COMMAND}'")
+  fi
 elif [[ ${#command[@]} -gt 0 ]] ; then
   for command_arg in "${command[@]}" ; do
     args+=("$command_arg")
@@ -288,4 +295,6 @@ if [[ "${debug_mode:-off}" =~ (on) ]] ; then
   echo "$ docker run ${args[*]}" >&2
 fi
 
-docker run "${args[@]}"
+# Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
+# See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.
+( if is_windows ; then export MSYS_NO_PATHCONV=1; fi && docker run "${args[@]}" )
