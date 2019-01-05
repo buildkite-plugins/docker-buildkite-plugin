@@ -206,6 +206,11 @@ if [[ -n "${BUILDKITE_COMMAND}" ]]; then
   shell_disabled=''
 fi
 
+# Handle setting of shm size if provided
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE}" ]]; then
+  args+=("--shm-size" "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE}")
+fi
+
 # Handle entrypoint if provided, and default shell to disabled
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}" ]] ; then
   args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
