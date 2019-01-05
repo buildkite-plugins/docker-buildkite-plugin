@@ -172,6 +172,26 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
 }
 
+@test "Runs BUILDKITE_COMMAND with shm size" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_SHM_SIZE=100mb
+  export BUILDKITE_COMMAND="df --block-size=1 /dev/shm | awk '{print $2}' | tail -n1"
+
+  stub docker \
+    "run -it --rm --volume $PWD:/workdir --workdir /workdir --shm-size=100mb image:tag /bin/sh -e -c 'df --block-size=1 /dev/shm | awk '{print $2}' | tail -n1' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "104857600"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_SHM_SIZE
+}
+
 @test "Runs BUILDKITE_COMMAND with propagate environment" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
