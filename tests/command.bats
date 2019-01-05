@@ -179,7 +179,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="df --block-size=1 /dev/shm | awk '{print $2}' | tail -n1"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --shm-size=100mb image:tag /bin/sh -e -c 'df --block-size=1 /dev/shm | awk '{print $2}' | tail -n1' : echo ran command in docker"
+    "run -it --rm --volume $PWD:/workdir --workdir /workdir --shm-size=100mb image:tag /bin/sh -e -c \"df --block-size=1 /dev/shm | awk '{print \\\$2}' | tail -n1\" : echo ran command in docker"
 
   run $PWD/hooks/command
 
