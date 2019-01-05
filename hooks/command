@@ -207,7 +207,7 @@ if [[ -n "${BUILDKITE_COMMAND}" ]]; then
 fi
 
 # Handle setting of shm size if provided
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE}" ]]; then
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE:-}" ]]; then
   args+=("--shm-size" "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE}")
 fi
 
