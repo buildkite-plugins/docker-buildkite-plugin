@@ -191,6 +191,12 @@ Set the shell to use for the command. Set it to `false` to pass the command dire
 
 Example: `[ "powershell", "-Command" ]`
 
+### `shm-size` (optional, string)
+
+Set the size of the `/dev/shm` shared memory filesystem mount inside the docker contianer. If unset, uses the default for the platform (typically `64mb`). See https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources for information on allowed formats.
+
+Example: `2gb`
+
 ### `tty` (optional, boolean)
 
 If set to false, doesn't allocate a TTY. This is useful in some situations where TTY's aren't supported, for instance windows.
