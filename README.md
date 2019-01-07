@@ -167,6 +167,14 @@ Note that only pipeline variables will automatically be propagated (what you see
 
 Whether or not to run the container in [privileged mode](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities)
 
+### `init` (optional, boolean)
+
+Whether or not to run an init process inside the container. This ensures that responsibilities like reaping zombie processes are performed inside the container.
+
+See [Docker's documentation](https://docs.docker.com/engine/reference/run/#specify-an-init-process) for background and implementation details.
+
+Default: `true` for Linux and macOS, `false` for Windows.
+
 ### `mount-buildkite-agent` (optional, boolean)
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.

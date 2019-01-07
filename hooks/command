@@ -53,6 +53,7 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
 fi
 
 tty_default='on'
+init_default='on'
 mount_agent_default='on'
 mount_ssh_agent=''
 pwd_default="$PWD"
@@ -61,6 +62,7 @@ workdir_default="/workdir"
 # Set operating system specific defaults
 if is_windows ; then
   tty_default=''
+  init_default=''
   mount_agent_default=''
   workdir_default="C:\\workdir"
   pwd_default="$(cmd.exe /C "echo %CD%")"
@@ -78,6 +80,11 @@ else
 fi
 
 args+=("--rm")
+
+# Support docker run --init.
+if [[ "${BUILDKITE_PLUGIN_DOCKER_INIT:-$init_default}" =~ ^(true|on|1)$ ]] ; then
+    args+=("--init")
+fi
 
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" && ! "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" =~ ^(true|false)$ ]] ; then
   echo "🚨 The Docker Plugin’s mounts configuration option must be an array or a boolean."
@@ -298,7 +305,7 @@ if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
     windows_multi_command=${BUILDKITE_COMMAND//$'\n'/ && }
     args+=("${windows_multi_command}")
     display_command+=("'${windows_multi_command}'")
-  else 
+  else
     args+=("${BUILDKITE_COMMAND}")
     display_command+=("'${BUILDKITE_COMMAND}'")
   fi

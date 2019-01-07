@@ -41,6 +41,8 @@ configuration:
       type: boolean
     privileged:
       type: boolean
+    init:
+      type: boolean
   required:
     - image
   additionalProperties: false
