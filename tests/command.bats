@@ -176,15 +176,15 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_PLUGIN_DOCKER_SHM_SIZE=100mb
-  export BUILDKITE_COMMAND="df --block-size=1 /dev/shm | awk '{print $2}' | tail -n1"
+  export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --shm-size=100mb image:tag /bin/sh -e -c \"df --block-size=1 /dev/shm | awk '{print \\\$2}' | tail -n1\" : echo ran command in docker"
+    "run -it --rm --volume $PWD:/workdir --workdir /workdir --shm-size 100mb image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
   assert_success
-  assert_output --partial "104857600"
+  assert_output --partial "ran command in docker"
 
   unstub docker
   unset BUILDKITE_PLUGIN_DOCKER_IMAGE
