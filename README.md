@@ -218,6 +218,14 @@ The working directory to run the command in, inside the container. The default i
 
 Example: `/app`
 
+## Developing
+
+You can use the [bk cli](https://github.com/buildkite/cli) to run the test pipeline locally, or just the tests using Docker Compose directly:
+
+```bash
+docker-compose run --rm tests
+```
+
 ## License
 
 MIT (see [LICENSE](LICENSE))
