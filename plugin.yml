@@ -27,6 +27,8 @@ configuration:
       type: string
     shell:
       type: [boolean, array]
+    shm-size:
+      type: string
     tty:
       type: boolean
     user:
