@@ -193,7 +193,7 @@ Example: `[ "powershell", "-Command" ]`
 
 ### `shm-size` (optional, string)
 
-Set the size of the `/dev/shm` shared memory filesystem mount inside the docker contianer. If unset, uses the default for the platform (typically `64mb`). See https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources for information on allowed formats.
+Set the size of the `/dev/shm` shared memory filesystem mount inside the docker contianer. If unset, uses the default for the platform (typically `64mb`). See [docker run’s runtime constraints documentation](https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources) for information on allowed formats.
 
 Example: `2gb`
 
