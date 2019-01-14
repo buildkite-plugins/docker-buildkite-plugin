@@ -54,6 +54,7 @@ fi
 
 tty_default='on'
 mount_agent_default='on'
+mount_ssh_agent=''
 pwd_default="$PWD"
 workdir_default="/workdir"
 
@@ -127,6 +128,15 @@ while IFS='=' read -r name _ ; do
     args+=( "--group-add" "${!name}" )
   fi
 done < <(env | sort)
+
+# Mount ssh-agent socket and known_hosts
+if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT:-$mount_ssh_agent}" =~ ^(true|on|1)$ ]] ; then
+  args+=(
+    "--env" "SSH_AUTH_SOCK=/ssh-agent"
+    "--volume" "${SSH_AUTH_SOCK}:/ssh-agent"
+    "--volume" "${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts"
+  )
+fi
 
 # Handle the mount-buildkite-agent option
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-$mount_agent_default}" =~ ^(true|on|1)$ ]] ; then

@@ -173,6 +173,12 @@ Whether to automatically mount the `buildkite-agent` binary from the host agent 
 
 Default: `true` for Linux, and `false` for macOS and Windows.
 
+### `mount-ssh-agent` (optional, boolean)
+
+Whether to automatically mount the ssh-agent socket from the host agent machine into the container (at `/ssh-agent`and `/root/.ssh/known_hosts` respectively), allowing git operations to work correctly.
+
+Default: `false`
+
 ### `network` (optional, string)
 
 Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details.
