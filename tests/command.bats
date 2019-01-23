@@ -11,7 +11,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_AGENT_BINARY_PATH="/buildkite-agent"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent image:tag /bin/sh -e -c 'command1 \"a string\"' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent image:tag /bin/sh -e -c 'command1 \"a string\"' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -31,7 +31,7 @@ load '/usr/local/lib/bats/load.bash'
 
   stub docker \
     "pull image:tag : echo pulled latest image" \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -52,7 +52,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="pwd"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -74,7 +74,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
-    "run -it --rm --volume $PWD:/app --volume /var/run/docker.sock:/var/run/docker.sock --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/app --volume /var/run/docker.sock:/var/run/docker.sock --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -95,7 +95,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
-    "run -it --rm image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+    "run -it --rm --init image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -115,7 +115,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
-    "run -it --rm --volume $PWD:/app --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/app --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -136,7 +136,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
-    "run -it --rm --volume $PWD:/app --volume /var/run/docker.sock:/var/run/docker.sock --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/app --volume /var/run/docker.sock:/var/run/docker.sock --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -158,7 +158,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env ANOTHER_TAG=llamas image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env ANOTHER_TAG=llamas image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -179,7 +179,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --shm-size 100mb image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --shm-size 100mb image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -206,7 +206,7 @@ A_VARIABLE="with\nnewline"
 EOF
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env FOO --env A_VARIABLE image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env FOO --env A_VARIABLE image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -227,7 +227,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir -u foo image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir -u foo image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -248,7 +248,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --group-add foo --group-add bar image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --group-add foo --group-add bar image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -271,7 +271,7 @@ EOF
   stub docker \
     "network ls --quiet --filter 'name=foo' : echo " \
     "network create foo : echo creating network foo" \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --network foo image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --network foo image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -292,7 +292,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -314,7 +314,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --runtime custom_runtime image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --runtime custom_runtime image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -335,7 +335,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -359,7 +359,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -383,7 +383,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -421,7 +421,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -460,7 +460,7 @@ EOF
   export BUILDKITE_COMMAND=
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag echo 'hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag echo 'hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -485,7 +485,7 @@ EOF
   export BUILDKITE_COMMAND=
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag custom-bash -a -b echo 'hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag custom-bash -a -b echo 'hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -511,7 +511,7 @@ EOF
   export BUILDKITE_COMMAND=
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --entrypoint llamas.sh image:tag custom-bash -a -b echo 'hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint llamas.sh image:tag custom-bash -a -b echo 'hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
