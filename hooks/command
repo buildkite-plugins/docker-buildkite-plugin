@@ -22,8 +22,6 @@ function retry {
       sleep $(((attempts - 2) * 2))
     fi
   done
-
-  echo "$status"
 }
 
 # Reads a list from plugin config into a global result array
