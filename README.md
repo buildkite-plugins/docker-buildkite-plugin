@@ -232,6 +232,12 @@ To disable the default mount mounts, set `volumes` to `false`.
 Default: `true`
 Example: `[ ".:/app", "/var/run/docker.sock:/var/run/docker.sock" ]`
 
+### `tmpfs` (optional, array)
+
+Tmpfs mounts to pass to the docker container, in an array. Each entry corresponds to a Docker CLI `--tmpfs` parameter. See Docker's [tmpfs mounts](https://docs.docker.com/storage/tmpfs/) documentation for more information on this feature.
+
+Example: `[ "/tmp", "/root/.cache" ]`
+
 ### `workdir`(optional, string)
 
 The working directory to run the command in, inside the container. The default is `/workdir`.
