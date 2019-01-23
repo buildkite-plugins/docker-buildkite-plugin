@@ -96,19 +96,8 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" && ! "${BUILDKITE_PLUGIN_DOCKER_
   exit 1
 fi
 
-default_volumes=1
-
-# Handle volumes=true (meaning defaults), otherwise we get an error about it not being an array
-if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" == "true" || "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" == "true" ]] ; then
-  :
-
-# Handle volumes=false (meaning no volumes)
-elif [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNTS:-}" == "false" || "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" == "false" ]] ; then
-  default_volumes=''
-
 # Parse volumes (and deprecated mounts) and add them to the docker args
-elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
-  default_volumes=''
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
   for arg in "${result[@]}" ; do
     args+=( "--volume" "$(expand_relative_volume_path "${arg}")" )
   done
@@ -121,14 +110,17 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_TMPFS ; then
   done
 fi
 
-# By default, mount $PWD onto $WORKDIR
-if [[ -n "$default_volumes" ]] ; then
-  args+=( "--volume" "${pwd_default}:${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}" )
+workdir=''
+
+# Set workdir if one is provided or if the checkout is mounted
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
+  workdir="${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}"
+  args+=("--workdir" "${workdir}")
 fi
 
-# Set workdir if one is provided or if mounts is the default
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ -n "$default_volumes" ]]; then
-  args+=("--workdir" "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}")
+# By default, mount $PWD onto $WORKDIR
+if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
+  args+=( "--volume" "${pwd_default}:${workdir}" )
 fi
 
 # Support docker run --user
