@@ -28,7 +28,7 @@ steps:
           always-pull: true
 ```
 
-If you want to control how your command is passed to the docker container, you can use the `command` parameter on the plugin directly, which also disables the default volume mounts:
+If you want to control how your command is passed to the docker container, you can use the `command` parameter on the plugin directly:
 
 ```yml
 steps:
@@ -37,7 +37,6 @@ steps:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
-          volumes: [ "./:/app" ]
     artifact_paths: "dist/**"
 ```
 
@@ -52,9 +51,6 @@ steps:
       - docker#v2.2.0:
           image: "node:7"
           always-pull: true
-          workdir: "/app"
-          volumes:
-            - "./code:/app"
           environment:
             - "MY_SECRET_KEY"
             - "MY_SPECIAL_BUT_PUBLIC_VALUE=kittens"
@@ -73,13 +69,10 @@ steps:
       - docker#v2.2.0:
           image: "node:7"
           always-pull: true
-          workdir: "/app"
-          volumes:
-            - "./code:/app"
           propagate-environment: true
 ```
 
-You can pass in additional volumes to be mounted. This disables the default mount behaviour of mounting `$PWD` to `/workdir`. This is useful for running Docker :
+You can pass in additional volumes to be mounted. This is useful for running Docker:
 
 ```yml
 steps:
@@ -91,11 +84,10 @@ steps:
           image: "docker:latest"
           always-pull: true
           volumes:
-            - ".:/work"
             - "/var/run/docker.sock:/var/run/docker.sock"
 ```
 
-You can disable all mounts, including the default by setting `volumes` to `false`:
+You can disable the default behaviour of mounting in the checkout to `workdir`:
 
 ```yml
 steps:
@@ -104,7 +96,7 @@ steps:
       - docker#v2.2.0:
           image: "node:7"
           always-pull: true
-          volumes: false
+          mount-checkout: false
 ```
 
 ## Configuration
@@ -231,12 +223,9 @@ Example: `root`
 
 ### `volumes` (optional, array or boolean)
 
-Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter. Relative local paths are converted to their full-path (e.g `.:/app`).
+Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter. Relative local paths are converted to their full-path (e.g `./code:/app`).
 
-To disable the default mount mounts, set `volumes` to `false`.
-
-Default: `true`
-Example: `[ ".:/app", "/var/run/docker.sock:/var/run/docker.sock" ]`
+Example: `[ "/var/run/docker.sock:/var/run/docker.sock" ]`
 
 ### `tmpfs` (optional, array)
 
@@ -246,7 +235,7 @@ Example: `[ "/tmp", "/root/.cache" ]`
 
 ### `workdir`(optional, string)
 
-The working directory to run the command in, inside the container. The default is `/workdir`.
+The working directory to run the command in, inside the container. The default is `/workdir`. This path is also used by `mount-checkout` to determine where to mount the checkout in the container.
 
 Example: `/app`
 
