@@ -522,3 +522,23 @@ EOF
   unset BUILDKITE_PLUGIN_DOCKER_SHELL
   unset BUILDKITE_COMMAND
 }
+
+@test "Doesn't disclose environment" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_COMMAND='echo hello world'
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export SUPER_SECRET=supersecret
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  refute_output --partial "supersecret"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset SUPER_SECRET
+	}

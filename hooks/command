@@ -172,7 +172,6 @@ fi
 # Parse extra env vars and add them to the docker args
 while IFS='=' read -r name _ ; do
   if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_[0-9]+) ]] ; then
-    echo "parsed env[$name]"
     args+=( "--env" "${!name}" )
   fi
 done < <(env | sort)
@@ -188,7 +187,6 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$
     # Read in the env file and convert to --env params for docker
     # This is because --env-file doesn't support newlines or quotes per https://docs.docker.com/compose/env-file/#syntax-rules
     while read -r var; do
-      echo "${var%%=*}"
       args+=( --env "${var%%=*}" )
     done < "$BUILDKITE_ENV_FILE"
   else
