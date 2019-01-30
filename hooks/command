@@ -2,6 +2,28 @@
 
 set -euo pipefail
 
+# retry <number-of-retries> <command>
+function retry {
+  local retries=$1; shift
+  local attempts=1
+  local status=0
+
+  until "$@"; do
+    status=$?
+    echo "Exited with $status"
+    if (( retries == "0" )); then
+      return $status
+    elif (( attempts == retries )); then
+      echo "Failed $attempts retries"
+      return $status
+    else
+      echo "Retrying $((retries - attempts)) more times..."
+      attempts=$((attempts + 1))
+      sleep $(((attempts - 2) * 2))
+    fi
+  done
+}
+
 # Reads a list from plugin config into a global result array
 # Returns success if values were read
 plugin_read_list_into_result() {
@@ -196,7 +218,12 @@ fi
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
-  docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+  if ! retry "${BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES:-3}" \
+       docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" ; then
+    rv=$?
+    echo "!!! :docker: Pull failed."
+    exit $rv
+  fi
 fi
 
 # Parse network and create it if it don't exist.
