@@ -96,13 +96,6 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_VOLUMES:-}" && ! "${BUILDKITE_PLUGIN_DOCKER_
   exit 1
 fi
 
-# Parse volumes (and deprecated mounts) and add them to the docker args
-if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
-  for arg in "${result[@]}" ; do
-    args+=( "--volume" "$(expand_relative_volume_path "${arg}")" )
-  done
-fi
-
 # Parse tmpfs property.
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_TMPFS ; then
   for arg in "${result[@]}" ; do
@@ -112,15 +105,25 @@ fi
 
 workdir=''
 
-# Set workdir if one is provided or if the checkout is mounted
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
   workdir="${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}"
-  args+=("--workdir" "${workdir}")
 fi
 
 # By default, mount $PWD onto $WORKDIR
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
   args+=( "--volume" "${pwd_default}:${workdir}" )
+fi
+
+# Parse volumes (and deprecated mounts) and add them to the docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
+  for arg in "${result[@]}" ; do
+    args+=( "--volume" "$(expand_relative_volume_path "${arg}")" )
+  done
+fi
+
+# Set workdir if one is provided or if the checkout is mounted
+if [[ -n "${workdir:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
+  args+=("--workdir" "${workdir}")
 fi
 
 # Support docker run --user
