@@ -13,7 +13,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v2.2.0:
+      - docker#v3.0.1:
           image: "golang:1.11"
 ```
 
@@ -23,7 +23,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v2.2.0:
+      - docker#v3.0.1:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -33,7 +33,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v2.2.0:
+      - docker#v3.0.1:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -48,7 +48,7 @@ steps:
       - "yarn install"
       - "yarn run test"
     plugins:
-      - docker#v2.2.0:
+      - docker#v3.0.1:
           image: "node:7"
           always-pull: true
           environment:
@@ -66,7 +66,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v2.2.0:
+      - docker#v3.0.1:
           image: "node:7"
           always-pull: true
           propagate-environment: true
@@ -80,7 +80,7 @@ steps:
       - "docker build . -t image:tag"
       - "docker push image:tag"
     plugins:
-      - docker#v2.2.0:
+      - docker#v3.0.1:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -93,7 +93,7 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v2.2.0:
+      - docker#v3.0.1:
           image: "node:7"
           always-pull: true
           mount-checkout: false
