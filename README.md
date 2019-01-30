@@ -175,6 +175,12 @@ See [Docker's documentation](https://docs.docker.com/engine/reference/run/#speci
 
 Default: `true` for Linux and macOS, `false` for Windows.
 
+### `mount-checkout` (optional, boolean)
+
+Whether to automatically mount the current working directory which contains your checked out codebase. Mounts onto `/workdir`, unless `workdir` is set, in which case that will be used.
+
+Default: `true`
+
 ### `mount-buildkite-agent` (optional, boolean)
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.

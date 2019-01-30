@@ -69,8 +69,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0=.:/app
-  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_1=/var/run/docker.sock:/var/run/docker.sock
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0=/var/run/docker.sock:/var/run/docker.sock
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
@@ -88,10 +87,10 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
 }
 
-@test "Runs BUILDKITE_COMMAND with volumes=false and no workdir" {
+@test "Runs BUILDKITE_COMMAND with mount-checkout=false" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_VOLUMES=false
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT=false
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
@@ -107,11 +106,11 @@ load '/usr/local/lib/bats/load.bash'
   unset BUILDKITE_COMMAND
 }
 
-@test "Runs BUILDKITE_COMMAND with volumes=true" {
+@test "Runs BUILDKITE_COMMAND with mount-checkout=true" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT=true
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_VOLUMES=true
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
@@ -131,8 +130,7 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_MOUNTS_0=.:/app
-  export BUILDKITE_PLUGIN_DOCKER_MOUNTS_1=/var/run/docker.sock:/var/run/docker.sock
+  export BUILDKITE_PLUGIN_DOCKER_MOUNTS_0=/var/run/docker.sock:/var/run/docker.sock
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
