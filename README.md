@@ -191,6 +191,10 @@ Join the container to the docker network specified. The network will be created 
 
 Example: `test-network`
 
+### `pull-retries` (optional, int)
+
+A number of times to retry failed docker pull. Defaults to 3. Only applies when `always-pull` is enabled.
+
 ### `runtime` (optional, string)
 
 Specify an explicit docker runtime. See the [docker run options documentation](https://docs.docker.com/engine/reference/commandline/run/#options) for more details.
