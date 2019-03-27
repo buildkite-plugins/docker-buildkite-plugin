@@ -149,8 +149,17 @@ if [[ -n "${workdir:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}"
 fi
 
 # Support docker run --user
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] && [[ -n "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_UID_GID:-}" ]]; then
+  echo "+++ Error: Can't set both user and propagate-uid-gid"
+  exit 1
+fi
+
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
   args+=("-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}")
+fi
+
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_UID_GID:-}" ]] ; then
+  args+=("-u" "$(id -u):$(id -g)")
 fi
 
 # Support docker run --group-add
