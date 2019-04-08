@@ -260,6 +260,31 @@ EOF
   unset BUILDKITE_PLUGIN_DOCKER_ADDITIONAL_GROUPS_1
 }
 
+@test "Runs BUILDKITE_COMMAND with propagated uid and guid" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_PROPAGATE_UID_GID=true
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub id \
+    "-u : echo 123" \
+    "-g : echo 456"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir -u 123:456 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub id
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_USER
+}
+
 @test "Runs BUILDKITE_COMMAND with network that doesn't exist" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
