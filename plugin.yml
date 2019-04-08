@@ -5,34 +5,50 @@ requirements:
   - docker
 configuration:
   properties:
-    image:
-      type: string
-    workdir:
-      type: string
-    always-pull:
-      type: string
-    mount-buildkite-agent:
-      type: boolean
-    mounts:
+    additional-groups:
       type: array
+    always-pull:
+      type: boolean
     command:
       type: array
+    debug:
+      type: boolean
     entrypoint:
       type: string
     environment:
       type: array
-    user:
+    image:
       type: string
-    additional_groups:
-      type: array
+    mount-buildkite-agent:
+      type: boolean
+    mount-ssh-agent:
+      type: boolean
+    mount-checkout:
+      type: boolean
     network:
       type: string
-    debug:
-      type: boolean
     runtime:
       type: string
     shell:
       type: [boolean, array]
+    shm-size:
+      type: string
+    tty:
+      type: boolean
+    user:
+      type: string
+    volumes:
+      type: array
+    tmpfs:
+      type: array
+    workdir:
+      type: string
+    propagate-environment:
+      type: boolean
+    privileged:
+      type: boolean
+    init:
+      type: boolean
   required:
     - image
   additionalProperties: false

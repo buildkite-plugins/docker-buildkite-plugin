@@ -11,7 +11,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_AGENT_BINARY_PATH="/buildkite-agent"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent image:tag /bin/sh -e -c 'command1 \"a string\"' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent image:tag /bin/sh -e -c 'command1 \"a string\"' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -31,7 +31,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
 
   stub docker \
     "pull image:tag : echo pulled latest image" \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -52,7 +52,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="pwd"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -69,12 +69,72 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_MOUNTS_0=.:/app
-  export BUILDKITE_PLUGIN_DOCKER_MOUNTS_1=/var/run/docker.sock:/var/run/docker.sock
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0=/var/run/docker.sock:/var/run/docker.sock
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
-    "run -it --rm --volume $PWD:/app --volume /var/run/docker.sock:/var/run/docker.sock --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/app --volume /var/run/docker.sock:/var/run/docker.sock --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
+}
+
+@test "Runs BUILDKITE_COMMAND with mount-checkout=false" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT=false
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --rm --init image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+}
+
+@test "Runs BUILDKITE_COMMAND with mount-checkout=true" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT=true
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/app --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+}
+
+@test "Runs BUILDKITE_COMMAND with deprecated mounts" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_MOUNTS_0=/var/run/docker.sock:/var/run/docker.sock
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/app --volume /var/run/docker.sock:/var/run/docker.sock --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -96,7 +156,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env ANOTHER_TAG=llamas image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env ANOTHER_TAG=llamas image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -110,6 +170,54 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
 }
 
+@test "Runs BUILDKITE_COMMAND with shm size" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_SHM_SIZE=100mb
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --shm-size 100mb image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_SHM_SIZE
+}
+
+@test "Runs BUILDKITE_COMMAND with propagate environment" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT=true
+  export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0=MY_TAG=value
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_ENV_FILE="/tmp/amazing"
+
+  cat << EOF > $BUILDKITE_ENV_FILE
+FOO="BAR"
+A_VARIABLE="with\nnewline"
+EOF
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --env FOO --env A_VARIABLE image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0
+}
+
 @test "Runs BUILDKITE_COMMAND with user" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
@@ -117,7 +225,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir -u foo image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir -u foo image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -138,7 +246,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --group-add foo --group-add bar image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --group-add foo --group-add bar image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -161,7 +269,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   stub docker \
     "network ls --quiet --filter 'name=foo' : echo " \
     "network create foo : echo creating network foo" \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --network foo image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --network foo image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -182,7 +290,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -204,7 +312,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --runtime custom_runtime image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --runtime custom_runtime image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -225,7 +333,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -249,7 +357,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint /some/custom/entry/point image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -294,7 +402,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag custom-bash -a -b 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -332,7 +440,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -371,7 +479,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND=
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag echo 'hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag echo 'hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -396,7 +504,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND=
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir image:tag custom-bash -a -b echo 'hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag custom-bash -a -b echo 'hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -422,7 +530,7 @@ export DOCKER_STUB_DEBUG=/dev/tty
   export BUILDKITE_COMMAND=
 
   stub docker \
-    "run -it --rm --volume $PWD:/workdir --workdir /workdir --entrypoint llamas.sh image:tag custom-bash -a -b echo 'hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint llamas.sh image:tag custom-bash -a -b echo 'hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -435,3 +543,23 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_PLUGIN_DOCKER_SHELL
   unset BUILDKITE_COMMAND
 }
+
+@test "Doesn't disclose environment" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_COMMAND='echo hello world'
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export SUPER_SECRET=supersecret
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  refute_output --partial "supersecret"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset SUPER_SECRET
+	}
