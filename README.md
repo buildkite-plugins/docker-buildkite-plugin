@@ -137,9 +137,9 @@ Enables debug mode, which outputs the full Docker commands that will be run on t
 
 Default: `false`
 
-### `entrypoint` (optional, string)
+### `entrypoint` (optional, string or boolean)
 
-Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details.
+Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details. Set it to `false` to disable the default entrypoint for the image.
 
 Example: `/my/custom/entrypoint.sh`
 
