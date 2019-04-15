@@ -352,8 +352,10 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
-echo "--- :docker: Logging \"docker run\" command"
-echo "$ docker run ${args[*]}" >&2
+if [[ "${debug_mode:-off}" =~ (on) ]] ; then
+  echo "--- :docker: Logging \"docker run\" command"
+  echo "$ docker run ${args[*]}" >&2
+fi
 
 echo "--- :docker: Running command in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 echo "$ ${display_command[*]}" >&2
