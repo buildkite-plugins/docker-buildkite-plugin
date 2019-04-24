@@ -352,11 +352,11 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
-echo "--- :docker: Running ${display_command[*]} in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+echo "--- :docker: Logging \"docker run\" command"
+echo "$ docker run ${args[*]}" >&2
 
-if [[ "${debug_mode:-off}" =~ (on) ]] ; then
-  echo "$ docker run ${args[*]}" >&2
-fi
+echo "--- :docker: Running command in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+echo "$ ${display_command[*]}" >&2
 
 # Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
 # See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.
