@@ -6,16 +6,15 @@ set -euo pipefail
 function retry {
   local retries=$1; shift
   local attempts=1
-  local status=0
 
   until "$@"; do
-    status=$?
-    echo "Exited with $status"
+    retry_exit_status=$?
+    echo "Exited with $retry_exit_status"
     if (( retries == "0" )); then
-      return $status
+      return $retry_exit_status
     elif (( attempts == retries )); then
       echo "Failed $attempts retries"
-      return $status
+      return $retry_exit_status
     else
       echo "Retrying $((retries - attempts)) more times..."
       attempts=$((attempts + 1))
@@ -243,9 +242,8 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
   if ! retry "${BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES:-3}" \
        docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" ; then
-    rv=$?
     echo "!!! :docker: Pull failed."
-    exit $rv
+    exit $retry_exit_status
   fi
 fi
 
