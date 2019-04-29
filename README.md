@@ -86,6 +86,7 @@ steps:
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
 ```
+* Note that to push/pull docker images within your step container, you'll additionally need to mount `~/.docker/config.json` – with the associated security implications.
 
 You can disable the default behaviour of mounting in the checkout to `workdir`:
 
