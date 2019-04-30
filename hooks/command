@@ -143,6 +143,19 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN
   done
 fi
 
+# Ensure sysctl option is an array
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_SYSCTLS:-}" ]] ; then
+  echo -n "🚨 The Docker Plugin’s sysctl configuration option must be an array."
+  exit 1
+fi
+
+# Parse sysctl args and add them to docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SYSCTLS ; then
+  for arg in "${result[@]}" ; do
+    args+=( "--sysctl" "$arg" )
+  done
+fi
+
 # Set workdir if one is provided or if the checkout is mounted
 if [[ -n "${workdir:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
   args+=("--workdir" "${workdir}")

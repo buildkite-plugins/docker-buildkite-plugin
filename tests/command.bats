@@ -87,6 +87,29 @@ export DOCKER_STUB_DEBUG=/dev/tty
   unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
 }
 
+@test "Runs BUILDKITE_COMMAND with sysctls" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_PLUGIN_DOCKER_SYSCTLS_0=net.ipv4.ip_forward=1
+  export BUILDKITE_PLUGIN_DOCKER_SYSCTLS_1=net.unix.max_dgram_qlen=200
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/app --sysctl net.ipv4.ip_forward=1 --sysctl net.unix.max_dgram_qlen=200 --workdir /app image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
+  unset BUILDKITE_COMMAND
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0
+  unset BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1
+}
+
 @test "Runs BUILDKITE_COMMAND with mount-checkout=false" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false

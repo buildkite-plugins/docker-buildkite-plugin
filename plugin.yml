@@ -51,6 +51,8 @@ configuration:
       type: boolean
     init:
       type: boolean
+    sysctls:
+      type: array
   required:
     - image
   additionalProperties: false
