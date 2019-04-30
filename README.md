@@ -251,7 +251,7 @@ Example: `/app`
 
 ### `sysctls`(optional, array)
 
-Set namespaced kernel parameters in the container.
+Set namespaced kernel parameters in the container. More information can be found in https://docs.docker.com/engine/reference/commandline/run/.
 
 Example: `--sysctl net.ipv4.ip_forward=1`
 
