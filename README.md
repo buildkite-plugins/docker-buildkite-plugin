@@ -249,6 +249,12 @@ The working directory to run the command in, inside the container. The default i
 
 Example: `/app`
 
+### `sysctls`(optional, array)
+
+Set namespaced kernel parameters in the container. More information can be found in https://docs.docker.com/engine/reference/commandline/run/.
+
+Example: `--sysctl net.ipv4.ip_forward=1`
+
 ## Developing
 
 You can use the [bk cli](https://github.com/buildkite/cli) to run the test pipeline locally, or just the tests using Docker Compose directly:
