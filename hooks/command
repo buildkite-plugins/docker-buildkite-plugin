@@ -277,9 +277,12 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE:-}" ]]; then
   args+=("--shm-size" "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE}")
 fi
 
-# Handle entrypoint if set (or empty), and default shell to disabled
-if [[ "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT-false}" != "false" ]] ; then
-  args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
+# Handle entrypoint if set (even to explicit empty string), and default shell to disabled
+if [[ ! "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT-unset}" =~ ^(unset|false|)$ ]] ; then
+  args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT}")
+  shell_disabled=1
+elif [[ "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}" =~ ^(false|off|0)$ ]] ; then
+  args+=("--entrypoint" \'\')
   shell_disabled=1
 fi
 
