@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -euo pipefail
 
 # retry <number-of-retries> <command>
@@ -296,6 +295,9 @@ elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SHELL ; then
     shell+=("$arg")
   done
 fi
+
+# Add the job id as meta-data for reference in pre-exit
+args+=("--label" "com.buildkite.job-id=${BUILDKITE_JOB_ID}")
 
 # Add the image in before the shell and command
 args+=("${BUILDKITE_PLUGIN_DOCKER_IMAGE}")

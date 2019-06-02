@@ -1,0 +1,4 @@
+#!/bin/bash
+set -euo pipefail
+
+docker ps -a -q --filter "label=com.buildkite.job-id=${BUILDKITE_JOB_ID}"
