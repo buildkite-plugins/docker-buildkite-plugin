@@ -38,15 +38,13 @@ setup() {
   stub docker \
     "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'command1 \"a string\"' : echo ran command in docker" \
     "ps -a -q --filter label=com.buildkite.job-id=1-2-3-4 : echo 939fb4ab31b2" \
-    "stop 939fb4ab31b2 : echo stopped container" \
-    "rm -v -f 939fb4ab31b2 : echo removed container"
+    "stop 939fb4ab31b2 : echo stopped container"
 
   run bash -c "$PWD/hooks/command && $PWD/hooks/pre-exit"
 
   assert_success
   assert_output --partial "ran command in docker"
   assert_output --partial "stopped container"
-  assert_output --partial "removed container"
 
   unstub docker
 }
