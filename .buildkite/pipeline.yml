@@ -19,4 +19,4 @@ steps:
     command: "echo hello world"
     plugins:
       ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        ubuntu: ubuntu:18.04
+        image: ubuntu:18.04
