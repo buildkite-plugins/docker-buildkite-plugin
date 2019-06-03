@@ -1,0 +1,10 @@
+#!/bin/bash
+set -euo pipefail
+
+if [[ "${BUILDKITE_PLUGIN_DOCKER_CLEANUP:-true}" =~ ^(true|on|1)$ ]] ; then
+  for container in $(docker ps -a -q --filter "label=com.buildkite.job-id=${BUILDKITE_JOB_ID}") ; do
+    echo "~~~ Cleaning up left-over container ${container}"
+    docker stop "$container"
+  done
+fi
+
