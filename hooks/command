@@ -71,6 +71,7 @@ is_macos() {
 debug_mode='off'
 if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
   echo "--- :hammer: Enabling debug mode"
+  # shellcheck disable=SC2034
   debug_mode='on'
 fi
 
