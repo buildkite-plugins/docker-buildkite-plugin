@@ -67,13 +67,6 @@ is_macos() {
   [[ "$OSTYPE" =~ ^(darwin) ]]
 }
 
-debug_mode='off'
-if [[ "${BUILDKITE_PLUGIN_DOCKER_DEBUG:-false}" =~ (true|on|1) ]] ; then
-  echo "--- :hammer: Enabling debug mode"
-  # shellcheck disable=SC2034
-  debug_mode='on'
-fi
-
 tty_default='on'
 init_default='on'
 mount_agent_default='on'
@@ -338,12 +331,9 @@ fi
 
 # Assemble the shell and command arguments into the docker arguments
 
-display_command=()
-
 if [[ ${#shell[@]} -gt 0 ]] ; then
   for shell_arg in "${shell[@]}" ; do
     args+=("$shell_arg")
-    display_command+=("$shell_arg")
   done
 fi
 
@@ -352,23 +342,21 @@ if [[ -n "${BUILDKITE_COMMAND}" ]] ; then
     # The windows CMD shell only supports multiple commands with &&.
     windows_multi_command=${BUILDKITE_COMMAND//$'\n'/ && }
     args+=("${windows_multi_command}")
-    display_command+=("'${windows_multi_command}'")
   else
     args+=("${BUILDKITE_COMMAND}")
-    display_command+=("'${BUILDKITE_COMMAND}'")
   fi
 elif [[ ${#command[@]} -gt 0 ]] ; then
   for command_arg in "${command[@]}" ; do
     args+=("$command_arg")
-    display_command+=("${command_arg}")
   done
 fi
 
-echo "--- :docker: Logging \"docker run\" command"
-echo "$ docker run ${args[*]}" >&2
-
 echo "--- :docker: Running command in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
-echo "$ ${display_command[*]}" >&2
+echo -ne '\033[90m$\033[0m docker run' >&2
+
+# Print all the arguments, with a space after, properly shell quoted
+printf "%q " "${args[@]}"
+echo
 
 # Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
 # See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.

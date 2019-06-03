@@ -13,3 +13,10 @@ steps:
     plugins:
       docker-compose#v3.0.2:
         run: tests
+
+  - wait
+  - label: run the plugin
+    command: "echo hello world"
+    plugins:
+      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        image: ubuntu:18.04
