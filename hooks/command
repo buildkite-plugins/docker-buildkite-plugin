@@ -354,7 +354,8 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
 fi
 
 echo "--- :docker: Running command in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
-echo "$ docker run ${args[*]}" >&2
+echo -ne '\033[90m$\033[0m' >&2
+echo "${args[*]}" >&2
 
 # Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
 # See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.
