@@ -3,7 +3,7 @@
 load '/usr/local/lib/bats/load.bash'
 
 # Uncomment to enable stub debug output:
-export DOCKER_STUB_DEBUG=/dev/tty
+# export DOCKER_STUB_DEBUG=/dev/tty
 
 @test "Run with BUILDKITE_COMMAND" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
@@ -331,28 +331,6 @@ EOF
   unset BUILDKITE_PLUGIN_DOCKER_NETWORK
 }
 
-@test "Runs BUILDKITE_COMMAND with debug mode" {
-  export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
-  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
-  export BUILDKITE_PLUGIN_DOCKER_DEBUG=true
-  export BUILDKITE_COMMAND="echo hello world"
-
-  stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
-
-  run $PWD/hooks/command
-
-  assert_success
-  assert_output --partial "Enabling debug mode"
-  assert_output --partial "$ docker run"
-
-  unstub docker
-  unset BUILDKITE_PLUGIN_DOCKER_IMAGE
-  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
-  unset BUILDKITE_PLUGIN_DOCKER_DEBUG
-  unset BUILDKITE_COMMAND
-}
-
 @test "Runs BUILDKITE_COMMAND with custom runtime" {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
@@ -430,7 +408,7 @@ EOF
 #       (from function `assert_output' in file /usr/local/lib/bats/bats-assert/src/assert.bash, line 231,
 #         in test file tests/command.bats, line 387)
 #         `assert_output --partial "ran command in docker"' failed
-      
+
 #       -- output does not contain substring --
 #       substring : ran command in docker
 #       output    : --- :docker: Running 'echo hello world' in image:tag
