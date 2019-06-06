@@ -5,6 +5,8 @@ requirements:
   - docker
 configuration:
   properties:
+    add-host:
+      type: array
     additional-groups:
       type: array
     always-pull:

@@ -403,6 +403,22 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with add-host" {
+  export BUILDKITE_PLUGIN_DOCKER_ADD_HOST_0=buildkite.fake:127.0.0.1
+  export BUILDKITE_PLUGIN_DOCKER_ADD_HOST_1=www.buildkite.local:0.0.0.0
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --add-host buildkite.fake:127.0.0.1 --add-host www.buildkite.local:0.0.0.0 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs with a command as a string" {
   export BUILDKITE_PLUGIN_DOCKER_COMMAND="echo hello world"
   export BUILDKITE_COMMAND=

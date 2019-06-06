@@ -111,6 +111,12 @@ Example: `node:7`
 
 ### Optional
 
+### `add-host` (optional, array)
+
+Additional lines can be added to `/etc/hosts` in the container, in an array of mappings. See https://docs.docker.com/engine/reference/run/#managing-etchosts for more details.
+
+Example: `buildkite.fake:123.0.0.7`
+
 ### `additional-groups` (optional, array)
 
 Additional groups to be added to the user in the container, in an array of group names (or ids). See https://docs.docker.com/engine/reference/run/#additional-groups for more details.

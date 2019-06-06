@@ -212,6 +212,13 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
+# Parse host mappings and add them to the docker args
+while IFS='=' read -r name _ ; do
+  if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ADD_HOST_[0-9]+) ]] ; then
+    args+=( "--add-host" "${!name}" )
+  fi
+done < <(env | sort)
+
 # Privileged container
 if [[ "${BUILDKITE_PLUGIN_DOCKER_PRIVILEGED:-false}" =~ ^(true|on|1)$ ]] ; then
     args+=( "--privileged" )
