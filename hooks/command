@@ -268,15 +268,16 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE:-}" ]]; then
   args+=("--shm-size" "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE}")
 fi
 
-# Handle entrypoint if set (or empty), and default shell to disabled
+# Handle entrypoint if set (or empty)
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT-unset}" != "unset" ]] ; then
   # Reset the entrypoint with an empty string if it's false-y
   if [[ "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-false}" =~ ^(false|off|0)$ ]] ; then
     args+=("--entrypoint" "")
   else
+    # if entrypoint is not empty, set it and disable our shell
     args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
+    shell_disabled=1
   fi
-  shell_disabled=1
 fi
 
 # Handle shell being disabled
