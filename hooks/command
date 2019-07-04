@@ -135,6 +135,19 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN
   done
 fi
 
+# Ensure devices option is an array
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_DEVICES:-}" ]] ; then
+  echo "🚨 The Docker Plugin’s devices configuration option must be an array."
+  exit 1
+fi
+
+# Parse devices and add them to the docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_DEVICES ; then
+  for arg in "${result[@]}" ; do
+    args+=( "--device" "${arg}" )
+  done
+fi
+
 # Ensure sysctl option is an array
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_SYSCTLS:-}" ]] ; then
   echo -n "🚨 The Docker Plugin’s sysctl configuration option must be an array."
