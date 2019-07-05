@@ -96,6 +96,22 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with devices" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_DEVICES_0=/dev/bus/usb/001/001
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/app --device /dev/bus/usb/001/001 --workdir /app --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with sysctls" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_SYSCTLS_0=net.ipv4.ip_forward=1

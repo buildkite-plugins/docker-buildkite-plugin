@@ -41,6 +41,8 @@ configuration:
       type: string
     volumes:
       type: array
+    devices:
+      type: array
     tmpfs:
       type: array
     workdir:
