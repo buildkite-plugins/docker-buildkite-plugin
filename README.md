@@ -261,6 +261,12 @@ Set namespaced kernel parameters in the container. More information can be found
 
 Example: `--sysctl net.ipv4.ip_forward=1`
 
+### `devices` (optional, array)
+
+You can give builds limited access to a specific device or devices by passing devices to the docker container, in an array. Items are specific as `SOURCE:TARGET` or just `TARGET`. Each entry corresponds to a Docker CLI `--device` parameter.
+
+Example: `[ "/dev/bus/usb/001/001" ]`
+
 ## Developing
 
 You can use the [bk cli](https://github.com/buildkite/cli) to run the test pipeline locally, or just the tests using Docker Compose directly:
@@ -268,12 +274,6 @@ You can use the [bk cli](https://github.com/buildkite/cli) to run the test pipel
 ```bash
 docker-compose run --rm tests
 ```
-
-### `devices` (optional, array)
-
-You can give builds limited access to a specific device or devices by passing devices to the docker container, in an array. Items are specific as `SOURCE:TARGET` or just `TARGET`. Each entry corresponds to a Docker CLI `--device` parameter.
-
-Example: `[ "/dev/bus/usb/001/001" ]`
 
 ## License
 

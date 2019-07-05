@@ -442,7 +442,7 @@ EOF
   run $PWD/hooks/command
 
   assert_failure
-  assert_output --partial "command configuration option must be an array"
+  assert_output --partial "🚨 Plugin received a string for BUILDKITE_PLUGIN_DOCKER_COMMAND, expected an array"
 }
 
 @test "Runs with a command as an array" {
