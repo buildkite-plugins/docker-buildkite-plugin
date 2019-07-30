@@ -514,3 +514,33 @@ EOF
 
   unstub docker
 }
+
+@test "Run with dynamic volume mounts" {
+  export BUILDKITE_COMMAND='echo hello world'
+  export BUILDKITE_AGENT_NAME='agent-1'
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0="/path/to/code:/path/to/\$BUILDKITE_AGENT_NAME"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --volume /path/to/code:/path/to/agent-1 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+
+  unstub docker
+}
+
+@test "Run with dynamic env var values" {
+  export BUILDKITE_COMMAND='echo hello world'
+  export BUILDKITE_AGENT_NAME='agent-1'
+  export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0="MY_VAR=\$BUILDKITE_AGENT_NAME"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_VAR=agent-1 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+
+  unstub docker
+}

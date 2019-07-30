@@ -111,6 +111,7 @@ workdir=''
 
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
   workdir="${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}"
+  workdir=$(eval echo "${workdir}")
 fi
 
 # By default, mount $PWD onto $WORKDIR
@@ -121,7 +122,9 @@ fi
 # Parse volumes (and deprecated mounts) and add them to the docker args
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN_DOCKER_MOUNTS ; then
   for arg in "${result[@]}" ; do
-    args+=( "--volume" "$(expand_relative_volume_path "${arg}")" )
+    expanded_path=$(expand_relative_volume_path "${arg}")
+    actual_expanded_path=$(eval echo "${expanded_path}")
+    args+=( "--volume"  "${actual_expanded_path}")
   done
 fi
 
@@ -141,7 +144,8 @@ fi
 
 # Set workdir if one is provided or if the checkout is mounted
 if [[ -n "${workdir:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
-  args+=("--workdir" "${workdir}")
+  actual_workdir=$(eval echo ${workdir})
+  args+=("--workdir" "${actual_workdir}")
 fi
 
 # Support docker run --user
@@ -199,7 +203,8 @@ fi
 # Parse extra env vars and add them to the docker args
 while IFS='=' read -r name _ ; do
   if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_[0-9]+) ]] ; then
-    args+=( "--env" "${!name}" )
+    env_var_val=$(eval echo "${!name}")
+    args+=( "--env" "${env_var_val}" )
   fi
 done < <(env | sort)
 
