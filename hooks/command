@@ -165,6 +165,11 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
+# Support docker run --userns
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USERNS:-}" ]]; then
+  args+=("--userns" "${BUILDKITE_PLUGIN_DOCKER_USERNS:-}")
+fi
+
 # Mount ssh-agent socket and known_hosts
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT:-$mount_ssh_agent}" =~ ^(true|on|1)$ ]] ; then
   args+=(

@@ -245,6 +245,21 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with userns" {
+  export BUILDKITE_PLUGIN_DOCKER_USERNS=foo
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --userns foo --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with additional groups" {
   export BUILDKITE_PLUGIN_DOCKER_ADDITIONAL_GROUPS_0=foo
   export BUILDKITE_PLUGIN_DOCKER_ADDITIONAL_GROUPS_1=bar

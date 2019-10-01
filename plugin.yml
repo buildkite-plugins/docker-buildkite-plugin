@@ -39,6 +39,8 @@ configuration:
       type: boolean
     user:
       type: string
+    userns:
+      type: string
     volumes:
       type: array
     devices:

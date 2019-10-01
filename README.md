@@ -237,6 +237,12 @@ Allows a user to be set, and override the USER entry in the Dockerfile. See http
 
 Example: `root`
 
+### `userns` (optional, string)
+
+Allows to explicitly set the user namespace. This overrides the default docker daemon value. If you use the value `host`, you disable user namespaces for this run. See https://docs.docker.com/engine/security/userns-remap/ for more details.
+
+Example: `mynamespace`
+
 ### `volumes` (optional, array or boolean)
 
 Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter. Relative local paths are converted to their full-path (e.g `./code:/app`).
