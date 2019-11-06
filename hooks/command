@@ -154,6 +154,13 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USER:-}" ]] ; then
   args+=("-u" "${BUILDKITE_PLUGIN_DOCKER_USER:-}")
 fi
 
+# Parse publish args and add them to docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_PUBLISH ; then
+  for arg in "${result[@]}" ; do
+    args+=( "--publish" "$arg" )
+  done
+fi
+
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_UID_GID:-}" ]] ; then
   args+=("-u" "$(id -u):$(id -g)")
 fi

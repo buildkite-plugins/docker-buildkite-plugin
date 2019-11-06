@@ -273,6 +273,12 @@ You can give builds limited access to a specific device or devices by passing de
 
 Example: `[ "/dev/bus/usb/001/001" ]`
 
+### `publish` (optional, array)
+
+You can allow the docker container to publish ports. More information can be found in https://docs.docker.com/config/containers/container-networking/. Each entry corresponds to a Docker CLI `--publish` or `-p` parameter.
+
+Example: `[ "8080:80" ]` (Map TCP port 80 in the container to port 8080 on the Docker host.)
+
 ## Developing
 
 You can use the [bk cli](https://github.com/buildkite/cli) to run the test pipeline locally, or just the tests using Docker Compose directly:

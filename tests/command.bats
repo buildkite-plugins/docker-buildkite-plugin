@@ -112,6 +112,23 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with publish" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_PUBLISH_0=80:8080
+  export BUILDKITE_PLUGIN_DOCKER_PUBLISH_1=90:9090
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/app --publish 80:8080 --publish 90:9090 --workdir /app --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with sysctls" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_SYSCTLS_0=net.ipv4.ip_forward=1
