@@ -55,6 +55,8 @@ configuration:
       type: boolean
     privileged:
       type: boolean
+    publish:
+      type: array
     init:
       type: boolean
     sysctls:
