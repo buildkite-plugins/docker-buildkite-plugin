@@ -278,6 +278,11 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}" ]] ; then
   args+=("--runtime" "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}")
 fi
 
+# Support docker run --ipc
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_IPC:-}" ]] ; then
+  args+=("--ipc" "${BUILDKITE_PLUGIN_DOCKER_IPC:-}")
+fi
+
 shell=()
 shell_disabled=1
 

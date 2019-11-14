@@ -346,6 +346,21 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with custom IPC option" {
+  export BUILDKITE_PLUGIN_DOCKER_IPC=host
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --ipc host --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with entrypoint without explicit shell" {
   export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=/some/custom/entry/point
   export BUILDKITE_COMMAND="echo hello world"
