@@ -239,7 +239,7 @@ Example: `root`
 
 ### `userns` (optional, string)
 
-Allows to explicitly set the user namespace. This overrides the default docker daemon value. If you use the value `host`, you disable user namespaces for this run. See https://docs.docker.com/engine/security/userns-remap/ for more details.
+Allows to explicitly set the user namespace. This overrides the default docker daemon value. If you use the value `host`, you disable user namespaces for this run. See https://docs.docker.com/engine/security/userns-remap/ for more details. Due to limitations in this feature, a privileged container will override the user specified `userns` value to `host`
 
 Example: `mynamespace`
 

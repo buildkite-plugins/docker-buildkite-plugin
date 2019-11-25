@@ -174,7 +174,14 @@ done < <(env | sort)
 
 # Support docker run --userns
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_USERNS:-}" ]]; then
-  args+=("--userns" "${BUILDKITE_PLUGIN_DOCKER_USERNS:-}")
+  # However, if BUILDKITE_PLUGIN_DOCKER_PRIVILEGED is enabled, then userns MUST
+  # be overridden to host per limitations of docker
+  # https://docs.docker.com/engine/security/userns-remap/#user-namespace-known-limitations
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_PRIVILEGED:-false}" =~ ^(true|on|1)$ ]] ; then
+      args+=("--userns" "host")
+  else
+      args+=("--userns" "${BUILDKITE_PLUGIN_DOCKER_USERNS:-}")
+  fi
 fi
 
 # Mount ssh-agent socket and known_hosts
