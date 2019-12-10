@@ -21,6 +21,8 @@ configuration:
       type: array
     image:
       type: string
+    ipc:
+      type: string
     mount-buildkite-agent:
       type: boolean
     mount-ssh-agent:
