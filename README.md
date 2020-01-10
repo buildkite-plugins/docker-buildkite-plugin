@@ -213,6 +213,12 @@ Specify an explicit docker runtime. See the [docker run options documentation](h
 
 Example: `nvidia`
 
+### `ipc` (optional, string)
+
+Specify the IPC mode to use. See the [docker run options documentation](https://docs.docker.com/engine/reference/commandline/run/#options) for more details.
+
+Example: `host`
+
 ### `shell` (optional, array or boolean)
 
 Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `["/bin/sh", "-e", "-c"]` unless you have provided an `entrypoint` or `command`.
