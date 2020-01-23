@@ -76,7 +76,7 @@ You can pass in additional volumes to be mounted. This is useful for running Doc
 
 ```yml
 steps:
-  - commands:
+  - command:
       - "docker build . -t image:tag"
       - "docker push image:tag"
     plugins:
