@@ -1,6 +1,4 @@
-
-    pid:
-      type: stringname: Docker
+name: Docker
 description: Runs your build steps in Docker containers
 author: https://github.com/buildkite
 requirements:
