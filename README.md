@@ -209,6 +209,12 @@ PID namespace provides separation of processes. The PID Namespace removes the vi
 
 Example: `host`
 
+### `gpus` (optional, string)
+
+GPUs selector. Dependencies: nvidia-container-runtime
+
+Example: `all`
+
 ### `pull-retries` (optional, int)
 
 A number of times to retry failed docker pull. Defaults to 3. Only applies when `always-pull` is enabled.
