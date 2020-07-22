@@ -1,4 +1,4 @@
-# Docker Buildkite Plugin ![Build status](https://badge.buildkite.com/3a4b0903b26c979f265c049c932fb4ff3c055af7a199a17216.svg?branch=master)
+# Docker Buildkite Plugin [![Build status](https://badge.buildkite.com/b813517b8bb70d455106a03fbfbb1986477deb7c68f9ffcf59.svg?branch=master)](https://buildkite.com/buildkite/plugins-docker)
 
 A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) for running pipeline steps in [Docker](https://www.docker.com/) containers.
 
