@@ -285,6 +285,12 @@ You can allow the docker container to publish ports. More information can be fou
 
 Example: `[ "8080:80" ]` (Map TCP port 80 in the container to port 8080 on the Docker host.)
 
+### `cpus` (optional, string)
+
+Set the CPU limit to apply when running the container. More information can be found in https://docs.docker.com/config/containers/resource_constraints/#cpu.
+
+Example: `0.5`
+
 ## Developing
 
 You can use the [bk cli](https://github.com/buildkite/cli) to run the test pipeline locally, or just the tests using Docker Compose directly:
