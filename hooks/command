@@ -128,7 +128,8 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN
 fi
 
 # If there's a git mirror, mount it so that git references can be followed.
-if [[ -n "${BUILDKITE_REPO_MIRROR:-}" ]]; then
+# But not if mount-checkout is disabled.
+if [[ -n "${BUILDKITE_REPO_MIRROR:-}" && "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
   args+=( "--volume" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro" )
 fi
 
