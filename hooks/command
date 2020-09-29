@@ -127,6 +127,12 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN
   done
 fi
 
+# If there's a git mirror, mount it so that git references can be followed.
+# But not if mount-checkout is disabled.
+if [[ -n "${BUILDKITE_REPO_MIRROR:-}" && "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
+  args+=( "--volume" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro" )
+fi
+
 # Parse devices and add them to the docker args
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_DEVICES ; then
   for arg in "${result[@]}" ; do
