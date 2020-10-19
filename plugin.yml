@@ -25,6 +25,8 @@ configuration:
       type: string
     ipc:
       type: string
+    leave-container:
+      type: boolean
     mount-buildkite-agent:
       type: boolean
     mount-ssh-agent:
