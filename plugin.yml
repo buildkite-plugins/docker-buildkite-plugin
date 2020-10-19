@@ -13,6 +13,8 @@ configuration:
       type: boolean
     command:
       type: array
+    cpus:
+      type: string
     debug:
       type: boolean
     entrypoint:
@@ -20,6 +22,8 @@ configuration:
     environment:
       type: array
     image:
+      type: string
+    ipc:
       type: string
     mount-buildkite-agent:
       type: boolean
@@ -55,6 +59,8 @@ configuration:
       type: boolean
     privileged:
       type: boolean
+    publish:
+      type: array
     init:
       type: boolean
     sysctls:

@@ -112,6 +112,23 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with publish" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_PUBLISH_0=80:8080
+  export BUILDKITE_PLUGIN_DOCKER_PUBLISH_1=90:9090
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/app --workdir /app --publish 80:8080 --publish 90:9090 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with sysctls" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_SYSCTLS_0=net.ipv4.ip_forward=1
@@ -199,6 +216,21 @@ setup() {
 
   stub docker \
     "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --shm-size 100mb --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with cpus" {
+  export BUILDKITE_PLUGIN_DOCKER_CPUS="0.5"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --cpus=0.5 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -320,6 +352,21 @@ EOF
 
   stub docker \
     "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --runtime custom_runtime --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with custom IPC option" {
+  export BUILDKITE_PLUGIN_DOCKER_IPC=host
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --ipc host --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -526,6 +573,60 @@ EOF
 
   assert_success
   refute_output --partial "supersecret"
+
+  unstub docker
+}
+
+@test "Run with BUILDKITE_REPO_MIRROR" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_AGENT_BINARY_PATH="/buildkite-agent"
+  export BUILDKITE_REPO_MIRROR="/tmp/mirrors/git-github-com-buildkite-agent-abc123"
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --volume /tmp/mirrors/git-github-com-buildkite-agent-abc123:/tmp/mirrors/git-github-com-buildkite-agent-abc123:ro --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo hello world"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "hello world"
+
+  unstub docker
+}
+
+@test "Run with BUILDKITE_REPO_MIRROR but mount-checkout=false" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_AGENT_BINARY_PATH="/buildkite-agent"
+  export BUILDKITE_REPO_MIRROR="/tmp/mirrors/git-github-com-buildkite-agent-abc123"
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT="false"
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+
+  stub docker \
+    "run -it --rm --init --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo hello world"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "hello world"
+
+  unstub docker
+}
+
+@test "Run with BUILDKITE_REPO_MIRROR in addition to other volumes" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_AGENT_BINARY_PATH="/buildkite-agent"
+  export BUILDKITE_REPO_MIRROR="/tmp/mirrors/git-github-com-buildkite-agent-abc123"
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0="/one:/a"
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_1="/two:/b:ro"
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --volume /one:/a --volume /two:/b:ro --volume /tmp/mirrors/git-github-com-buildkite-agent-abc123:/tmp/mirrors/git-github-com-buildkite-agent-abc123:ro --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo hello world"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "hello world"
 
   unstub docker
 }
