@@ -151,7 +151,7 @@ setup() {
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
-    "run -it --rm --init --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+    "run -it --rm --init --volume /plugin:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -166,7 +166,7 @@ setup() {
   export BUILDKITE_COMMAND="echo hello world; pwd"
 
   stub docker \
-    "run -it --init --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+    "run -it --init --volume /plugin:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
 
   run $PWD/hooks/command
 
