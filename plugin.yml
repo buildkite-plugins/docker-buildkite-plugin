@@ -65,6 +65,12 @@ configuration:
       type: boolean
     sysctls:
       type: array
+    add-caps:
+      type: array
+    drop-caps:
+      type: array
+    security-opts:
+      type: array
   required:
     - image
   additionalProperties: false

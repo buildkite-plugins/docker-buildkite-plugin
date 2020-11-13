@@ -273,6 +273,18 @@ Set namespaced kernel parameters in the container. More information can be found
 
 Example: `--sysctl net.ipv4.ip_forward=1`
 
+### `add-caps` (optional, array)
+
+Add Linux capabilities to the container. Each entry corresponds to a Docker CLI `--cap-add` parameter.
+
+### `drop-caps` (optional, array)
+
+Remove Linux capabilities from the container. Each entry corresponds to a Docker CLI `--cap-drop` parameter.
+
+### `security-opts` (optional, array)
+
+Add security options to the container. Each entry corresponds to a Docker CLI `--security-opt` parameter.
+
 ### `devices` (optional, array)
 
 You can give builds limited access to a specific device or devices by passing devices to the docker container, in an array. Items are specific as `SOURCE:TARGET` or just `TARGET`. Each entry corresponds to a Docker CLI `--device` parameter.

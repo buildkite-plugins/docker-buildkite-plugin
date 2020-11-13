@@ -147,6 +147,27 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SYSCTLS ; then
   done
 fi
 
+# Parse cap-add args and add them to docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_ADD_CAPS ; then
+  for arg in "${result[@]}"; do
+    args+=("--cap-add" "$arg")
+  done
+fi
+
+# Parse cap-drop args and add them to docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_DROP_CAPS ; then
+  for arg in "${result[@]}"; do
+    args+=("--cap-drop" "$arg")
+  done
+fi
+
+# Parse security-opts args and add them to docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SECURITY_OPTS ; then
+  for arg in "${result[@]}"; do
+    args+=("--security-opt" "$arg")
+  done
+fi
+
 # Set workdir if one is provided or if the checkout is mounted
 if [[ -n "${workdir:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
   args+=("--workdir" "${workdir}")
