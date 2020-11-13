@@ -81,6 +81,12 @@ configuration:
       type: array
     storage-opt:
       type: string
+    add-caps:
+      type: array
+    drop-caps:
+      type: array
+    security-opts:
+      type: array
   required:
     - image
   additionalProperties: false
