@@ -1,4 +1,4 @@
-# Docker Buildkite Plugin ![Build status](https://badge.buildkite.com/3a4b0903b26c979f265c049c932fb4ff3c055af7a199a17216.svg?branch=master)
+# Docker Buildkite Plugin [![Build status](https://badge.buildkite.com/b813517b8bb70d455106a03fbfbb1986477deb7c68f9ffcf59.svg?branch=master)](https://buildkite.com/buildkite/plugins-docker)
 
 A [Buildkite plugin](https://buildkite.com/docs/agent/v3/plugins) for running pipeline steps in [Docker](https://www.docker.com/) containers.
 
@@ -13,7 +13,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v3.5.0:
+      - docker#v3.7.0:
           image: "golang:1.11"
 ```
 
@@ -23,7 +23,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v3.5.0:
+      - docker#v3.7.0:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -33,7 +33,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v3.5.0:
+      - docker#v3.7.0:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -48,7 +48,7 @@ steps:
       - "yarn install"
       - "yarn run test"
     plugins:
-      - docker#v3.5.0:
+      - docker#v3.7.0:
           image: "node:7"
           always-pull: true
           environment:
@@ -66,7 +66,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v3.5.0:
+      - docker#v3.7.0:
           image: "node:7"
           always-pull: true
           propagate-environment: true
@@ -80,7 +80,7 @@ steps:
       - "docker build . -t image:tag"
       - "docker push image:tag"
     plugins:
-      - docker#v3.5.0:
+      - docker#v3.7.0:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -93,7 +93,7 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v3.5.0:
+      - docker#v3.7.0:
           image: "node:7"
           always-pull: true
           mount-checkout: false
@@ -296,6 +296,12 @@ Example: `[ "/dev/bus/usb/001/001" ]`
 You can allow the docker container to publish ports. More information can be found in https://docs.docker.com/config/containers/container-networking/. Each entry corresponds to a Docker CLI `--publish` or `-p` parameter.
 
 Example: `[ "8080:80" ]` (Map TCP port 80 in the container to port 8080 on the Docker host.)
+
+### `cpus` (optional, string)
+
+Set the CPU limit to apply when running the container. More information can be found in https://docs.docker.com/config/containers/resource_constraints/#cpu.
+
+Example: `0.5`
 
 ## Developing
 
