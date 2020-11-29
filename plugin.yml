@@ -13,6 +13,8 @@ configuration:
       type: boolean
     command:
       type: array
+    cpus:
+      type: string
     debug:
       type: boolean
     entrypoint:
@@ -32,6 +34,8 @@ configuration:
     network:
       type: string
     pid:
+      type: string
+    gpus:
       type: string
     runtime:
       type: string

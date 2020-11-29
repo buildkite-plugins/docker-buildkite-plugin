@@ -127,6 +127,12 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN
   done
 fi
 
+# If there's a git mirror, mount it so that git references can be followed.
+# But not if mount-checkout is disabled.
+if [[ -n "${BUILDKITE_REPO_MIRROR:-}" && "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
+  args+=( "--volume" "$BUILDKITE_REPO_MIRROR:$BUILDKITE_REPO_MIRROR:ro" )
+fi
+
 # Parse devices and add them to the docker args
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_DEVICES ; then
   for arg in "${result[@]}" ; do
@@ -287,6 +293,11 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_PID:-}" ]] ; then
   args+=("--pid" "${BUILDKITE_PLUGIN_DOCKER_PID:-}")
 fi
 
+# Support docker run --gpus
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_GPUS:-}" ]] ; then
+  args+=("--gpus" "${BUILDKITE_PLUGIN_DOCKER_GPUS:-}")
+fi
+
 # Support docker run --runtime
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}" ]] ; then
   args+=("--runtime" "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}")
@@ -307,6 +318,11 @@ fi
 # Handle setting of shm size if provided
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE:-}" ]]; then
   args+=("--shm-size" "${BUILDKITE_PLUGIN_DOCKER_SHM_SIZE}")
+fi
+
+# Handle setting of cpus if provided
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_CPUS:-}" ]]; then
+  args+=("--cpus=${BUILDKITE_PLUGIN_DOCKER_CPUS}")
 fi
 
 # Handle entrypoint if set (or empty), and default shell to disabled
