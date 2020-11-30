@@ -255,6 +255,21 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with gpus" {
+  export BUILDKITE_PLUGIN_DOCKER_GPUS="0"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --gpus 0 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with propagate environment" {
   export BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT=true
   export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0=MY_TAG=value
