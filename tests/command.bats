@@ -642,3 +642,20 @@ EOF
 
   unstub docker
 }
+
+@test "Copies files and does not mount when copy-checkout=true" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COPY_CHECKOUT="true"
+
+  stub docker \
+    "run -it --rm --init --workdir /workdir --name test_1 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo hello world" \
+    "copy $PWD test_1:/workdir : echo copy code"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "hello world"
+  assert_output --partial "copy code"
+
+  unstub docker
+}
