@@ -179,6 +179,16 @@ setup() {
   unstub docker
 }
 
+@test "Errors out when both mount-checkout=true and copy-checkout=true" {
+    export BUILDKITE_PLUGIN_DOCKER_COPY_CHECKOUT=true
+    export BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT=true
+
+    run $PWD/hooks/command
+
+    assert_failure
+    assert_output --partial "Error: Can't set both copy-checkout and mount-checkout.  Only one can be enabled."
+}
+
 @test "Runs BUILDKITE_COMMAND with deprecated mounts" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
