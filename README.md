@@ -185,6 +185,12 @@ Whether to automatically mount the current working directory which contains your
 
 Default: `true`
 
+### `copy-checkout` (optional, boolean)
+
+Whether to automatically copy your checked out codebase to the container's working directory.  Copies onto `/workdir`, unless `workdir` is set, in which case that will be used.  This option will overwride `mount-checkout` if true.
+
+Default: `false`
+
 ### `mount-buildkite-agent` (optional, boolean)
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.
