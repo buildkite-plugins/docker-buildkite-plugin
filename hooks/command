@@ -111,8 +111,18 @@ fi
 
 workdir=''
 
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
+# Set the workdir
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_COPY_CHECKOUT:-off}" =~ ^(true|on|1)$ ]] ; then
   workdir="${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}"
+fi
+
+# If copy-checkout, then set mount-checkout to false
+if  [[ "${BUILDKITE_PLUGIN_DOCKER_COPY_CHECKOUT:-off}" =~ ^(true|on|1)$ ]] ; then
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-off}" =~ ^(true|on|1)$ ]] ; then
+    echo "+++ Error: Can't set both copy-checkout and mount-checkout.  Only one can be enabled."
+    exit 1
+  fi
+  BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT='off'
 fi
 
 # By default, mount $PWD onto $WORKDIR
