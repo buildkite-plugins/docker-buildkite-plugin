@@ -388,6 +388,22 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with entrypoint copying workdir" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_COPY_CHECKOUT=true
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT=false
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir_original --workdir /workdir --name test_1 --label com.buildkite.job-id=1-2-3-4 image:tag 'cp -r /workdir_original /workdir && echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with entrypoint without explicit shell" {
   export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=/some/custom/entry/point
   export BUILDKITE_COMMAND="echo hello world"
