@@ -18,5 +18,5 @@ steps:
   - label: run the plugin
     command: "echo hello world"
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         image: ubuntu:18.04
