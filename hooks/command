@@ -343,6 +343,10 @@ elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SHELL ; then
   done
 fi
 
+# Add a container name
+container_name="${BUILDKITE_PIPELINE_SLUG}_${BUILDKITE_BUILD_NUMBER}"
+args+=("--name" "$container_name")
+
 # Add the job id as meta-data for reference in pre-exit
 args+=("--label" "com.buildkite.job-id=${BUILDKITE_JOB_ID}")
 
