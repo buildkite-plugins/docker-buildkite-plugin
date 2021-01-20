@@ -394,7 +394,7 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
-echo "--- :docker: Running command in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
+echo "+++ :docker: Running command in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 echo -ne '\033[90m$\033[0m docker run ' >&2
 
 # Print all the arguments, with a space after, properly shell quoted
