@@ -211,7 +211,7 @@ setup() {
 }
 
 @test "Runs BUILDKITE_COMMAND with storage-opts" {
-  export BUILDKITE_PLUGIN_DOCKER_STORAGE_OPTS=size=50GB
+  export BUILDKITE_PLUGIN_DOCKER_STORAGE_OPTS_0=size=50GB
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
