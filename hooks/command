@@ -169,11 +169,6 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_PUBLISH ; then
   done
 fi
 
-if [[ -n "${BUILDKITE_PLUGIN_DOCKER_STORAGE_OPTS:-}" ]] ; then
-  echo "🚨 The Docker Plugin’s storage-opts configuration option must be an array."
-  exit 1
-fi
-
 # Parse storage opts args and add them to docker args
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_STORAGE_OPTS ; then
   for arg in "${result[@]}" ; do

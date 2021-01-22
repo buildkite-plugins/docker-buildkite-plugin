@@ -215,7 +215,7 @@ setup() {
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --storage-opts size=50GB --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --storage-opts size=50GB --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
