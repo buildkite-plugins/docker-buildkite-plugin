@@ -210,6 +210,21 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with storage-opts" {
+  export BUILDKITE_PLUGIN_DOCKER_STORAGE_OPTS=size=50GB
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_TAG=value --storage-opts size=50GB --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with shm size" {
   export BUILDKITE_PLUGIN_DOCKER_SHM_SIZE=100mb
   export BUILDKITE_COMMAND="echo hello world"
