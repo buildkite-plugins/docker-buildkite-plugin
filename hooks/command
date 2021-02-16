@@ -267,6 +267,19 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$
   fi
 fi
 
+# Propagate aws auth environment variables into the container e.g. from assume role plugins
+if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS:-false}" =~ ^(true|on|1)$ ]] ; then
+  if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]] ; then
+      args+=( --env "AWS_ACCESS_KEY_ID" )
+  fi
+  if [[ -n "${AWS_SECRET_ACCESS_KEY:-}" ]] ; then
+      args+=( --env "AWS_SECRET_ACCESS_KEY" )
+  fi
+  if [[ -n "${AWS_SESSION_TOKEN:-}" ]] ; then
+      args+=( --env "AWS_SESSION_TOKEN" )
+  fi
+fi
+
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
   if ! retry "${BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES:-3}" \

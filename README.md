@@ -72,6 +72,22 @@ steps:
           propagate-environment: true
 ```
 
+AWS authentication tokens can be automatically propagated to the container, for example from an assume role plugin:
+
+```yml
+steps:
+  - command:
+      - "yarn install"
+      - "yarn run test"
+    env:
+      MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
+    plugins:
+      - docker#v3.7.0:
+          image: "node:7"
+          always-pull: true
+          propagate-aws-auth-tokens: true
+```
+
 You can pass in additional volumes to be mounted. This is useful for running Docker:
 
 ```yml
