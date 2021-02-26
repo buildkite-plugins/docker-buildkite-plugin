@@ -72,6 +72,22 @@ steps:
           propagate-environment: true
 ```
 
+AWS authentication tokens can be automatically propagated to the container, for example from an assume role plugin:
+
+```yml
+steps:
+  - command:
+      - "yarn install"
+      - "yarn run test"
+    env:
+      MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
+    plugins:
+      - docker#v3.7.0:
+          image: "node:7"
+          always-pull: true
+          propagate-aws-auth-tokens: true
+```
+
 You can pass in additional volumes to be mounted. This is useful for running Docker:
 
 ```yml
@@ -160,6 +176,12 @@ Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=k
 Whether or not to automatically propagate all pipeline environment variables into the docker container. Avoiding the need to be specified with `environment`.
 
 Note that only pipeline variables will automatically be propagated (what you see in the Buildkite UI). Variables set in proceeding hook scripts will not be propagated to the container.
+
+### `propagate-aws-auth-tokens` (optional, boolean)
+
+Whether or not to automatically propagate aws authentication environment variables into the docker container. Avoiding the need to be specified with `environment`. This is useful for example if you are using an assume role plugin.
+
+Will propagate `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`, only if they are set already.
 
 ### `propagate-uid-gid` (optional, boolean)
 

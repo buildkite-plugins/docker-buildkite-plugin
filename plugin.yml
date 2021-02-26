@@ -55,6 +55,8 @@ configuration:
       type: string
     propagate-environment:
       type: boolean
+    propagate-aws-auth-tokens:
+      type: boolean
     propagate-uid-gid:
       type: boolean
     privileged:

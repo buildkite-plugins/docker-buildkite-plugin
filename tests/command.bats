@@ -630,3 +630,43 @@ EOF
 
   unstub docker
 }
+
+@test "Runs BUILDKITE_COMMAND with propagate aws auth tokens" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS=true
+
+  export AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"
+  export AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  export AWS_SESSION_TOKEN="AQoEXAMPLEH4aoAH0gNCAPy...truncated...zrkuWJOgQs8IZZaIv2BXIa2R4Olgk"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env AWS_SESSION_TOKEN --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Doesn't disclose aws auth tokens" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS=true
+
+  export AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"
+  export AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  export AWS_SESSION_TOKEN="AQoEXAMPLEH4aoAH0gNCAPy...truncated...zrkuWJOgQs8IZZaIv2BXIa2R4Olgk"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env AWS_SESSION_TOKEN --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  refute_output --partial "AKIAIOSFODNN7EXAMPLE"
+  refute_output --partial "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  refute_output --partial "AQoEXAMPLEH4aoAH0gNCAPy...truncated...zrkuWJOgQs8IZZaIv2BXIa2R4Olgk"
+
+  unstub docker
+}
