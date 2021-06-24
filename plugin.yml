@@ -25,6 +25,12 @@ configuration:
       type: string
     ipc:
       type: string
+    memory:
+      type: string
+    memory-swap:
+      type: string
+    memory-swappiness:
+      type: string
     mount-buildkite-agent:
       type: boolean
     mount-ssh-agent:

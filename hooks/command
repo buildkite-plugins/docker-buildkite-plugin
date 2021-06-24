@@ -328,6 +328,21 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_CPUS:-}" ]]; then
   args+=("--cpus=${BUILDKITE_PLUGIN_DOCKER_CPUS}")
 fi
 
+# Handle memory limit if provided
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MEMORY:-}" ]]; then
+  args+=("--memory=${BUILDKITE_PLUGIN_DOCKER_MEMORY}")
+fi
+
+# Handle memory swap limit if provided
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAP:-}" ]]; then
+  args+=("--memory-swap=${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAP}")
+fi
+
+# Handle memory swappiness if provided
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAPPINESS:-}" ]]; then
+  args+=("--memory-swappiness=${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAPPINESS}")
+fi
+
 # Handle entrypoint if set (or empty), and default shell to disabled
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT-false}" != "false" ]] ; then
   args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT:-}")
