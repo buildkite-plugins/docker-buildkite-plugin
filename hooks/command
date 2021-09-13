@@ -334,6 +334,27 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT-false}" != "false" ]] ; then
   shell_disabled=1
 fi
 
+# Parse cap-add option and add to docker args.
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_CAP_ADD ; then
+  for arg in "${result[@]}" ; do
+    args+=( "--cap-add" "$arg" )
+  done
+fi
+
+# Parse cap-drop option and add to docker args.
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_CAP_DROP ; then
+  for arg in "${result[@]}" ; do
+    args+=( "--cap-drop" "$arg" )
+  done
+fi
+
+# Parse security-opt option and add to docker args.
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SECURITY_OPT ; then
+  for arg in "${result[@]}" ; do
+    args+=( "--security-opt" "$arg" )
+  done
+fi
+
 # Handle shell being disabled
 if [[ "${BUILDKITE_PLUGIN_DOCKER_SHELL:-}" =~ ^(false|off|0)$ ]] ; then
   shell_disabled=1

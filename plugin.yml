@@ -11,18 +11,26 @@ configuration:
       type: array
     always-pull:
       type: boolean
+    cap-add:
+      type: array
+    cap-drop:
+      type: array
     command:
       type: array
     cpus:
       type: string
     debug:
       type: boolean
+    devices:
+      type: array
     entrypoint:
       type: [string, boolean]
     environment:
       type: array
     image:
       type: string
+    init:
+      type: boolean
     ipc:
       type: string
     mount-buildkite-agent:
@@ -33,40 +41,38 @@ configuration:
       type: boolean
     network:
       type: string
+    privileged:
+      type: boolean
+    propagate-aws-auth-tokens:
+      type: boolean
+    propagate-environment:
+      type: boolean
+    propagate-uid-gid:
+      type: boolean
+    publish:
+      type: array
     runtime:
       type: string
     shell:
       type: [boolean, array]
     shm-size:
       type: string
+    tmpfs:
+      type: array
     tty:
       type: boolean
+    security-opt:
+      type: array
+    sysctls:
+      type: array
     user:
       type: string
     userns:
       type: string
     volumes:
       type: array
-    devices:
-      type: array
-    tmpfs:
-      type: array
     workdir:
       type: string
-    propagate-environment:
-      type: boolean
-    propagate-aws-auth-tokens:
-      type: boolean
-    propagate-uid-gid:
-      type: boolean
-    privileged:
-      type: boolean
-    publish:
-      type: array
-    init:
-      type: boolean
-    sysctls:
-      type: array
   required:
     - image
   additionalProperties: false

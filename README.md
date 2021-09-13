@@ -145,6 +145,14 @@ Whether to always pull the latest image before running the command. Useful if th
 
 Default: `false`
 
+### `cap-add` (optional, array)
+
+Add Linux capabilities to the container. Each entry corresponds to a Docker CLI `--cap-add` parameter.
+
+### `cap-drop` (optional, array)
+
+Remove Linux capabilities from the container. Each entry corresponds to a Docker CLI `--cap-drop` parameter.
+
 ### `command` (optional, array)
 
 Sets the command for the Docker image, and defaults the `shell` option to `false`. Useful if the Docker image has an entrypoint, or doesn't contain a shell.
@@ -240,6 +248,10 @@ Example: `nvidia`
 Specify the IPC mode to use. See the [docker run options documentation](https://docs.docker.com/engine/reference/commandline/run/#options) for more details.
 
 Example: `host`
+
+### `security-opt` (optional, array)
+
+Add security options to the container. Each entry corresponds to a Docker CLI `--security-opt` parameter.
 
 ### `shell` (optional, array or boolean)
 
