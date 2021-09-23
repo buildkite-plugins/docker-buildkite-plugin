@@ -670,3 +670,64 @@ EOF
 
   unstub docker
 }
+
+@test "Runs BUILDKITE_COMMAND with memory options" {
+  export BUILDKITE_PLUGIN_DOCKER_MEMORY=2g
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --memory=2g --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with memory-swap options" {
+  export BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAP=2g
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --memory-swap=2g --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with memory-swappiness options" {
+  export BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAPPINESS=0
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --memory-swappiness=0 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with implicit no swap" {
+  export BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAP=2g
+  export BUILDKITE_PLUGIN_DOCKER_MEMORY=2g
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --memory=2g --memory-swap=2g --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
