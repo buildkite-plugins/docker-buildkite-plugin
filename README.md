@@ -313,6 +313,27 @@ Set the CPU limit to apply when running the container. More information can be f
 
 Example: `0.5`
 
+### `memory` (optional, string)
+
+Set the memory limit to apply when running the container. More information can 
+be found in https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory.
+
+Example: `2g`
+
+### `memory-swap` (optional, string)
+
+Set the memory swap limit to apply when running the container. More information
+can be found in https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory.
+
+Example: `2g`
+
+### `memory-swappiness` (optional, string)
+
+Set the swappiness level to apply when running the container. More information
+can be found in https://docs.docker.com/config/containers/resource_constraints/#--memory-swappiness-details.
+
+Example: `0`
+
 ## Developing
 
 You can use the [bk cli](https://github.com/buildkite/cli) to run the test pipeline locally, or just the tests using Docker Compose directly:
