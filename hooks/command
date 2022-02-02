@@ -301,6 +301,16 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}" ]] ; then
   args+=("--network" "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}")
 fi
 
+# Support docker run --pid
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_PID:-}" ]] ; then
+  args+=("--pid" "${BUILDKITE_PLUGIN_DOCKER_PID:-}")
+fi
+
+# Support docker run --gpus
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_GPUS:-}" ]] ; then
+  args+=("--gpus" "${BUILDKITE_PLUGIN_DOCKER_GPUS:-}")
+fi
+
 # Support docker run --runtime
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}" ]] ; then
   args+=("--runtime" "${BUILDKITE_PLUGIN_DOCKER_RUNTIME:-}")

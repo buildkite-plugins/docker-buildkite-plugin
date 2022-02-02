@@ -225,6 +225,18 @@ Join the container to the docker network specified. The network will be created 
 
 Example: `test-network`
 
+### `pid` (optional, string)
+
+PID namespace provides separation of processes. The PID Namespace removes the view of the system processes, and allows process ids to be reused including pid 1. See https://docs.docker.com/engine/reference/run/#pid-settings---pid for more details. By default, all containers have the PID namespace enabled.
+
+Example: `host`
+
+### `gpus` (optional, string)
+
+GPUs selector. Dependencies: nvidia-container-runtime
+
+Example: `all`
+
 ### `pull-retries` (optional, int)
 
 A number of times to retry failed docker pull. Defaults to 3. Only applies when `always-pull` is enabled.

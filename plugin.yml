@@ -39,6 +39,10 @@ configuration:
       type: boolean
     network:
       type: string
+    pid:
+      type: string
+    gpus:
+      type: string
     runtime:
       type: string
     shell:
