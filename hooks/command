@@ -278,6 +278,12 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS:-false}" =~ ^(true|on
   if [[ -n "${AWS_SESSION_TOKEN:-}" ]] ; then
       args+=( --env "AWS_SESSION_TOKEN" )
   fi
+  if [[ -n "${AWS_REGION:-}" ]] ; then
+      args+=( --env "AWS_REGION" )
+  fi
+  if [[ -n "${AWS_DEFAULT_REGION:-}" ]] ; then
+      args+=( --env "AWS_DEFAULT_REGION" )
+  fi
 fi
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
