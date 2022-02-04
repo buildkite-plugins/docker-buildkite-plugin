@@ -354,6 +354,6 @@ You can use the [bk cli](https://github.com/buildkite/cli) to run the test pipel
 docker-compose run --rm tests
 ```
 
-## License
+## License sample
 
 MIT (see [LICENSE](LICENSE))
