@@ -201,6 +201,12 @@ See [Docker's documentation](https://docs.docker.com/engine/reference/run/#speci
 
 Default: `true` for Linux and macOS, `false` for Windows.
 
+### `leave-container` (optional, boolean)
+
+Whether or not to leave the container after the run, or immediately remove it with `--rm`.
+
+Default: `false`
+
 ### `mount-checkout` (optional, boolean)
 
 Whether to automatically mount the current working directory which contains your checked out codebase. Mounts onto `/workdir`, unless `workdir` is set, in which case that will be used.
