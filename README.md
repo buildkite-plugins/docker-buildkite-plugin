@@ -13,7 +13,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v3.7.0:
+      - docker#v3.10.0:
           image: "golang:1.11"
 ```
 
@@ -23,7 +23,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v3.7.0:
+      - docker#v3.10.0:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -33,7 +33,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v3.7.0:
+      - docker#v3.10.0:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -48,7 +48,7 @@ steps:
       - "yarn install"
       - "yarn run test"
     plugins:
-      - docker#v3.7.0:
+      - docker#v3.10.0:
           image: "node:7"
           always-pull: true
           environment:
@@ -66,10 +66,26 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v3.7.0:
+      - docker#v3.10.0:
           image: "node:7"
           always-pull: true
           propagate-environment: true
+```
+
+AWS authentication tokens can be automatically propagated to the container, for example from an assume role plugin:
+
+```yml
+steps:
+  - command:
+      - "yarn install"
+      - "yarn run test"
+    env:
+      MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
+    plugins:
+      - docker#v3.10.0:
+          image: "node:7"
+          always-pull: true
+          propagate-aws-auth-tokens: true
 ```
 
 You can pass in additional volumes to be mounted. This is useful for running Docker:
@@ -80,7 +96,7 @@ steps:
       - "docker build . -t image:tag"
       - "docker push image:tag"
     plugins:
-      - docker#v3.7.0:
+      - docker#v3.10.0:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -93,7 +109,7 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v3.7.0:
+      - docker#v3.10.0:
           image: "node:7"
           always-pull: true
           mount-checkout: false
@@ -145,9 +161,9 @@ Default: `false`
 
 ### `entrypoint` (optional, string or boolean)
 
-Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details. Set it to `false` to disable the default entrypoint for the image.
+Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details. Set it to `""` (empty string) to disable the default entrypoint for the image (you may also need to use this plugin's `command` option instead of the top-level `command` option - see [Issue 138](https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/138) for more information).
 
-Example: `/my/custom/entrypoint.sh`
+Example: `/my/custom/entrypoint.sh`, `""`
 
 ### `environment` (optional, array)
 
@@ -160,6 +176,12 @@ Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=k
 Whether or not to automatically propagate all pipeline environment variables into the docker container. Avoiding the need to be specified with `environment`.
 
 Note that only pipeline variables will automatically be propagated (what you see in the Buildkite UI). Variables set in proceeding hook scripts will not be propagated to the container.
+
+### `propagate-aws-auth-tokens` (optional, boolean)
+
+Whether or not to automatically propagate aws authentication environment variables into the docker container. Avoiding the need to be specified with `environment`. This is useful for example if you are using an assume role plugin.
+
+Will propagate `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`, only if they are set already.
 
 ### `propagate-uid-gid` (optional, boolean)
 
@@ -208,6 +230,18 @@ Default: `false`
 Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details.
 
 Example: `test-network`
+
+### `pid` (optional, string)
+
+PID namespace provides separation of processes. The PID Namespace removes the view of the system processes, and allows process ids to be reused including pid 1. See https://docs.docker.com/engine/reference/run/#pid-settings---pid for more details. By default, all containers have the PID namespace enabled.
+
+Example: `host`
+
+### `gpus` (optional, string)
+
+GPUs selector. Dependencies: nvidia-container-runtime
+
+Example: `all`
 
 ### `pull-retries` (optional, int)
 
@@ -296,6 +330,27 @@ Example: `[ "8080:80" ]` (Map TCP port 80 in the container to port 8080 on the D
 Set the CPU limit to apply when running the container. More information can be found in https://docs.docker.com/config/containers/resource_constraints/#cpu.
 
 Example: `0.5`
+
+### `memory` (optional, string)
+
+Set the memory limit to apply when running the container. More information can 
+be found in https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory.
+
+Example: `2g`
+
+### `memory-swap` (optional, string)
+
+Set the memory swap limit to apply when running the container. More information
+can be found in https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory.
+
+Example: `2g`
+
+### `memory-swappiness` (optional, string)
+
+Set the swappiness level to apply when running the container. More information
+can be found in https://docs.docker.com/config/containers/resource_constraints/#--memory-swappiness-details.
+
+Example: `0`
 
 ## Developing
 

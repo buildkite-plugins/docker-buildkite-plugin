@@ -27,6 +27,12 @@ configuration:
       type: string
     leave-container:
       type: boolean
+    memory:
+      type: string
+    memory-swap:
+      type: string
+    memory-swappiness:
+      type: string
     mount-buildkite-agent:
       type: boolean
     mount-ssh-agent:
@@ -34,6 +40,10 @@ configuration:
     mount-checkout:
       type: boolean
     network:
+      type: string
+    pid:
+      type: string
+    gpus:
       type: string
     runtime:
       type: string
@@ -56,6 +66,8 @@ configuration:
     workdir:
       type: string
     propagate-environment:
+      type: boolean
+    propagate-aws-auth-tokens:
       type: boolean
     propagate-uid-gid:
       type: boolean

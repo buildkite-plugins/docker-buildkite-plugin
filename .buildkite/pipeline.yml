@@ -11,12 +11,12 @@ steps:
 
   - label: ":docker: :hammer:"
     plugins:
-      docker-compose#v3.1.0:
+      docker-compose#v3.7.0:
         run: tests
 
   - wait
   - label: run the plugin
     command: "echo hello world"
     plugins:
-      ${BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        image: ubuntu:18.04
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        image: ubuntu:20.04

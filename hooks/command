@@ -269,6 +269,19 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$
   fi
 fi
 
+# Propagate aws auth environment variables into the container e.g. from assume role plugins
+if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS:-false}" =~ ^(true|on|1)$ ]] ; then
+  if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]] ; then
+      args+=( --env "AWS_ACCESS_KEY_ID" )
+  fi
+  if [[ -n "${AWS_SECRET_ACCESS_KEY:-}" ]] ; then
+      args+=( --env "AWS_SECRET_ACCESS_KEY" )
+  fi
+  if [[ -n "${AWS_SESSION_TOKEN:-}" ]] ; then
+      args+=( --env "AWS_SESSION_TOKEN" )
+  fi
+fi
+
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   echo "--- :docker: Pulling ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
   if ! retry "${BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES:-3}" \
@@ -288,6 +301,16 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}" ]] ; then
     echo "docker network ${BUILDKITE_PLUGIN_DOCKER_NETWORK} already exists"
   fi
   args+=("--network" "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}")
+fi
+
+# Support docker run --pid
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_PID:-}" ]] ; then
+  args+=("--pid" "${BUILDKITE_PLUGIN_DOCKER_PID:-}")
+fi
+
+# Support docker run --gpus
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_GPUS:-}" ]] ; then
+  args+=("--gpus" "${BUILDKITE_PLUGIN_DOCKER_GPUS:-}")
 fi
 
 # Support docker run --runtime
@@ -315,6 +338,21 @@ fi
 # Handle setting of cpus if provided
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_CPUS:-}" ]]; then
   args+=("--cpus=${BUILDKITE_PLUGIN_DOCKER_CPUS}")
+fi
+
+# Handle memory limit if provided
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MEMORY:-}" ]]; then
+  args+=("--memory=${BUILDKITE_PLUGIN_DOCKER_MEMORY}")
+fi
+
+# Handle memory swap limit if provided
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAP:-}" ]]; then
+  args+=("--memory-swap=${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAP}")
+fi
+
+# Handle memory swappiness if provided
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAPPINESS:-}" ]]; then
+  args+=("--memory-swappiness=${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAPPINESS}")
 fi
 
 # Handle entrypoint if set (or empty), and default shell to disabled
