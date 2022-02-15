@@ -40,7 +40,9 @@ steps:
     artifact_paths: "dist/**"
 ```
 
-You can pass in additional environment variables and customize what is mounted into the container:
+You can pass in additional environment variables and customize what is mounted into the container. 
+
+Note: If you are utilizing Buildkite's [Elastic CI Stack S3 Secrets plugin](https://github.com/buildkite/elastic-ci-stack-s3-secrets-hooks), you must specify the environment variable key names as they appear in your S3 bucket's `environment` hook in order to access the secret from within your container.
 
 ```yml
 steps:
@@ -57,6 +59,8 @@ steps:
 ```
 
 Environment variables available in the step can also automatically be propagated to the container:
+
+Note: this will not automatically propagate [Elastic CI Stack S3 Secrets plugin](https://github.com/buildkite/elastic-ci-stack-s3-secrets-hooks) `environment` variables. Refer above for explicitly importing values from that plugin.
 
 ```yml
 steps:
