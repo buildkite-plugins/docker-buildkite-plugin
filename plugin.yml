@@ -25,6 +25,8 @@ configuration:
       type: string
     ipc:
       type: string
+    leave-container:
+      type: boolean
     memory:
       type: string
     memory-swap:

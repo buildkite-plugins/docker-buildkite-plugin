@@ -95,7 +95,9 @@ else
   args+=("-i")
 fi
 
-args+=("--rm")
+if [[ ! "${BUILDKITE_PLUGIN_DOCKER_LEAVE_CONTAINER:-off}" =~ ^(true|on|1)$ ]] ; then
+  args+=("--rm")
+fi
 
 # Support docker run --init.
 if [[ "${BUILDKITE_PLUGIN_DOCKER_INIT:-$init_default}" =~ ^(true|on|1)$ ]] ; then

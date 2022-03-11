@@ -146,6 +146,36 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with leave-container=false" {
+  export BUILDKITE_PLUGIN_DOCKER_LEAVE_CONTAINER=false
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --rm --init --volume /plugin:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with leave-container=true" {
+  export BUILDKITE_PLUGIN_DOCKER_LEAVE_CONTAINER=true
+  export BUILDKITE_COMMAND="echo hello world; pwd"
+
+  stub docker \
+    "run -it --init --volume /plugin:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world; pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with mount-checkout=false" {
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT=false
   export BUILDKITE_COMMAND="echo hello world; pwd"
