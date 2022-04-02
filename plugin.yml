@@ -65,8 +65,8 @@ configuration:
       type: boolean
     sysctls:
       type: array
-    storage-opts:
-      type: array
+    storage-opt:
+      type: string
   required:
     - image
   additionalProperties: false
