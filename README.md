@@ -233,7 +233,7 @@ Example: `2gb`
 
 ### `storage-opt` (optional, string)
 
-This allows to set the container rootfs size at the creation time. This is only available for the devicemapper, btrfs, overlay2, windowsfilter and zfs graph drivers. See [docker documentation](https://docs.docker.com/engine/reference/commandline/run/#set-storage-driver-options-per-container) for more details.
+This allows setting the container rootfs size at the creation time. This is only available for the `devicemapper`, `btrfs`, `overlay2`, `windowsfilter` and `zfs` graph drivers. See [docker documentation](https://docs.docker.com/engine/reference/commandline/run/#set-storage-driver-options-per-container) for more details.
 
 Example: `size=120G`
 
