@@ -329,6 +329,11 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_IPC:-}" ]] ; then
   args+=("--ipc" "${BUILDKITE_PLUGIN_DOCKER_IPC:-}")
 fi
 
+# Support docker run --storage-opt
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_STORAGE_OPT:-}" ]] ; then
+  args+=("--storage-opt" "${BUILDKITE_PLUGIN_DOCKER_STORAGE_OPT:-}")
+fi
+
 shell=()
 shell_disabled=1
 

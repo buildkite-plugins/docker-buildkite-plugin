@@ -275,6 +275,12 @@ Set the size of the `/dev/shm` shared memory filesystem mount inside the docker 
 
 Example: `2gb`
 
+### `storage-opt` (optional, string)
+
+This allows setting the container rootfs size at the creation time. This is only available for the `devicemapper`, `btrfs`, `overlay2`, `windowsfilter` and `zfs` graph drivers. See [docker documentation](https://docs.docker.com/engine/reference/commandline/run/#set-storage-driver-options-per-container) for more details.
+
+Example: `size=120G`
+
 ### `tty` (optional, boolean)
 
 If set to false, doesn't allocate a TTY. This is useful in some situations where TTY's aren't supported, for instance windows.
