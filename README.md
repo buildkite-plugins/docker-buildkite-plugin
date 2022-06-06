@@ -40,7 +40,7 @@ steps:
     artifact_paths: "dist/**"
 ```
 
-You can pass in additional environment variables and customize what is mounted into the container. 
+You can pass in additional environment variables and customize what is mounted into the container.
 
 Note: If you are utilizing Buildkite's [Elastic CI Stack S3 Secrets plugin](https://github.com/buildkite/elastic-ci-stack-s3-secrets-hooks), you must specify the environment variable key names as they appear in your S3 bucket's `environment` hook in order to access the secret from within your container.
 
@@ -287,6 +287,10 @@ If set to false, doesn't allocate a TTY. This is useful in some situations where
 
 Default: `true` for Linux and macOS, and `false` for Windows.
 
+### `interactive` (optional, boolean)
+
+If set to false, doesn't connect `stdin` to the process. Some scripts fall back to asking for user input in case of errors, if the process has `stdin` connected and this results in the process waiting for input indefinitely.
+
 ### `user` (optional, string)
 
 Allows a user to be set, and override the USER entry in the Dockerfile. See https://docs.docker.com/engine/reference/run/#user for more details.
@@ -343,7 +347,7 @@ Example: `0.5`
 
 ### `memory` (optional, string)
 
-Set the memory limit to apply when running the container. More information can 
+Set the memory limit to apply when running the container. More information can
 be found in https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory.
 
 Example: `2g`

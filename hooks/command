@@ -67,6 +67,7 @@ is_macos() {
 }
 
 tty_default='on'
+interactive_default='on'
 init_default='on'
 mount_agent_default='on'
 mount_ssh_agent=''
@@ -90,8 +91,11 @@ args=()
 
 # Support switching tty off
 if [[ "${BUILDKITE_PLUGIN_DOCKER_TTY:-$tty_default}" =~ ^(true|on|1)$ ]] ; then
-  args+=("-it")
-else
+  args+=("-t")
+fi
+
+# Support switching interactive off
+if [[ "${BUILDKITE_PLUGIN_DOCKER_INTERACTIVE:-$interactive_default}" =~ ^(true|on|1)$ ]] ; then
   args+=("-i")
 fi
 
