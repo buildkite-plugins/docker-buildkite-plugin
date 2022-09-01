@@ -275,9 +275,11 @@ Set the size of the `/dev/shm` shared memory filesystem mount inside the docker 
 
 Example: `2gb`
 
-### `skip` (optional, boolean)
+### `skip-checkout` (optional, boolean)
 
 Whether to skip the repository checkout phase.
+
+Default: `false`
 
 ### `storage-opt` (optional, string)
 
