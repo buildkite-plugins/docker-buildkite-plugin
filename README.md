@@ -275,6 +275,10 @@ Set the size of the `/dev/shm` shared memory filesystem mount inside the docker 
 
 Example: `2gb`
 
+### `skip` (optional, boolean)
+
+Whether to skip the repository checkout phase.
+
 ### `storage-opt` (optional, string)
 
 This allows setting the container rootfs size at the creation time. This is only available for the `devicemapper`, `btrfs`, `overlay2`, `windowsfilter` and `zfs` graph drivers. See [docker documentation](https://docs.docker.com/engine/reference/commandline/run/#set-storage-driver-options-per-container) for more details.
