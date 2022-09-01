@@ -52,7 +52,7 @@ configuration:
     shm-size:
       type: string
     skip-checkout:
-      type: [boolean]
+      type: boolean
     tty:
       type: boolean
     user:
