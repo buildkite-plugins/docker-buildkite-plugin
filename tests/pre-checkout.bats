@@ -26,5 +26,5 @@ load '/usr/local/lib/bats/load.bash'
 
   run $PWD/hooks/pre-checkout
   assert_success
-  assert_output --partial 'Skipping' # generate no output
+  assert_output --partial 'Skipping'
 }
