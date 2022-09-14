@@ -808,3 +808,37 @@ EOF
 
   unstub docker
 }
+
+
+@test "Runs BUILDKITE_COMMAND with one added capability" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_ADD_CAPS_0='cap-0'
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --cap-add cap-0 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+
+@test "Runs BUILDKITE_COMMAND with multiple added capabilities" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_ADD_CAPS_0='cap-0'
+  export BUILDKITE_PLUGIN_DOCKER_ADD_CAPS_1='cap-1'
+  export BUILDKITE_PLUGIN_DOCKER_ADD_CAPS_2='cap-2'
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --cap-add cap-0 --cap-add cap-1 --cap-add cap-2 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
