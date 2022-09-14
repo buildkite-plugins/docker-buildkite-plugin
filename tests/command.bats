@@ -875,3 +875,37 @@ EOF
 
   unstub docker
 }
+
+
+@test "Runs BUILDKITE_COMMAND with one security opt" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_SECURITY_OPTS_0='sec-0=1'
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --security-opt 'sec-0=1' --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+
+@test "Runs BUILDKITE_COMMAND with multiple security opts" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_SECURITY_OPTS_0='sec-0=1'
+  export BUILDKITE_PLUGIN_DOCKER_SECURITY_OPTS_1='sec-1:0'
+  export BUILDKITE_PLUGIN_DOCKER_SECURITY_OPTS_2='sec-2=1:0'
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --security-opt 'sec-0=1' --security-opt 'sec-1:0' --security-opt 'sec-2=1:0'  --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
