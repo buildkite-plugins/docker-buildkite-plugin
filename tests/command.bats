@@ -842,3 +842,36 @@ EOF
 
   unstub docker
 }
+
+@test "Runs BUILDKITE_COMMAND with one dropped capability" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_DROP_CAPS_0='cap-0'
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --cap-drop cap-0 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+
+@test "Runs BUILDKITE_COMMAND with multiple dropped capabilities" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_DROP_CAPS_0='cap-0'
+  export BUILDKITE_PLUGIN_DOCKER_DROP_CAPS_1='cap-1'
+  export BUILDKITE_PLUGIN_DOCKER_DROP_CAPS_2='cap-2'
+
+  stub docker \
+    "run -it --rm --init --volume $PWD:/workdir --cap-drop cap-0 --cap-drop cap-1 --cap-drop cap-2 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
