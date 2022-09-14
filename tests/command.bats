@@ -809,7 +809,7 @@ EOF
   unstub docker
 }
 
-@test "Runs BUILDKITE_COMMAND without interactive options" {
+@test "Runs BUILDKITE_COMMAND without interactive option" {
   export BUILDKITE_PLUGIN_DOCKER_INTERACTIVE=0
   export BUILDKITE_COMMAND="echo hello world"
 
@@ -824,9 +824,38 @@ EOF
   unstub docker
 }
 
-
-@test "Runs BUILDKITE_COMMAND wit interactive options" {
+@test "Runs BUILDKITE_COMMAND with interactive option" {
   export BUILDKITE_PLUGIN_DOCKER_INTERACTIVE=1
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND without tty option" {
+  export BUILDKITE_PLUGIN_DOCKER_TTY=0
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with tty option" {
+  export BUILDKITE_PLUGIN_DOCKER_TTY=1
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
