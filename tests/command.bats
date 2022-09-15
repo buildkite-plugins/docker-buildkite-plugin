@@ -484,12 +484,12 @@ EOF
   unstub docker
 }
 
-@test "Runs BUILDKITE_COMMAND with entrypoint disabled by null" {
+@test "Runs BUILDKITE_COMMAND with entrypoint disabled by empty string" {
   export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=''
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint '\'\'' image:tag 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint $'''' --label com.buildkite.job-id=1-2-3-4 image:tag 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -499,12 +499,12 @@ EOF
   unstub docker
 }
 
-@test "Runs BUILDKITE_COMMAND with entrypoint disabled by false" {
+@test "Runs BUILDKITE_COMMAND with entrypoint set as false" {
   export BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT=false
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint '\'\'' image:tag 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint false --label com.buildkite.job-id=1-2-3-4 image:tag 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 

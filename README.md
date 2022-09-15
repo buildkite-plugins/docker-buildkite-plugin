@@ -13,7 +13,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v3.13.0:
+      - docker#v4.0.0:
           image: "golang:1.11"
 ```
 
@@ -23,7 +23,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v3.13.0:
+      - docker#v4.0.0:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -33,7 +33,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v3.13.0:
+      - docker#v4.0.0:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -50,7 +50,7 @@ steps:
       - "yarn install"
       - "yarn run test"
     plugins:
-      - docker#v3.13.0:
+      - docker#v4.0.0:
           image: "node:7"
           always-pull: true
           environment:
@@ -70,7 +70,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v3.13.0:
+      - docker#v4.0.0:
           image: "node:7"
           always-pull: true
           propagate-environment: true
@@ -86,7 +86,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v3.13.0:
+      - docker#v4.0.0:
           image: "node:7"
           always-pull: true
           propagate-aws-auth-tokens: true
@@ -100,7 +100,7 @@ steps:
       - "docker build . -t image:tag"
       - "docker push image:tag"
     plugins:
-      - docker#v3.13.0:
+      - docker#v4.0.0:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -113,7 +113,7 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v3.13.0:
+      - docker#v4.0.0:
           image: "node:7"
           always-pull: true
           mount-checkout: false
@@ -163,9 +163,9 @@ Enables debug mode, which outputs the full Docker commands that will be run on t
 
 Default: `false`
 
-### `entrypoint` (optional, string or boolean)
+### `entrypoint` (optional, string)
 
-Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details. Set it to `""` (empty string) to disable the default entrypoint for the image (you may also need to use this plugin's `command` option instead of the top-level `command` option - see [Issue 138](https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/138) for more information).
+Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details. Set it to `""` (empty string) to disable the default entrypoint for the image, but note that you may need to use this plugin's `command` option instead of the top-level `command` option or set a `shell` instead (depending on the command you want/need to run - see [Issue 138](https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/138) for more information).
 
 Example: `/my/custom/entrypoint.sh`, `""`
 
