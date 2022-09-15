@@ -489,7 +489,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint '\'\'' image:tag 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint $'''' --label com.buildkite.job-id=1-2-3-4 image:tag 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -504,7 +504,7 @@ EOF
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint '\'\'' image:tag 'echo hello world' : echo ran command in docker"
+    "run -it --rm --init --volume $PWD:/workdir --workdir /workdir --entrypoint $'''' --label com.buildkite.job-id=1-2-3-4 image:tag 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
