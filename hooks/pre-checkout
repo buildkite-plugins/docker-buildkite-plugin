@@ -1,0 +1,7 @@
+#!/bin/bash
+set -ueo pipefail
+
+if [[ "${BUILDKITE_PLUGIN_DOCKER_SKIP_CHECKOUT:-off}" =~ ^(true|on|1)$ ]] ; then
+  echo "~~~ :docker: Skipping checkout"
+  export BUILDKITE_REPO=""
+fi
