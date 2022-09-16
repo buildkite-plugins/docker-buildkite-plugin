@@ -163,9 +163,9 @@ Enables debug mode, which outputs the full Docker commands that will be run on t
 
 Default: `false`
 
-### `entrypoint` (optional, string or boolean)
+### `entrypoint` (optional, string)
 
-Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details. Set it to `""` (empty string) to disable the default entrypoint for the image (you may also need to use this plugin's `command` option instead of the top-level `command` option - see [Issue 138](https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/138) for more information).
+Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details. Set it to `""` (empty string) to disable the default entrypoint for the image, but note that you may need to use this plugin's `command` option instead of the top-level `command` option or set a `shell` instead (depending on the command you want/need to run - see [Issue 138](https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/138) for more information).
 
 Example: `/my/custom/entrypoint.sh`, `""`
 

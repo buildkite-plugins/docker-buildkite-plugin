@@ -18,7 +18,7 @@ configuration:
     debug:
       type: boolean
     entrypoint:
-      type: [string, boolean]
+      type: string
     environment:
       type: array
     image:
