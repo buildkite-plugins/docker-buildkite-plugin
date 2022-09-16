@@ -814,7 +814,7 @@ EOF
   export BUILDKITE_PLUGIN_DOCKER_ADD_CAPS_0='cap-0'
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --cap-add cap-0 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --cap-add cap-0 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -831,7 +831,7 @@ EOF
   export BUILDKITE_PLUGIN_DOCKER_ADD_CAPS_2='cap-2'
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --cap-add cap-0 --cap-add cap-1 --cap-add cap-2 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --cap-add cap-0 --cap-add cap-1 --cap-add cap-2 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -846,7 +846,7 @@ EOF
   export BUILDKITE_PLUGIN_DOCKER_DROP_CAPS_0='cap-0'
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --cap-drop cap-0 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --cap-drop cap-0 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -863,7 +863,7 @@ EOF
   export BUILDKITE_PLUGIN_DOCKER_DROP_CAPS_2='cap-2'
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --cap-drop cap-0 --cap-drop cap-1 --cap-drop cap-2 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --cap-drop cap-0 --cap-drop cap-1 --cap-drop cap-2 --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -878,7 +878,7 @@ EOF
   export BUILDKITE_PLUGIN_DOCKER_SECURITY_OPTS_0='sec-0=1'
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --security-opt 'sec-0=1' --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --security-opt 'sec-0=1' --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
@@ -895,7 +895,7 @@ EOF
   export BUILDKITE_PLUGIN_DOCKER_SECURITY_OPTS_2='sec-2=1:0'
 
   stub docker \
-    "run -it --rm --init --volume $PWD:/workdir --security-opt 'sec-0=1' --security-opt 'sec-1:0' --security-opt 'sec-2=1:0'  --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --security-opt 'sec-0=1' --security-opt 'sec-1:0' --security-opt 'sec-2=1:0'  --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run $PWD/hooks/command
 
