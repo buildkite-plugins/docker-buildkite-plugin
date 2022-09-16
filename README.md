@@ -275,6 +275,12 @@ Set the size of the `/dev/shm` shared memory filesystem mount inside the docker 
 
 Example: `2gb`
 
+### `skip-checkout` (optional, boolean)
+
+Whether to skip the repository checkout phase.
+
+Default: `false`
+
 ### `storage-opt` (optional, string)
 
 This allows setting the container rootfs size at the creation time. This is only available for the `devicemapper`, `btrfs`, `overlay2`, `windowsfilter` and `zfs` graph drivers. See [docker documentation](https://docs.docker.com/engine/reference/commandline/run/#set-storage-driver-options-per-container) for more details.
@@ -326,6 +332,18 @@ Example: `/app`
 Set namespaced kernel parameters in the container. More information can be found in https://docs.docker.com/engine/reference/commandline/run/.
 
 Example: `--sysctl net.ipv4.ip_forward=1`
+
+### `add-caps` (optional, array)
+
+Add Linux capabilities to the container. Each entry corresponds to a Docker CLI `--cap-add` parameter.
+
+### `drop-caps` (optional, array)
+
+Remove Linux capabilities from the container. Each entry corresponds to a Docker CLI `--cap-drop` parameter.
+
+### `security-opts` (optional, array)
+
+Add security options to the container. Each entry corresponds to a Docker CLI `--security-opt` parameter.
 
 ### `devices` (optional, array)
 
