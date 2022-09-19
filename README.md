@@ -221,7 +221,9 @@ Default: `true`
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.
 
-Default: `true` for Linux, and `false` for macOS and Windows.
+Default: `false`
+
+**Important:** enabling this option will share `BUILDKITE_AGENT_TOKEN` environment variable (and others) with the container
 
 ### `mount-ssh-agent` (optional, boolean)
 
