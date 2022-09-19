@@ -119,6 +119,10 @@ steps:
           mount-checkout: false
 ```
 
+### 🚨 Warning
+
+You need to be careful when/if [running the BuildKite agent itself in docker](https://buildkite.com/docs/agent/v3/docker) that, itself, runs pipelines that use this plugin. Make sure to read all the documentation on the matter, specially the caveats and warnings listed.
+
 ## Configuration
 
 ### Required
