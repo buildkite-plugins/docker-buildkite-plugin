@@ -233,6 +233,8 @@ Whether to automatically mount the ssh-agent socket from the host agent machine 
 
 Default: `false`
 
+**Important**: note that for this to work you will need the agent itself to have access to an ssh agent that is: up and running, listening on the appropriate socket, with the appropriate credentials loaded (or to be loaded). Please refer to the [agent's documentation on using SSH agent](https://buildkite.com/docs/agent/v3/ssh-keys#using-multiple-keys-with-ssh-agent) for more information
+
 ### `network` (optional, string)
 
 Join the container to the docker network specified. The network will be created if it does not already exist. See https://docs.docker.com/engine/reference/run/#network-settings for more details.
