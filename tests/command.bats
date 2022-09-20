@@ -240,6 +240,23 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with environment files" {
+  export BUILDKITE_PLUGIN_DOCKER_ENV_FILE_0='one-path'
+  export BUILDKITE_PLUGIN_DOCKER_ENV_FILE_1='a path with spaces'
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env-file one-path --env-file 'a path with spaces' --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+
 @test "Runs BUILDKITE_COMMAND with storage-opt" {
   export BUILDKITE_PLUGIN_DOCKER_STORAGE_OPT="size=50G"
   export BUILDKITE_COMMAND="echo hello world"
