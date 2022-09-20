@@ -179,6 +179,10 @@ An array of additional environment variables to pass into to the docker containe
 
 Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=kittens" ]`
 
+### `env-file` (optional, array)
+
+An array of additional files to pass into to the docker container as environment variables. Each entry corresponds to a Docker CLI `--env-file` parameter.
+
 ### `propagate-environment` (optional, boolean)
 
 Whether or not to automatically propagate all pipeline environment variables into the docker container. Avoiding the need to be specified with `environment`.
