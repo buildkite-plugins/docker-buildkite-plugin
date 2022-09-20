@@ -964,3 +964,46 @@ EOF
 
   unstub docker
 }
+
+@test "Run with BUILDKITE_COMMAND that exits with a failure" {
+  export BUILDKITE_COMMAND='pwd'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : exit 1"
+
+  run $PWD/hooks/command
+
+  assert_failure
+  assert_output --partial "Running command in"
+
+  unstub docker
+}
+
+@test "Run with BUILDKITE_COMMAND propagates exit codes" {
+  export BUILDKITE_COMMAND='pwd'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : exit 2"
+
+  run $PWD/hooks/command
+
+  assert_failure 2
+  assert_output --partial "Running command in"
+
+  unstub docker
+}
+
+
+@test "Run with BUILDKITE_COMMAND propagates subshell exit codes" {
+  export BUILDKITE_COMMAND='pwd'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : sh -c 'exit 2'"
+
+  run $PWD/hooks/command
+
+  assert_failure 2
+  assert_output --partial "Running command in"
+
+  unstub docker
+}
