@@ -13,7 +13,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v4.0.0:
+      - docker#v4.1.0:
           image: "golang:1.11"
 ```
 
@@ -23,7 +23,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v4.0.0:
+      - docker#v4.1.0:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -33,7 +33,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v4.0.0:
+      - docker#v4.1.0:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -50,7 +50,7 @@ steps:
       - "yarn install"
       - "yarn run test"
     plugins:
-      - docker#v4.0.0:
+      - docker#v4.1.0:
           image: "node:7"
           always-pull: true
           environment:
@@ -70,7 +70,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v4.0.0:
+      - docker#v4.1.0:
           image: "node:7"
           always-pull: true
           propagate-environment: true
@@ -86,7 +86,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v4.0.0:
+      - docker#v4.1.0:
           image: "node:7"
           always-pull: true
           propagate-aws-auth-tokens: true
@@ -100,7 +100,7 @@ steps:
       - "docker build . -t image:tag"
       - "docker push image:tag"
     plugins:
-      - docker#v4.0.0:
+      - docker#v4.1.0:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -113,11 +113,15 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v4.0.0:
+      - docker#v4.1.0:
           image: "node:7"
           always-pull: true
           mount-checkout: false
 ```
+
+### 🚨 Warning
+
+You need to be careful when/if [running the BuildKite agent itself in docker](https://buildkite.com/docs/agent/v3/docker) that, itself, runs pipelines that use this plugin. Make sure to read all the documentation on the matter, specially the caveats and warnings listed.
 
 ## Configuration
 
@@ -228,6 +232,8 @@ Default: `true` for Linux, and `false` for macOS and Windows.
 Whether to automatically mount the ssh-agent socket from the host agent machine into the container (at `/ssh-agent`and `/root/.ssh/known_hosts` respectively), allowing git operations to work correctly.
 
 Default: `false`
+
+**Important**: note that for this to work you will need the agent itself to have access to an ssh agent that is: up and running, listening on the appropriate socket, with the appropriate credentials loaded (or to be loaded). Please refer to the [agent's documentation on using SSH agent](https://buildkite.com/docs/agent/v3/ssh-keys#using-multiple-keys-with-ssh-agent) for more information
 
 ### `network` (optional, string)
 
