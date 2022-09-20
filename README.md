@@ -219,7 +219,9 @@ Default: `true`
 
 ### `mount-buildkite-agent` (optional, boolean)
 
-Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.
+Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container.
+
+Set to `true` if you want to enable and are sure that the binary running in the agent is compatible with the container's architecture and environment (for example, don't try to mount the OS X agent binary in a container running linux).
 
 Default: `false`
 
