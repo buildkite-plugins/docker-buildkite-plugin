@@ -20,3 +20,10 @@ steps:
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         image: ubuntu:20.04
+  - label: ensure exit codes are propagated
+    command: "exit 3"
+    plugins:
+      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+        image: ubuntu:20.04
+    soft_fail:
+      - exit_status: 3
