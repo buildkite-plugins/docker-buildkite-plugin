@@ -13,7 +13,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v4.2.1:
+      - docker#v5.0.0:
           image: "golang:1.11"
 ```
 
@@ -23,7 +23,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v4.2.1:
+      - docker#v5.0.0:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -33,7 +33,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v4.2.1:
+      - docker#v5.0.0:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -50,7 +50,7 @@ steps:
       - "yarn install"
       - "yarn run test"
     plugins:
-      - docker#v4.2.1:
+      - docker#v5.0.0:
           image: "node:7"
           always-pull: true
           environment:
@@ -70,7 +70,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v4.2.1:
+      - docker#v5.0.0:
           image: "node:7"
           always-pull: true
           propagate-environment: true
@@ -86,7 +86,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v4.2.1:
+      - docker#v5.0.0:
           image: "node:7"
           always-pull: true
           propagate-aws-auth-tokens: true
@@ -100,7 +100,7 @@ steps:
       - "docker build . -t image:tag"
       - "docker push image:tag"
     plugins:
-      - docker#v4.2.1:
+      - docker#v5.0.0:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -113,7 +113,7 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v4.2.1:
+      - docker#v5.0.0:
           image: "node:7"
           always-pull: true
           mount-checkout: false
@@ -227,9 +227,13 @@ Default: `true`
 
 ### `mount-buildkite-agent` (optional, boolean)
 
-Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container. Set to `false` if you want to disable, or if you already have your own binary in the image.
+Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container.
 
-Default: `true` for Linux, and `false` for macOS and Windows.
+Set to `true` if you want to enable and are sure that the binary running in the agent is compatible with the container's architecture and environment (for example, don't try to mount the OS X or Windows agent binary in a container running linux). If enabled in Windows agents your pipeline, step or agent **must have the `BUILDKITE_AGENT_BINARY_PATH` environment variable defined** with the executable to mount in the (Windows) agent.
+
+Default: `false`
+
+**Important:** enabling this option will share `BUILDKITE_AGENT_TOKEN` environment variable (and others) with the container
 
 ### `mount-ssh-agent` (optional, boolean)
 

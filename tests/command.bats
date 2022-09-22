@@ -49,7 +49,7 @@ setup() {
   unstub docker
 }
 
-@test "Pull image first before running BUILDKITE_COMMAND with mount-buildkite-agent disabled" {
+@test "Pull image first before running BUILDKITE_COMMAND" {
   export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
 
   stub docker \
@@ -65,7 +65,7 @@ setup() {
   unstub docker
 }
 
-@test "Runs BUILDKITE_COMMAND with mount-buildkite-agent disabled" {
+@test "Runs BUILDKITE_COMMAND with mount-buildkite-agent disabled specifically" {
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_COMMAND="pwd"
 
@@ -78,6 +78,43 @@ setup() {
   assert_output --partial "ran command in docker"
 
   unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with mount-buildkite-agent enabled but no command" {
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=true
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "🚨 Failed to find buildkite-agent"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with mount-buildkite-agent enabled but with command" {
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=true
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN '--volume' '/tmp/bin/buildkite-agent:/usr/bin/buildkite-agent' --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  # only for the command to exist
+  stub buildkite-agent \
+    " : exit 1"
+
+  run $PWD/hooks/command
+
+  assert_success
+  refute_output --partial "🚨 Failed to find buildkite-agent"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+  unstub buildkite-agent || true
 }
 
 @test "Runs BUILDKITE_COMMAND with volumes" {
