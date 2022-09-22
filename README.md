@@ -119,6 +119,10 @@ steps:
           mount-checkout: false
 ```
 
+### 🚨 Warning
+
+You need to be careful when/if [running the BuildKite agent itself in docker](https://buildkite.com/docs/agent/v3/docker) that, itself, runs pipelines that use this plugin. Make sure to read all the documentation on the matter, specially the caveats and warnings listed.
+
 ## Configuration
 
 ### Required
@@ -174,6 +178,10 @@ Example: `/my/custom/entrypoint.sh`, `""`
 An array of additional environment variables to pass into to the docker container. Items can be specified as either `KEY` or `KEY=value`. Each entry corresponds to a Docker CLI `--env` parameter. Values specified as variable names will be passed through from the outer environment.
 
 Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=kittens" ]`
+
+### `env-file` (optional, array)
+
+An array of additional files to pass into to the docker container as environment variables. Each entry corresponds to a Docker CLI `--env-file` parameter.
 
 ### `propagate-environment` (optional, boolean)
 
@@ -232,6 +240,8 @@ Default: `false`
 Whether to automatically mount the ssh-agent socket from the host agent machine into the container (at `/ssh-agent`and `/root/.ssh/known_hosts` respectively), allowing git operations to work correctly.
 
 Default: `false`
+
+**Important**: note that for this to work you will need the agent itself to have access to an ssh agent that is: up and running, listening on the appropriate socket, with the appropriate credentials loaded (or to be loaded). Please refer to the [agent's documentation on using SSH agent](https://buildkite.com/docs/agent/v3/ssh-keys#using-multiple-keys-with-ssh-agent) for more information
 
 ### `network` (optional, string)
 

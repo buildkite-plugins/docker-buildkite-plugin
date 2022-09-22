@@ -21,6 +21,8 @@ configuration:
       type: string
     environment:
       type: array
+    env-file:
+      type: array
     image:
       type: string
     ipc:

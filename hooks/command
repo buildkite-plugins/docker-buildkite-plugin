@@ -286,6 +286,13 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PRIVILEGED:-false}" =~ ^(true|on|1)$ ]] ; then
     args+=( "--privileged" )
 fi
 
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_ENV_FILE; then
+  for arg in "${result[@]}"; do
+    args+=("--env-file" "$arg")
+  done
+fi
+
+
 # Propagate all environment variables into the container if requested
 if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$ ]] ; then
   if [[ -n "${BUILDKITE_ENV_FILE:-}" ]] ; then
@@ -482,6 +489,16 @@ echo -ne '\033[90m$\033[0m docker run ' >&2
 printf "%q " "${args[@]}"
 echo
 
+# Disable -e outside of the subshell; since the subshell returning a failure
+# would exit the parent shell (here) early.
+set +e
+
 # Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
 # See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.
 ( if is_windows ; then export MSYS_NO_PATHCONV=1; fi && docker run "${args[@]}" )
+
+exit_code=$?
+
+set -e
+
+exit $exit_code  # propagate exit code

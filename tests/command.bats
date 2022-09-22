@@ -277,6 +277,23 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with environment files" {
+  export BUILDKITE_PLUGIN_DOCKER_ENV_FILE_0='one-path'
+  export BUILDKITE_PLUGIN_DOCKER_ENV_FILE_1='a path with spaces'
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env-file one-path --env-file 'a path with spaces' --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+
 @test "Runs BUILDKITE_COMMAND with storage-opt" {
   export BUILDKITE_PLUGIN_DOCKER_STORAGE_OPT="size=50G"
   export BUILDKITE_COMMAND="echo hello world"
@@ -998,6 +1015,49 @@ EOF
 
   assert_success
   assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Run with BUILDKITE_COMMAND that exits with a failure" {
+  export BUILDKITE_COMMAND='pwd'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : exit 1"
+
+  run $PWD/hooks/command
+
+  assert_failure
+  assert_output --partial "Running command in"
+
+  unstub docker
+}
+
+@test "Run with BUILDKITE_COMMAND propagates exit codes" {
+  export BUILDKITE_COMMAND='pwd'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : exit 2"
+
+  run $PWD/hooks/command
+
+  assert_failure 2
+  assert_output --partial "Running command in"
+
+  unstub docker
+}
+
+
+@test "Run with BUILDKITE_COMMAND propagates subshell exit codes" {
+  export BUILDKITE_COMMAND='pwd'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : sh -c 'exit 2'"
+
+  run $PWD/hooks/command
+
+  assert_failure 2
+  assert_output --partial "Running command in"
 
   unstub docker
 }
