@@ -221,7 +221,7 @@ Default: `true`
 
 Whether to automatically mount the `buildkite-agent` binary from the host agent machine into the container.
 
-Set to `true` if you want to enable and are sure that the binary running in the agent is compatible with the container's architecture and environment (for example, don't try to mount the OS X or Widnows agent binary in a container running linux). If enabled in Windows agents your pipeline, step or agent **must have the `BUILDKITE_AGENT_BINARY_PATH` environment variable defined** with the executable to mount in the (Windows) agent.
+Set to `true` if you want to enable and are sure that the binary running in the agent is compatible with the container's architecture and environment (for example, don't try to mount the OS X or Windows agent binary in a container running linux). If enabled in Windows agents your pipeline, step or agent **must have the `BUILDKITE_AGENT_BINARY_PATH` environment variable defined** with the executable to mount in the (Windows) agent.
 
 Default: `false`
 
