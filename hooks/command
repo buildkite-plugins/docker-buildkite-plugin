@@ -48,7 +48,14 @@ plugin_read_list_into_result() {
 
 # docker's -v arguments don't do local path expansion, so we add very simple support for .
 expand_relative_volume_path() {
-  local path="$1"
+  local path
+  
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_EXPAND_VOLUME_VARS:-false}" =~ ^(true|on|1)$ ]]; then
+    path=$(eval echo "$1")
+  else
+    path="$1"
+  fi
+
   if [[ $path =~ ^\.: ]] ; then
     printf "%s" "${PWD}${path#.}"
   elif [[ $path =~ ^\.(/|\\) ]] ; then

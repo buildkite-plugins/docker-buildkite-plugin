@@ -63,6 +63,8 @@ configuration:
       type: string
     volumes:
       type: array
+    expand-volume-vars:
+      type: boolean
     devices:
       type: array
     tmpfs:
