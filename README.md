@@ -329,6 +329,12 @@ Extra volume mounts to pass to the docker container, in an array. Items are spec
 
 Example: `[ "/var/run/docker.sock:/var/run/docker.sock" ]`
 
+### `expand-volume-vars` (optional, boolean, run only, unsafe)
+
+When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
+
+:warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
+
 ### `tmpfs` (optional, array)
 
 Tmpfs mounts to pass to the docker container, in an array. Each entry corresponds to a Docker CLI `--tmpfs` parameter. See Docker's [tmpfs mounts](https://docs.docker.com/storage/tmpfs/) documentation for more information on this feature.

@@ -133,6 +133,59 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with volumes with variables" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0='$ONE_VAR:/var/run/docker.sock'
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/app --volume $'\$ONE_VAR':/var/run/docker.sock --workdir /app --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+
+@test "Runs BUILDKITE_COMMAND with volumes with variables and option turned off" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0='$ONE_VAR:/var/run/docker.sock'
+  export BUILDKITE_PLUGIN_DOCKER_EXPAND_VOLUME_VARS=false
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/app --volume $'\$ONE_VAR':/var/run/docker.sock --workdir /app --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with volumes with variables and option turned on" {
+  export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0='$ONE_VAR:/var/run/docker.sock'
+  export BUILDKITE_PLUGIN_DOCKER_EXPAND_VOLUME_VARS=true
+  export BUILDKITE_COMMAND="pwd"
+
+  export ONE_VAR=/my/path
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/app --volume /my/path:/var/run/docker.sock --workdir /app --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with devices" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_DEVICES_0=/dev/bus/usb/001/001
