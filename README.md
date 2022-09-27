@@ -365,6 +365,10 @@ Remove Linux capabilities from the container. Each entry corresponds to a Docker
 
 Add security options to the container. Each entry corresponds to a Docker CLI `--security-opt` parameter.
 
+### `ulimits` (optional, array)
+
+Add ulimit options to the container. Each entry corresponds to a Docker CLI `--ulimit` parameter.
+
 ### `devices` (optional, array)
 
 You can give builds limited access to a specific device or devices by passing devices to the docker container, in an array. Items are specific as `SOURCE:TARGET` or just `TARGET`. Each entry corresponds to a Docker CLI `--device` parameter.
