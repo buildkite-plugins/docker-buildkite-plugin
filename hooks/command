@@ -330,8 +330,16 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS:-false}" =~ ^(true|on
   if [[ -n "${AWS_DEFAULT_REGION:-}" ]] ; then
       args+=( --env "AWS_DEFAULT_REGION" )
   fi
+  # Pass ECS variables when the agent is running in ECS
+  # https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html
+  if [[ -n "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]] ; then
+      args+=( --env "AWS_CONTAINER_CREDENTIALS_FULL_URI" )
+  fi
   if [[ -n "${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-}" ]] ; then
       args+=( --env "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" )
+  fi
+  if [[ -n "${AWS_CONTAINER_AUTHORIZATION_TOKEN:-}" ]] ; then
+      args+=( --env "AWS_CONTAINER_AUTHORIZATION_TOKEN" )
   fi
 fi
 
