@@ -330,6 +330,9 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS:-false}" =~ ^(true|on
   if [[ -n "${AWS_DEFAULT_REGION:-}" ]] ; then
       args+=( --env "AWS_DEFAULT_REGION" )
   fi
+  if [[ -n "${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-}" ]] ; then
+      args+=( --env "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" )
+  fi
 fi
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
