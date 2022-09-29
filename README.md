@@ -76,7 +76,7 @@ steps:
           propagate-environment: true
 ```
 
-AWS authentication tokens can be automatically propagated to the container, for example from an assume role plugin:
+AWS authentication tokens can be automatically propagated to the container, for example from an assume role plugin or ECS IAM role:
 
 ```yml
 steps:
@@ -191,9 +191,9 @@ Note that only pipeline variables will automatically be propagated (what you see
 
 ### `propagate-aws-auth-tokens` (optional, boolean)
 
-Whether or not to automatically propagate aws authentication environment variables into the docker container. Avoiding the need to be specified with `environment`. This is useful for example if you are using an assume role plugin.
+Whether or not to automatically propagate aws authentication environment variables into the docker container. Avoiding the need to be specified with `environment`. This is useful for example if you are using an assume role plugin or you want to pass the role of an agent running in ECS to the docker container.
 
-Will propagate `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `AWS_REGION` and `AWS_DEFAULT_REGION`, only if they are set already.
+Will propagate `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `AWS_REGION`, `AWS_DEFAULT_REGION`, `AWS_CONTAINER_CREDENTIALS_FULL_URI`, `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`, and `AWS_CONTAINER_AUTHORIZATION_TOKEN`, only if they are set already.
 
 ### `propagate-uid-gid` (optional, boolean)
 
