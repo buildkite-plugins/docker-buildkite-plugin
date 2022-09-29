@@ -93,6 +93,8 @@ configuration:
       type: array
     security-opts:
       type: array
+    ulimits:
+      type: array
   required:
     - image
   additionalProperties: false

@@ -183,6 +183,13 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SECURITY_OPTS ; then
   done
 fi
 
+# Parse ulimits args and add them to docker args
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_ULIMITS ; then
+  for arg in "${result[@]}"; do
+    args+=("--ulimit" "$arg")
+  done
+fi
+
 # Set workdir if one is provided or if the checkout is mounted
 if [[ -n "${workdir:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
   args+=("--workdir" "${workdir}")
