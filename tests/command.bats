@@ -1149,3 +1149,18 @@ EOF
 
   unstub docker
 }
+
+@test "Run with multi-line BUILDKITE_COMMAND" {
+  export BUILDKITE_COMMAND=$'echo\ntest'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label \* image:tag /bin/sh -e -c \* : echo Ran \${16}"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "Running command in"
+  assert_output --partial "command received has multiple lines"
+
+  unstub docker
+}
