@@ -400,6 +400,13 @@ shell=()
 shell_disabled=1
 
 if [[ -n "${BUILDKITE_COMMAND}" ]]; then
+  if [[ $(echo "$BUILDKITE_COMMAND" | wc -l) -gt 1 ]]; then
+    # An array of commands in the step will be a single string with multiple lines
+    # This breaks a lot of things here so we will print a warning for user to be aware
+    echo "⚠️  Warning: The command received has multiple lines."
+    echo "⚠️           The Docker Plugin does not correctly support multiple commands in the step-level configuration."
+    echo "⚠️           You will need to use a script or the plugin's command option."
+  fi
   shell_disabled=''
 fi
 
