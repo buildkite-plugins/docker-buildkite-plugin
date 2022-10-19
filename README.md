@@ -28,6 +28,8 @@ steps:
           always-pull: true
 ```
 
+:warning: Warning: you should be careful when using an array or multi-line string as the command at the step level with this plugin. You will need to ensure that each line finishes with `;`, execute a script in your repository or use the plugin's [`command` option](#command-optional-array) instead. You will also have to take into account the image's entrypoint and [`shell` option](#shell-optional-array-or-boolean).
+
 If you want to control how your command is passed to the docker container, you can use the `command` parameter on the plugin directly:
 
 ```yml
@@ -46,9 +48,7 @@ Note: If you are utilizing Buildkite's [Elastic CI Stack S3 Secrets plugin](http
 
 ```yml
 steps:
-  - command:
-      - "yarn install"
-      - "yarn run test"
+  - command: "yarn install; yarn run test"
     plugins:
       - docker#v5.2.0:
           image: "node:7"
@@ -64,9 +64,7 @@ Note: this will not automatically propagate [Elastic CI Stack S3 Secrets plugin]
 
 ```yml
 steps:
-  - command:
-      - "yarn install"
-      - "yarn run test"
+  - command: "yarn install; yarn run test"
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
@@ -80,9 +78,7 @@ AWS authentication tokens can be automatically propagated to the container, for 
 
 ```yml
 steps:
-  - command:
-      - "yarn install"
-      - "yarn run test"
+  - command: "yarn install; yarn run test"
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
@@ -96,9 +92,7 @@ You can pass in additional volumes to be mounted. This is useful for running Doc
 
 ```yml
 steps:
-  - command:
-      - "docker build . -t image:tag"
-      - "docker push image:tag"
+  - command: "docker build . -t image:tag; docker push image:tag"
     plugins:
       - docker#v5.2.0:
           image: "docker:latest"
