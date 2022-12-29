@@ -65,10 +65,12 @@ expand_relative_volume_path() {
   fi
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 is_windows() {
   [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]]
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 is_macos() {
   [[ "$OSTYPE" =~ ^(darwin) ]]
 }
@@ -355,7 +357,7 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   if ! retry "${BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES:-3}" \
        docker pull "${BUILDKITE_PLUGIN_DOCKER_IMAGE}" ; then
     echo "!!! :docker: Pull failed."
-    exit $retry_exit_status
+    exit "$retry_exit_status"
   fi
 fi
 
