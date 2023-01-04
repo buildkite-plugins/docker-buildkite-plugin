@@ -11,7 +11,7 @@ steps:
 
   - label: ":docker: :hammer:"
     plugins:
-      docker-compose#v4.5.0:
+      docker-compose#v4.9.0:
         run: tests
 
   - wait
@@ -19,11 +19,11 @@ steps:
     command: "echo hello world"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        image: ubuntu:20.04
+        image: ubuntu:22.04
   - label: ensure exit codes are propagated
     command: "exit 3"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        image: ubuntu:20.04
+        image: ubuntu:22.04
     soft_fail:
       - exit_status: 3
