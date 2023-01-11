@@ -7,7 +7,7 @@ load '/usr/local/lib/bats/load.bash'
   run "$PWD"/hooks/pre-checkout
 
   assert_success
-  refute_line --partial 'Skipping'  # generate no output
+  refute_output  # generate no output
 }
 
 
@@ -17,7 +17,7 @@ load '/usr/local/lib/bats/load.bash'
   run "$PWD"/hooks/pre-checkout
 
   assert_success
-  refute_line --partial 'Skipping' # generate no output
+  refute_output  # generate no output
 }
 
 
