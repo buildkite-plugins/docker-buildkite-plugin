@@ -1167,3 +1167,37 @@ EOF
 
   unstub docker
 }
+
+@test "Use ssh agent (true)" {
+  skip 'Can not create a socket for testing :('
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT=true
+  export SSH_AUTH_SOCK="/tmp/sock" 
+  touch /tmp/sock # does not work as the hook checks that this is a socket
+
+  stub docker \
+    "run -t -i --rm --init --volume \* --workdir \* --env SSH_AUTH_SOCK=/ssh-agent --volume /tmp/sock:/ssh-agent --volume /root/.ssh/known_hosts:/root/.ssh/known_hosts --label \* image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Use ssh agent (with path)" {
+  skip 'Can not create a socket for testing :('
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT=/test/path
+  export SSH_AUTH_SOCK="/tmp/sock" 
+  touch /tmp/sock # does not work as the hook checks that this is a socket
+
+  stub docker \
+    "run -t -i --rm --init --volume \* --workdir \* --env SSH_AUTH_SOCK=/ssh-agent --volume /tmp/sock:/ssh-agent --volume /root/.ssh/known_hosts:/test/path/.ssh/known_hosts --label \* image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
