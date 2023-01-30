@@ -229,9 +229,9 @@ Default: `false`
 
 **Important:** enabling this option will share `BUILDKITE_AGENT_TOKEN` environment variable (and others) with the container
 
-### `mount-ssh-agent` (optional, boolean)
+### `mount-ssh-agent` (optional, boolean or string)
 
-Whether to automatically mount the ssh-agent socket from the host agent machine into the container (at `/ssh-agent`and `/root/.ssh/known_hosts` respectively), allowing git operations to work correctly.
+Whether to mount the ssh-agent socket (at `/ssh-agent`) from the host agent machine into the container or not. Instead of just `true` or `false`, you can specify absolute path in the container for the home directory of the user used to run on which the agent's `.ssh/known_hosts` will be mounted (by default, `/root`).
 
 Default: `false`
 
