@@ -247,10 +247,10 @@ if [[ ! "${BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT:-false}" = 'false' ]] ; then
     exit 1
   fi
 
-  if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT:-''}" =~ ^(true|on|1)$ ]]; then
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT:-''}" =~ ^(true|on|1)$ ]]; then
     MOUNT_PATH=/root
   else
-    MOUNT_PATH="${BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT}"
+    MOUNT_PATH="${BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT}"
   fi
 
   args+=(
