@@ -13,7 +13,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v5.3.0:
+      - docker#v5.4.0:
           image: "golang:1.11"
 ```
 
@@ -23,7 +23,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v5.3.0:
+      - docker#v5.4.0:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -35,7 +35,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v5.3.0:
+      - docker#v5.4.0:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -50,7 +50,7 @@ Note: If you are utilizing Buildkite's [Elastic CI Stack S3 Secrets plugin](http
 steps:
   - command: "yarn install; yarn run test"
     plugins:
-      - docker#v5.3.0:
+      - docker#v5.4.0:
           image: "node:7"
           always-pull: true
           environment:
@@ -68,7 +68,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v5.3.0:
+      - docker#v5.4.0:
           image: "node:7"
           always-pull: true
           propagate-environment: true
@@ -82,7 +82,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v5.3.0:
+      - docker#v5.4.0:
           image: "node:7"
           always-pull: true
           propagate-aws-auth-tokens: true
@@ -94,7 +94,7 @@ You can pass in additional volumes to be mounted. This is useful for running Doc
 steps:
   - command: "docker build . -t image:tag; docker push image:tag"
     plugins:
-      - docker#v5.3.0:
+      - docker#v5.4.0:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -107,7 +107,7 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v5.3.0:
+      - docker#v5.4.0:
           image: "node:7"
           always-pull: true
           mount-checkout: false
