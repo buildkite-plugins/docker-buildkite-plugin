@@ -327,6 +327,8 @@ Example: `[ "/var/run/docker.sock:/var/run/docker.sock" ]`
 
 When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
 
+Environment variable interporation rules apply here. `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` is at run time. All things being equal, you likely want `$$VARIABLE_NAME`.
+
 :warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
 
 ### `tmpfs` (optional, array)
