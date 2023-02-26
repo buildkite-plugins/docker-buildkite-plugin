@@ -310,6 +310,17 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_ENV_FILE; then
   done
 fi
 
+# If requested, propagate a set of env vars as listed in a given env var to the
+# container.
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_ENV_PROPAGATION_LIST:-}" ]]; then
+  if [[ -z "${!BUILDKITE_PLUGIN_DOCKER_ENV_PROPAGATION_LIST:-}" ]]; then
+    echo -n "env-propagation-list desired, but ${BUILDKITE_PLUGIN_DOCKER_ENV_PROPAGATION_LIST} is not defined!"
+    exit 1
+  fi
+  for var in ${!BUILDKITE_PLUGIN_DOCKER_ENV_PROPAGATION_LIST}; do
+    args+=("--env" "$var")
+  done
+fi
 
 # Propagate all environment variables into the container if requested
 if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$ ]] ; then
