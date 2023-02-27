@@ -23,6 +23,8 @@ configuration:
       type: array
     env-file:
       type: array
+    env-propagation-list:
+      type: string
     image:
       type: string
     ipc:

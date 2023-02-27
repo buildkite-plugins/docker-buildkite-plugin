@@ -447,6 +447,32 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with a list of propagated env vars" {
+  export BUILDKITE_PLUGIN_DOCKER_ENV_PROPAGATION_LIST="LIST_OF_VARS"
+  export LIST_OF_VARS="VAR_A VAR_B VAR_C"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env VAR_A --env VAR_B --env VAR_C --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with a list of propagated env vars - unless you forgot to define the variable" {
+  export BUILDKITE_PLUGIN_DOCKER_ENV_PROPAGATION_LIST="LIST_OF_VARS"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "env-propagation-list desired, but LIST_OF_VARS is not defined!"
+}
+
 @test "Runs BUILDKITE_COMMAND with user" {
   export BUILDKITE_PLUGIN_DOCKER_USER=foo
   export BUILDKITE_COMMAND="echo hello world"

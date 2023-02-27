@@ -177,11 +177,17 @@ Example: `[ "BUILDKITE_MESSAGE", "MY_SECRET_KEY", "MY_SPECIAL_BUT_PUBLIC_VALUE=k
 
 An array of additional files to pass into to the docker container as environment variables. Each entry corresponds to a Docker CLI `--env-file` parameter.
 
+### `env-propagation-list` (optional, string)
+
+If you set this to `VALUE`, and `VALUE` is an environment variable containing a space-separated list of environment variables such as `A B C D`, then A, B, C, and D will all be propagated to the container. This is helpful when you've set up an `environment` hook to export secrets as environment variables, and you'd also like to programmatically ensure that secrets get propagated to containers, instead of listing them all out.
+
 ### `propagate-environment` (optional, boolean)
 
-Whether or not to automatically propagate all pipeline environment variables into the docker container. Avoiding the need to be specified with `environment`.
+Whether or not to automatically propagate all* pipeline environment variables into the docker container. Avoiding the need to be specified with `environment`.
 
 Note that only pipeline variables will automatically be propagated (what you see in the Buildkite UI). Variables set in proceeding hook scripts will not be propagated to the container.
+
+\* Caveat: only environment variables listed in $BUILDKITE_ENV_FILE will be propagated. This does not include e.g. variables that you exported in an `environment` hook. If you wish for those to be propagated, try `env-propagation-list`.
 
 ### `propagate-aws-auth-tokens` (optional, boolean)
 
