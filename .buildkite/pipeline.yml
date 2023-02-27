@@ -6,7 +6,7 @@ steps:
 
   - label: ":sparkles:"
     plugins:
-      plugin-linter#v3.0.0:
+      plugin-linter#v3.1.0:
         id: docker
 
   - label: ":docker: :hammer:"
