@@ -529,6 +529,14 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
+# Support running an arbitrary shell script to generate a list of additional
+# options to pass to docker.
+arbitrary_script="${BUILDKITE_PLUGIN_DOCKER_ARBITRARY_FLAGS:-}"
+arbitrary_args=""
+if [[ -n "$arbitrary_script" ]] ; then
+  arbitrary_args=$(bash -c "$arbitrary_script")
+fi
+
 echo "--- :docker: Running command in ${BUILDKITE_PLUGIN_DOCKER_IMAGE}"
 echo -ne '\033[90m$\033[0m docker run ' >&2
 
@@ -542,7 +550,7 @@ set +e
 
 # Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
 # See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.
-( if is_windows ; then export MSYS_NO_PATHCONV=1; fi && docker run "${args[@]}" )
+( if is_windows ; then export MSYS_NO_PATHCONV=1; fi && docker run $arbitrary_args "${args[@]}" )
 
 exit_code=$?
 
