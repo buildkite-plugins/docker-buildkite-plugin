@@ -451,7 +451,7 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAPPINESS:-}" ]]; then
 fi
 
 # Handle entrypoint if set, and default shell to disabled
-if [[ ! -z ${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT+x} ]]; then
+if [[ -n ${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT+x} ]]; then
   args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT}")
   shell_disabled=1
 fi
