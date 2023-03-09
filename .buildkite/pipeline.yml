@@ -11,7 +11,7 @@ steps:
 
   - label: ":docker: :hammer:"
     plugins:
-      docker-compose#v4.10.1:
+      docker-compose#v4.11.0:
         run: tests
 
   - wait
