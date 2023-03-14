@@ -713,9 +713,6 @@ EOF
   export BUILDKITE_PLUGIN_DOCKER_PLATFORM=linux/${DOCKER_ARCH}
   export BUILDKITE_COMMAND="echo hello world"
 
-  # peaking in on docker to see
-  echo $(docker --version)
-
   stub docker \
     "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --platform linux/${DOCKER_ARCH} --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
