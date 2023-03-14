@@ -380,22 +380,6 @@ setup() {
   unstub docker
 }
 
-@test "Runs BUILDKITE_COMMAND with platform" {
-  export BK_ARCH=$(arch | sed 's/aarch64/arm64/' | sed 's/x86_64/amd64/')
-  export BUILDKITE_PLUGIN_DOCKER_PLATFORM=linux/${BK_ARCH}
-  export BUILDKITE_COMMAND="echo hello world"
-
-  stub docker \
-    "run -t -i --rm --platform linux/${BK_ARCH} --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
-
-  run "$PWD"/hooks/command
-
-  assert_success
-  assert_output --partial "ran command in docker"
-
-  unstub docker
-}
-
 @test "Runs BUILDKITE_COMMAND with pid namespace" {
   export BUILDKITE_PLUGIN_DOCKER_PID=host
   export BUILDKITE_COMMAND="echo hello world"
@@ -715,6 +699,25 @@ EOF
 
   stub docker \
     "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --add-host buildkite.fake:127.0.0.1 --add-host www.buildkite.local:0.0.0.0 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with platform" {
+  export DOCKER_ARCH=$(arch | sed 's/aarch64/arm64/' | sed 's/x86_64/amd64/')
+  export BUILDKITE_PLUGIN_DOCKER_PLATFORM=linux/${DOCKER_ARCH}
+  export BUILDKITE_COMMAND="echo hello world"
+
+  # peaking in on docker to see
+  echo $(docker --version)
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --platform linux/${DOCKER_ARCH} --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run "$PWD"/hooks/command
 
