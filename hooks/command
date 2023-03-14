@@ -386,6 +386,11 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}" ]] ; then
   args+=("--network" "${BUILDKITE_PLUGIN_DOCKER_NETWORK:-}")
 fi
 
+# Support docker run --platform
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_PLATFORM:-}" ]] ; then
+  args+=("--platform" "${BUILDKITE_PLUGIN_DOCKER_PLATFORM:-}")
+fi
+
 # Support docker run --pid
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_PID:-}" ]] ; then
   args+=("--pid" "${BUILDKITE_PLUGIN_DOCKER_PID:-}")

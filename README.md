@@ -249,6 +249,12 @@ Join the container to the docker network specified. The network will be created 
 
 Example: `test-network`
 
+### `platform` (optional, string)
+
+Platform defines the target platform containers for this service will run on, using the os[/arch[/variant]] syntax. The values of os, arch, and variant MUST conform to the convention used by the OCI Image Spec.
+
+Example: `linux/arm64`
+
 ### `pid` (optional, string)
 
 PID namespace provides separation of processes. The PID Namespace removes the view of the system processes, and allows process ids to be reused including pid 1. See https://docs.docker.com/engine/reference/run/#pid-settings---pid for more details. By default, all containers have the PID namespace enabled.
