@@ -380,6 +380,21 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with platform" {
+  export BUILDKITE_PLUGIN_DOCKER_PLATFORM=linux/$(arch)
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --platform linux/$(arch) --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with pid namespace" {
   export BUILDKITE_PLUGIN_DOCKER_PID=host
   export BUILDKITE_COMMAND="echo hello world"
