@@ -73,6 +73,8 @@ configuration:
       type: array
     workdir:
       type: string
+    platform:
+      type: string
     propagate-environment:
       type: boolean
     propagate-aws-auth-tokens:

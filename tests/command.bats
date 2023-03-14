@@ -708,6 +708,21 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with platform" {
+  export BUILDKITE_PLUGIN_DOCKER_PLATFORM=linux/amd64
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --platform linux/amd64 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs with a command as a string" {
   export BUILDKITE_PLUGIN_DOCKER_COMMAND="echo hello world"
   export BUILDKITE_COMMAND=
