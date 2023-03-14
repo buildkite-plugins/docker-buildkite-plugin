@@ -709,12 +709,11 @@ EOF
 }
 
 @test "Runs BUILDKITE_COMMAND with platform" {
-  export DOCKER_ARCH=$(arch | sed 's/aarch64/arm64/' | sed 's/x86_64/amd64/')
-  export BUILDKITE_PLUGIN_DOCKER_PLATFORM=linux/${DOCKER_ARCH}
+  export BUILDKITE_PLUGIN_DOCKER_PLATFORM=linux/amd64
   export BUILDKITE_COMMAND="echo hello world"
 
   stub docker \
-    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --platform linux/${DOCKER_ARCH} --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --platform linux/amd64 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run "$PWD"/hooks/command
 
