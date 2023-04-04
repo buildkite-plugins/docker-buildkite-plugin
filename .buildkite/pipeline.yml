@@ -1,29 +1,28 @@
 steps:
   - label: ":shell: Shellcheck"
     plugins:
-      shellcheck#v1.3.0:
-        files: hooks/**
+      - shellcheck#v1.3.0:
+          files: hooks/**
 
   - label: ":sparkles:"
     plugins:
-      plugin-linter#v3.1.0:
-        id: docker
+      - plugin-linter#v3.1.0:
+          id: docker
 
   - label: ":docker: :hammer:"
     plugins:
-      docker-compose#v4.11.0:
-        run: tests
+      - plugin-tester#v1.0.0: ~
 
   - wait
   - label: run the plugin
     command: "echo hello world"
     plugins:
-      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        image: ubuntu:22.04
+      - ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+          image: ubuntu:22.04
   - label: ensure exit codes are propagated
     command: "exit 3"
     plugins:
-      ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
-        image: ubuntu:22.04
+      - ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
+          image: ubuntu:22.04
     soft_fail:
       - exit_status: 3
