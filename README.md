@@ -129,6 +129,14 @@ Example: `node:7`
 
 ### Optional
 
+### `expand-image-vars` (optional, boolean, unsafe)
+
+When set to true, it will activate interpolation of variables in the elements of the `image` configuration variable. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed as the image name.
+
+Environment variable interporation rules apply here. `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` is at run time. All things being equal, you likely want `$$VARIABLE_NAME`.
+
+:warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
+
 ### `add-host` (optional, array)
 
 Additional lines can be added to `/etc/hosts` in the container, in an array of mappings. See https://docs.docker.com/engine/reference/run/#managing-etchosts for more details.

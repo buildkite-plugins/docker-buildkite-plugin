@@ -1242,3 +1242,36 @@ EOF
 
   unstub docker
 }
+
+@test "Do not expand image vars by default" {
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE='123456789012.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/image:tag'
+  export AWS_DEFAULT_REGION="us-east-1"
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 123456789012.dkr.ecr.\$\{AWS_DEFAULT_REGION\}.amazonaws.com/image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Expand image vars" {
+  export BUILDKITE_PLUGIN_DOCKER_EXPAND_IMAGE_VARS=true
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE='123456789012.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/image:tag'
+  export AWS_DEFAULT_REGION="us-east-1"
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 123456789012.dkr.ecr.us-east-1.amazonaws.com/image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}

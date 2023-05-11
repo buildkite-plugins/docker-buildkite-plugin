@@ -27,6 +27,8 @@ configuration:
       type: string
     image:
       type: string
+    expand-image-vars:
+      type: boolean
     ipc:
       type: string
     leave-container:
