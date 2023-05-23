@@ -352,6 +352,9 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS:-false}" =~ ^(true|on
   if [[ -n "${AWS_DEFAULT_REGION:-}" ]] ; then
       args+=( --env "AWS_DEFAULT_REGION" )
   fi
+  if [[ -n "${AWS_STS_REGIONAL_ENDPOINTS:-}" ]] ; then
+      args+=( --env "AWS_STS_REGIONAL_ENDPOINTS" )
+  fi
   # Pass ECS variables when the agent is running in ECS
   # https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html
   if [[ -n "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]] ; then
@@ -362,6 +365,13 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS:-false}" =~ ^(true|on
   fi
   if [[ -n "${AWS_CONTAINER_AUTHORIZATION_TOKEN:-}" ]] ; then
       args+=( --env "AWS_CONTAINER_AUTHORIZATION_TOKEN" )
+  fi
+  # Pass EKS variables when the agent is running in EKS
+  # https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
+  if [[ -n "${AWS_WEB_IDENTITY_TOKEN_FILE:-}" ]] ; then
+      args+=( --env "AWS_WEB_IDENTITY_TOKEN_FILE" )
+      # Add the token file as a volume
+      args+=( --volume "${AWS_WEB_IDENTITY_TOKEN_FILE}:${AWS_WEB_IDENTITY_TOKEN_FILE}" )
   fi
 fi
 
