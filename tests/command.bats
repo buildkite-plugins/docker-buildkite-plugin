@@ -866,6 +866,7 @@ EOF
   export AWS_SESSION_TOKEN="AQoEXAMPLEH4aoAH0gNCAPy...truncated...zrkuWJOgQs8IZZaIv2BXIa2R4Olgk"
   export AWS_REGION="ap-southeast-2"
   export AWS_DEFAULT_REGION="ap-southeast-2"
+  export AWS_ROLE_ARN="arn:aws:iam::0000000000:role/example-role"
   export AWS_CONTAINER_CREDENTIALS_FULL_URI="http://localhost:8080/get-credentials"
   export AWS_CONTAINER_CREDENTIALS_RELATIVE_URI="/get-credentials?a=1"
   export AWS_CONTAINER_AUTHORIZATION_TOKEN="Basic abcd"
@@ -873,7 +874,7 @@ EOF
   export AWS_WEB_IDENITY_TOKEN_FILE="/tmp/fake-token"
 
   stub docker \
-    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env AWS_SESSION_TOKEN --env AWS_REGION --env AWS_DEFAULT_REGION --env AWS_CONTAINER_CREDENTIALS_FULL_URI --env AWS_CONTAINER_CREDENTIALS_RELATIVE_URI --env AWS_CONTAINER_AUTHORIZATION_TOKEN --env AWS_STS_REGIONAL_ENDPOINTS --env AWS_WEB_IDENITY_TOKEN_FILE --volume "/tmp/fake-token:/tmp/fake-token" --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env AWS_SESSION_TOKEN --env AWS_REGION --env AWS_DEFAULT_REGION --env AWS_CONTAINER_CREDENTIALS_FULL_URI --env AWS_CONTAINER_CREDENTIALS_RELATIVE_URI --env AWS_CONTAINER_AUTHORIZATION_TOKEN --env AWS_STS_REGIONAL_ENDPOINTS --env AWS_WEB_IDENITY_TOKEN_FILE --env AWS_ROLE_ARN --volume "/tmp/fake-token:/tmp/fake-token" --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
 
   run "$PWD"/hooks/command
 
