@@ -25,10 +25,10 @@ configuration:
       type: array
     env-propagation-list:
       type: string
-    image:
-      type: string
     expand-image-vars:
       type: boolean
+    image:
+      type: string
     ipc:
       type: string
     leave-container:
