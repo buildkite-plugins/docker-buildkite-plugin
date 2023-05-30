@@ -1247,6 +1247,7 @@ EOF
 }
 
 @test "Do not expand image vars by default" {
+  # shellcheck disable=2016 # this is what we are actually testing
   export BUILDKITE_PLUGIN_DOCKER_IMAGE='123456789012.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/image:tag'
   export AWS_DEFAULT_REGION="us-east-1"
   export BUILDKITE_COMMAND="pwd"
@@ -1264,6 +1265,7 @@ EOF
 
 @test "Expand image vars" {
   export BUILDKITE_PLUGIN_DOCKER_EXPAND_IMAGE_VARS=true
+  # shellcheck disable=2016 # this is what we are actually testing
   export BUILDKITE_PLUGIN_DOCKER_IMAGE='123456789012.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/image:tag'
   export AWS_DEFAULT_REGION="us-east-1"
   export BUILDKITE_COMMAND="pwd"
