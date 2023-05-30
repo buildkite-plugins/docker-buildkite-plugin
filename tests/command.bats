@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 
 # Uncomment to enable stub debug output:
 # export DOCKER_STUB_DEBUG=/dev/tty
