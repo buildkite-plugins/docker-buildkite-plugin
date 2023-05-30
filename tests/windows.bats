@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load '/usr/local/lib/bats/load.bash'
+load "${BATS_PLUGIN_PATH}/load.bash"
 
 setup() {
   export BUILDKITE_PLUGIN_DOCKER_IMAGE=image:tag
