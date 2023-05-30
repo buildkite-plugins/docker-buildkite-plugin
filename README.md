@@ -181,6 +181,14 @@ An array of additional files to pass into to the docker container as environment
 
 If you set this to `VALUE`, and `VALUE` is an environment variable containing a space-separated list of environment variables such as `A B C D`, then A, B, C, and D will all be propagated to the container. This is helpful when you've set up an `environment` hook to export secrets as environment variables, and you'd also like to programmatically ensure that secrets get propagated to containers, instead of listing them all out.
 
+### `expand-image-vars` (optional, boolean, unsafe)
+
+When set to true, it will activate interpolation of variables in the elements of the `image` configuration variable. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed as the image name.
+
+Environment variable interporation rules apply here. `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` is at run time. All things being equal, you likely want `$$VARIABLE_NAME`.
+
+:warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
+
 ### `propagate-environment` (optional, boolean)
 
 Whether or not to automatically propagate all* pipeline environment variables into the docker container. Avoiding the need to be specified with `environment`.

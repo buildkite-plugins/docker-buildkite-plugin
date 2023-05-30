@@ -25,6 +25,8 @@ configuration:
       type: array
     env-propagation-list:
       type: string
+    expand-image-vars:
+      type: boolean
     image:
       type: string
     ipc:
