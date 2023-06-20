@@ -6,6 +6,8 @@ Also see the [Docker Compose Buildkite Plugin](https://github.com/buildkite-plug
 
 ## Example
 
+### `run`
+
 The following pipeline will build a binary in the dist directory using [golang Docker image](https://hub.docker.com/_/golang/) and then uploaded as an artifact.
 
 ```yml
@@ -112,6 +114,24 @@ steps:
           always-pull: true
           mount-checkout: false
 ```
+
+### `load`
+
+If the image that you want to run is not in a registry the `load` property can be used to load an image from a tar file.
+
+This can be useful if a previous step builds an image and uploads it as an artifact. The below example shows how a artifact can be downloaded and then passed to the `load` property to load the image which can then be referred to in the `image` property to start a container and run a command as explained above.
+
+```yml
+steps:
+  - command: "npm start"
+    plugins:
+      - artifacts#v1.9.0:
+          download: "node-7-image.tar.gz"
+      - docker#v5.8.0:
+          load: "node-7-image.tar.gz"
+          image: "node:7"
+```
+
 
 ### 🚨 Warning
 
@@ -228,6 +248,10 @@ Default: `true` for Linux and macOS, `false` for Windows.
 Whether or not to leave the container after the run, or immediately remove it with `--rm`.
 
 Default: `false`
+
+### `load` (optional, string)
+
+Specify a file to load a docker image from. If omitted no load will be done.
 
 ### `mount-checkout` (optional, boolean)
 
