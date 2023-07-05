@@ -9,6 +9,7 @@ setup() {
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_COMMAND="pwd"
   export OSTYPE="win" # important to define these test as windows
+  export BUILDKITE_PLUGIN_DOCKER_RUN_LABELS="false"
 }
 
 @test "Run with BUILDKITE_COMMAND" {

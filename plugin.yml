@@ -53,6 +53,8 @@ configuration:
       type: string
     runtime:
       type: string
+    run-labels:
+      type: boolean
     shell:
       type: [boolean, array]
     shm-size:

@@ -293,6 +293,12 @@ Specify the IPC mode to use. See the [docker run options documentation](https://
 
 Example: `host`
 
+### `run-labels` (optional, boolean)
+
+If set to true, adds useful Docker labels to the container. See [Container Labels](#container-labels) for more info.
+
+The default is `true`.
+
 ### `shell` (optional, array or boolean)
 
 Set the shell to use for the command. Set it to `false` to pass the command directly to the `docker run` command. The default is `["/bin/sh", "-e", "-c"]` unless you have provided an `entrypoint` or `command`.
@@ -425,6 +431,26 @@ Set the swappiness level to apply when running the container. More information
 can be found in https://docs.docker.com/config/containers/resource_constraints/#--memory-swappiness-details.
 
 Example: `0`
+
+## Container Labels
+
+When running a command, the plugin will automatically add the following Docker labels to the container:
+- `com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}`
+- `com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG}`
+- `com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER}`
+- `com.buildkite.job_id=${BUILDKITE_JOB_ID}`
+- `com.buildkite.job_label=${BUILDKITE_LABEL}`
+- `com.buildkite.step_key=${BUILDKITE_STEP_KEY}`
+- `com.buildkite.agent_name=${BUILDKITE_AGENT_NAME}`
+- `com.buildkite.agent_id=${BUILDKITE_AGENT_ID}`
+
+These labels can make it easier to query containers on hosts using `docker ps` for example:
+
+```bash
+docker ps --filter "label=com.buildkite.job_label=Run tests"
+```
+
+This behaviour can be disabled with the `run-labels: false` option.
 
 ## Developing
 
