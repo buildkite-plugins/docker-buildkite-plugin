@@ -11,6 +11,7 @@ setup() {
   export BUILDKITE_PLUGIN_DOCKER_CLEANUP=false
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_COMMAND="pwd"
+  export BUILDKITE_PLUGIN_DOCKER_RUN_LABELS="false"
 }
 
 @test "Run with BUILDKITE_COMMAND" {
@@ -723,6 +724,41 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with run-labels" {
+  export BUILDKITE_PLUGIN_DOCKER_RUN_LABELS="true"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  # Pipeline vars
+  export BUILDKITE_AGENT_ID="1234"
+  export BUILDKITE_AGENT_NAME="agent"
+  export BUILDKITE_BUILD_NUMBER=1
+  export BUILDKITE_JOB_ID=1111
+  export BUILDKITE_LABEL="Testjob"
+  export BUILDKITE_PIPELINE_NAME="label-test"
+  export BUILDKITE_PIPELINE_SLUG=test
+  export BUILDKITE_STEP_KEY="test-job"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir \
+      --label com.buildkite.job-id=${BUILDKITE_JOB_ID} \
+      --label com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME} \
+      --label com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG} \
+      --label com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER} \
+      --label com.buildkite.job_id=${BUILDKITE_JOB_ID} \
+      --label com.buildkite.job_label=${BUILDKITE_LABEL} \
+      --label com.buildkite.step_key=${BUILDKITE_STEP_KEY} \
+      --label com.buildkite.agent_name=${BUILDKITE_AGENT_NAME} \
+      --label com.buildkite.agent_id=${BUILDKITE_AGENT_ID} \
+      image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run $PWD/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs with a command as a string" {
   export BUILDKITE_PLUGIN_DOCKER_COMMAND="echo hello world"
   export BUILDKITE_COMMAND=
@@ -1241,7 +1277,7 @@ EOF
 @test "Use ssh agent (true)" {
   skip 'Can not create a socket for testing :('
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT=true
-  export SSH_AUTH_SOCK="/tmp/sock" 
+  export SSH_AUTH_SOCK="/tmp/sock"
   touch /tmp/sock # does not work as the hook checks that this is a socket
 
   stub docker \
@@ -1258,7 +1294,7 @@ EOF
 @test "Use ssh agent (with path)" {
   skip 'Can not create a socket for testing :('
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT=/test/path
-  export SSH_AUTH_SOCK="/tmp/sock" 
+  export SSH_AUTH_SOCK="/tmp/sock"
   touch /tmp/sock # does not work as the hook checks that this is a socket
 
   stub docker \

@@ -503,7 +503,21 @@ elif plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_SHELL ; then
 fi
 
 # Add the job id as meta-data for reference in pre-exit
-args+=("--label" "com.buildkite.job-id=${BUILDKITE_JOB_ID}")
+args+=("--label" "com.buildkite.job-id=${BUILDKITE_JOB_ID}")  # Keep the kebab-case one for backwards compat
+
+# Add useful labels to run container
+if [[ "${BUILDKITE_PLUGIN_DOCKER_RUN_LABELS:-true}" =~ ^(true|on|1)$ ]] ; then
+  args+=(
+    "--label" "com.buildkite.pipeline_name=${BUILDKITE_PIPELINE_NAME}"
+    "--label" "com.buildkite.pipeline_slug=${BUILDKITE_PIPELINE_SLUG}"
+    "--label" "com.buildkite.build_number=${BUILDKITE_BUILD_NUMBER}"
+    "--label" "com.buildkite.job_id=${BUILDKITE_JOB_ID}"
+    "--label" "com.buildkite.job_label=${BUILDKITE_LABEL}"
+    "--label" "com.buildkite.step_key=${BUILDKITE_STEP_KEY}"
+    "--label" "com.buildkite.agent_name=${BUILDKITE_AGENT_NAME}"
+    "--label" "com.buildkite.agent_id=${BUILDKITE_AGENT_ID}"
+  )
+fi
 
 # Add the image in before the shell and command
 args+=("${image}")
