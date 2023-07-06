@@ -1,5 +1,5 @@
 name: Docker
-description: Runs your build steps in Docker containers
+description: Runs your build steps in Docker containers or other docker commands
 author: https://github.com/buildkite
 requirements:
   - docker
@@ -33,6 +33,8 @@ configuration:
       type: string
     leave-container:
       type: boolean
+    load:
+      type: string
     memory:
       type: string
     memory-swap:
