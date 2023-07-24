@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+# shellcheck source=lib/shared.bash
+. "$DIR/../lib/shared.bash"
+
 tty_default='on'
 interactive_default='on'
 init_default='on'
