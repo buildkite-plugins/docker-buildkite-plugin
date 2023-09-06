@@ -113,7 +113,7 @@ steps:
           mount-checkout: false
 ```
 
-Variable interpolation can be tricky due to the 3 layers involved (Buildkite, agent VM, and docker). For example, if you want to use [ECR Buildkite plugin](https://github.com/buildkite-plugins/ecr-buildkite-plugin), you will need to use the following syntax Note the `$$` prefix for variables that would otherwise resolve at pipeline upload time, not runtime:
+Variable interpolation can be tricky due to the 3 layers involved (Buildkite, agent VM, and docker). For example, if you want to use [ECR Buildkite plugin](https://github.com/buildkite-plugins/ecr-buildkite-plugin), you will need to use the following syntax. Note the `$$` prefix for variables that would otherwise resolve at pipeline upload time, not runtime:
 ```yml
         plugins:
          - ecr#v2.7.0:
