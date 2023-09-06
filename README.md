@@ -113,6 +113,29 @@ steps:
           mount-checkout: false
 ```
 
+Variable interpolation can be tricky due to the 3 layers involved (Buildkite, agent VM, and docker). For example, if you want to use [ECR Buildkite plugin](https://github.com/buildkite-plugins/ecr-buildkite-plugin), you will need to use the following syntax Note the `$$` prefix for variables that would otherwise resolve at pipeline upload time, not runtime:
+```yml
+        plugins:
+         - ecr#v2.7.0:
+              login: true
+              account_ids:
+              - "d"
+              - "p"
+              region: us-west-2
+              no-include-email: true
+         - docker#v5.3.0:
+             image: "d.dkr.ecr.us-west-2.amazonaws.com/imagename"
+             command: "./run-integration-tests.sh"
+             expand-volume-vars: true
+             volumes:
+               - "/var/run/docker.sock:/var/run/docker.sock"
+               - "$$BUILDKITE_DOCKER_CONFIG_TEMP_DIRECTORY/config.json:/root/.docker/config.json"
+             propagate-environment: true
+             ...
+             environment:
+               - "BUILDKITE_DOCKER_CONFIG_TEMP_DIRECTORY"
+```
+
 ### 🚨 Warning
 
 You need to be careful when/if [running the BuildKite agent itself in docker](https://buildkite.com/docs/agent/v3/docker) that, itself, runs pipelines that use this plugin. Make sure to read all the documentation on the matter, specially the caveats and warnings listed.
