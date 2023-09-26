@@ -1342,3 +1342,21 @@ EOF
 
   unstub docker
 }
+
+@test "Load image from archive and run command" {
+  export BUILDKITE_PLUGIN_DOCKER_LOAD='test-image.tar'
+  export BUILDKITE_PLUGIN_DOCKER_IMAGE='test-image:tag'
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "load -i test-image.tar : echo loaded docker image" \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 test-image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "loaded docker image"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
