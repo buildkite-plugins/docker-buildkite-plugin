@@ -140,6 +140,25 @@ steps:
 ```
 
 You can read more about runtime variable interpolation from the [docs](https://buildkite.com/docs/pipelines/environment-variables#runtime-variable-interpolation).
+
+
+### `load`
+
+If the image that you want to run is not in a registry the `load` property can be used to load an image from a tar file.
+
+This can be useful if a previous step builds an image and uploads it as an artifact. The below example shows how a artifact can be downloaded and then passed to the `load` property to load the image which can then be referred to in the `image` property to start a container and run a command as explained above.
+
+```yml
+steps:
+  - command: "npm start"
+    plugins:
+      - artifacts#v1.9.0:
+          download: "node-7-image.tar.gz"
+      - docker#v5.9.0:
+          load: "node-7-image.tar.gz"
+          image: "node:7"
+```
+
 ### 🚨 Warning
 
 You need to be careful when/if [running the BuildKite agent itself in docker](https://buildkite.com/docs/agent/v3/docker) that, itself, runs pipelines that use this plugin. Make sure to read all the documentation on the matter, specially the caveats and warnings listed.
