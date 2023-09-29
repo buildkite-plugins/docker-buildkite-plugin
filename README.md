@@ -6,6 +6,8 @@ Also see the [Docker Compose Buildkite Plugin](https://github.com/buildkite-plug
 
 ## Example
 
+### `run`
+
 The following pipeline will build a binary in the dist directory using [golang Docker image](https://hub.docker.com/_/golang/) and then uploaded as an artifact.
 
 ```yml
@@ -274,6 +276,10 @@ Default: `true` for Linux and macOS, `false` for Windows.
 Whether or not to leave the container after the run, or immediately remove it with `--rm`.
 
 Default: `false`
+
+### `load` (optional, string)
+
+Specify a file to load a docker image from. If omitted no load will be done.
 
 ### `mount-checkout` (optional, boolean)
 
