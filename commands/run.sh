@@ -61,6 +61,7 @@ workdir=''
 
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
   workdir="${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}"
+  workdir=$(expand_relative_path "${workdir}")
 fi
 
 # By default, mount $PWD onto $WORKDIR
