@@ -47,6 +47,19 @@ function plugin_read_list_into_result() {
   [[ ${#result[@]} -gt 0 ]] || return 1
 }
 
+# docker doesn't do local path expansion, so we add very simple support for .
+function expand_relative_path() {
+  local path=$1
+
+  if [[ $path =~ ^\.: ]] ; then
+    printf "%s" "${PWD}${path#.}"
+  elif [[ $path =~ ^\.(/|\\) ]] ; then
+    printf "%s" "${PWD}/${path#.}"
+  else
+    echo "$path"
+  fi
+}
+
 # docker's -v arguments don't do local path expansion, so we add very simple support for .
 function expand_relative_volume_path() {
   local path
@@ -57,13 +70,7 @@ function expand_relative_volume_path() {
     path="$1"
   fi
 
-  if [[ $path =~ ^\.: ]] ; then
-    printf "%s" "${PWD}${path#.}"
-  elif [[ $path =~ ^\.(/|\\) ]] ; then
-    printf "%s" "${PWD}/${path#.}"
-  else
-    echo "$path"
-  fi
+  expand_relative_path "$path"
 }
 
 # shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
