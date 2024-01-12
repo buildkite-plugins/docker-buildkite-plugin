@@ -50,7 +50,11 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_INIT:-$init_default}" =~ ^(true|on|1)$ ]] ; the
     args+=("--init")
 fi
 
-args+=("--stop-timeout" "${BUILDKITE_CANCEL_GRACE_PERIOD:-10}")
+# Explicitly set --stop-timout to match BUILDKITE_CANCEL_GRACE_PERIOD, unless
+# BUILDKITE_CANCEL_GRACE_PERIOD is 10, which is the default for both
+if [ "${BUILDKITE_CANCEL_GRACE_PERIOD:-10}" != "10" ] ; then
+    args+=("--stop-timeout" "${BUILDKITE_CANCEL_GRACE_PERIOD:-10}")
+fi
 
 # Parse tmpfs property.
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_TMPFS ; then
