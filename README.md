@@ -209,6 +209,30 @@ Enables debug mode, which outputs the full Docker commands that will be run on t
 
 Default: `false`
 
+### `device-read-bps` (optional, array)
+
+Limit read rate from a device (format: `<device-path>:<number>[<unit>]`). Number is a positive integer. Unit can be one of `kb`, `mb`, or `gb`.
+
+Example: `["/dev/sda1:200mb"]`
+
+### `device-read-iops` (optional, array)
+
+Limit read rate (IO per second) from a device (format: `<device-path>:<number>`). Number is a positive integer.
+
+Example: `["/dev/sda1:400"]`
+
+### `device-write-bps` (optional, array)
+
+Limit write rate to a device (format: `<device-path>:<number>[<unit>]`). Number is a positive integer. Unit can be one of `kb`, `mb`, or `gb`.
+
+Example: `["/dev/sda1:200mb"]`
+
+### `device-write-iops` (optional, array)
+
+Limit write rate (IO per second) to a device (format: `<device-path>:<number>`). Number is a positive integer.
+
+Example: `["/dev/sda1:400"]`
+
 ### `entrypoint` (optional, string)
 
 Override the image’s default entrypoint, and defaults the `shell` option to `false`. See the [docker run --entrypoint documentation](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime) for more details. Set it to `""` (empty string) to disable the default entrypoint for the image, but note that you may need to use this plugin's `command` option instead of the top-level `command` option or set a `shell` instead (depending on the command you want/need to run - see [Issue 138](https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/138) for more information).

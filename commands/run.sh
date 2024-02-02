@@ -407,6 +407,34 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAPPINESS:-}" ]]; then
   args+=("--memory-swappiness=${BUILDKITE_PLUGIN_DOCKER_MEMORY_SWAPPINESS}")
 fi
 
+# Handle setting device read throughput if provided
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_DEVICE_READ_BPS; then
+  for arg in "${result[@]}"; do
+    args+=("--device-read-bps" "$arg")
+  done
+fi
+
+# Handle setting device write throughput if provided
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_DEVICE_WRITE_BPS; then
+  for arg in "${result[@]}"; do
+    args+=("--device-write-bps" "$arg")
+  done
+fi
+
+# Handle setting device read IOPS if provided
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_DEVICE_READ_IOPS; then
+  for arg in "${result[@]}"; do
+    args+=("--device-read-iops" "$arg")
+  done
+fi
+
+# Handle setting device write IOPS if provided
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_DEVICE_WRITE_IOPS; then
+  for arg in "${result[@]}"; do
+    args+=("--device-write-iops" "$arg")
+  done
+fi
+
 # Handle entrypoint if set, and default shell to disabled
 if [[ -n ${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT+x} ]]; then
   args+=("--entrypoint" "${BUILDKITE_PLUGIN_DOCKER_ENTRYPOINT}")

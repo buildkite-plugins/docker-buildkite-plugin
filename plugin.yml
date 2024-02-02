@@ -17,6 +17,14 @@ configuration:
       type: string
     debug:
       type: boolean
+    device-read-bps:
+      type: array
+    device-read-iops:
+      type: array
+    device-write-bps:
+      type: array
+    device-write-iops:
+      type: array
     entrypoint:
       type: string
     environment:
