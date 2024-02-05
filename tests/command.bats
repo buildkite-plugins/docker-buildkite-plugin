@@ -1028,6 +1028,74 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with multiple added device read bps" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_READ_BPS_0='bps-0'
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_READ_BPS_1='bps-1'
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_READ_BPS_2='bps-2'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --device-read-bps bps-0 --device-read-bps bps-1 --device-read-bps bps-2 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with multiple added device write bps" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_WRITE_BPS_0='bps-0'
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_WRITE_BPS_1='bps-1'
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_WRITE_BPS_2='bps-2'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --device-write-bps bps-0 --device-write-bps bps-1 --device-write-bps bps-2 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with multiple added device read iops" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_READ_IOPS_0='iops-0'
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_READ_IOPS_1='iops-1'
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_READ_IOPS_2='iops-2'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --device-read-iops iops-0 --device-read-iops iops-1 --device-read-iops iops-2 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with multiple added device write iops" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_WRITE_IOPS_0='iops-0'
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_WRITE_IOPS_1='iops-1'
+  export BUILDKITE_PLUGIN_DOCKER_DEVICE_WRITE_IOPS_2='iops-2'
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --device-write-iops iops-0 --device-write-iops iops-1 --device-write-iops iops-2 --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with one added capability" {
   export BUILDKITE_COMMAND="echo hello world"
   export BUILDKITE_PLUGIN_DOCKER_ADD_CAPS_0='cap-0'
