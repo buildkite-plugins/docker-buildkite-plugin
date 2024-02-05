@@ -50,6 +50,12 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_INIT:-$init_default}" =~ ^(true|on|1)$ ]] ; the
     args+=("--init")
 fi
 
+# Explicitly set --stop-timout to match BUILDKITE_CANCEL_GRACE_PERIOD, unless
+# BUILDKITE_CANCEL_GRACE_PERIOD is 10, which is the default for both
+if [ "${BUILDKITE_CANCEL_GRACE_PERIOD:-10}" != "10" ] ; then
+    args+=("--stop-timeout" "${BUILDKITE_CANCEL_GRACE_PERIOD:-10}")
+fi
+
 # Parse tmpfs property.
 if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_TMPFS ; then
   for arg in "${result[@]}" ; do
@@ -511,9 +517,14 @@ echo
 # would exit the parent shell (here) early.
 set +e
 
+# Prevent SIGTERM from killing this script. SIGTERM will still be passed to the Docker container, which can exit
+# gracefully (or, if necessary, non-gracefully per the `--stop-timeout` flag passed above).
+trap '' SIGTERM
+
 # Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
 # See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.
-( if is_windows ; then export MSYS_NO_PATHCONV=1; fi && docker run "${args[@]}" )
+# `trap` is used in this subshell for the same reason it is used above.
+( if is_windows ; then export MSYS_NO_PATHCONV=1; fi && trap '' SIGTERM && docker run "${args[@]}" )
 
 exit_code=$?
 

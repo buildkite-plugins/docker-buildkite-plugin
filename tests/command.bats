@@ -1274,6 +1274,23 @@ EOF
   unstub docker
 }
 
+@test "Runs with BUILDKITE_COMMAND with non-default grace period" {
+  export BUILDKITE_COMMAND='command1 "a string"'
+  export BUILDKITE_AGENT_BINARY_PATH="/buildkite-agent"
+  export BUILDKITE_CANCEL_GRACE_PERIOD="40"
+  unset BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT
+
+  stub docker \
+    "run -t -i --rm --init --stop-timeout 40 --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume /buildkite-agent:/usr/bin/buildkite-agent --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'command1 \"a string\"' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Use ssh agent (true)" {
   skip 'Can not create a socket for testing :('
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_SSH_AGENT=true
