@@ -309,7 +309,7 @@ Specify a file to load a docker image from. If omitted no load will be done.
 
 Whether to automatically mount the current working directory which contains your checked out codebase. Mounts onto `/workdir`, unless `workdir` is set, in which case that will be used.
 
-If there's a git mirror path and `mount-checkout` is enabled, the (mirror path)[https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_REPO_MIRROR] is mounted into the docker container as an added volume. 
+If there's a git mirror path and `mount-checkout` is enabled, the (mirror path)[https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_REPO_MIRROR] is mounted into the docker container as an added volume. Otherwise, the git mirror path will have to be explicitly added as an extra volume to mount into the container. 
 
 Default: `true`
 
