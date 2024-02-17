@@ -102,7 +102,7 @@ setup() {
   export BUILDKITE_COMMAND="pwd"
 
   stub docker \
-    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN '--volume' '/tmp/bin/buildkite-agent:/usr/bin/buildkite-agent' --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume \* --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker with buildkite agent mounted at \${17}"
 
   # only for the command to exist
   stub buildkite-agent \
@@ -113,6 +113,7 @@ setup() {
   assert_success
   refute_output --partial "🚨 Failed to find buildkite-agent"
   assert_output --partial "ran command in docker"
+  assert_output --partial "/bin/buildkite-agent:/usr/bin/buildkite-agent"  # check agent is mounted
 
   unstub docker
   unstub buildkite-agent || true
