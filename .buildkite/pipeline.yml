@@ -14,7 +14,7 @@ steps:
 
   - label: ":docker: :hammer:"
     plugins:
-      - plugin-tester#v1.1.0: ~
+      - plugin-tester#v1.1.1: ~
 
   - wait
   - label: run the plugin
