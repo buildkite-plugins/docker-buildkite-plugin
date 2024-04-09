@@ -93,6 +93,8 @@ configuration:
       type: boolean
     propagate-aws-auth-tokens:
       type: boolean
+    propagate-gcp-auth-tokens:
+      type: boolean
     propagate-uid-gid:
       type: boolean
     privileged:
