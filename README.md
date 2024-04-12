@@ -277,6 +277,12 @@ Will propagate `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`
 
 When the `AWS_WEB_IDENTITY_TOKEN_FILE` is specified, it will also mount it automatically for you and make it usable within the container.
 
+### `propagate-gcp-auth-tokens` (optional, boolean)
+
+Whether or not to automatically propagate gcp auth credentials into the docker container. Avoiding the need to be specified with `environment`. This is useful if you are using a workload identity federation to impersonate a service account and you want to pass it to the docker container. This is compatible with the `gcp-workload-identity-federation` plugin.
+
+Will propagate `GOOGLE_APPLICATION_CREDENTIALS`, `CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE` and `BUILDKITE_OIDC_TMPDIR` and also mount the dir specified by `BUILDKITE_OIDC_TMPDIR` into the container.
+
 ### `propagate-uid-gid` (optional, boolean)
 
 Whether to match the user ID and group ID for the container user to the user ID and group ID for the host user. It is similar to specifying `user: 1000:1000`, except it avoids hardcoding a particular user/group ID.

@@ -968,6 +968,25 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with propagate gcp auth tokens" {
+  export BUILDKITE_COMMAND="echo hello world"
+  export BUILDKITE_PLUGIN_DOCKER_PROPAGATE_GCP_AUTH_TOKENS=true
+
+  export BUILDKITE_OIDC_TMPDIR="/tmp/.tmp.Xdasd23"
+  export GOOGLE_APPLICATION_CREDENTIALS="${BUILDKITE_OIDC_TMPDIR}/credentials.json"
+  export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${GOOGLE_APPLICATION_CREDENTIALS}"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env GOOGLE_APPLICATION_CREDENTIALS --env CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE --env BUILDKITE_OIDC_TMPDIR --volume \"/tmp/.tmp.Xdasd23:/tmp/.tmp.Xdasd23\" --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with memory options" {
   export BUILDKITE_PLUGIN_DOCKER_MEMORY=2g
   export BUILDKITE_COMMAND="echo hello world"

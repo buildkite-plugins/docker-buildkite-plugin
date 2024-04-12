@@ -316,6 +316,22 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_AWS_AUTH_TOKENS:-false}" =~ ^(true|on
   fi
 fi
 
+# Propagate gcp auth environment variables into the container e.g. from workload identity federation plugins
+if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_GCP_AUTH_TOKENS:-false}" =~ ^(true|on|1)$ ]] ; then
+  if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]] ; then
+      args+=( --env "GOOGLE_APPLICATION_CREDENTIALS" )
+  fi
+  if [[ -n "${CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE:-}" ]] ; then
+      args+=( --env "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE" )
+  fi
+  if [[ -n "${BUILDKITE_OIDC_TMPDIR:-}" ]] ; then
+      args+=( --env "BUILDKITE_OIDC_TMPDIR" )
+      # Add the OIDC temp dir as a volume
+      args+=( --volume "${BUILDKITE_OIDC_TMPDIR}:${BUILDKITE_OIDC_TMPDIR}" )
+  fi
+
+fi
+
 if [[ "${BUILDKITE_PLUGIN_DOCKER_EXPAND_IMAGE_VARS:-false}" =~ ^(true|on|1)$ ]] ; then
   image=$(eval echo "${BUILDKITE_PLUGIN_DOCKER_IMAGE}")
 else
