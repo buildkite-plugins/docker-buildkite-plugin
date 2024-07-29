@@ -1,7 +1,5 @@
 steps:
   - label: ":shell: Shellcheck"
-    agents:
-      queue: "hosted"
     plugins:
       - shellcheck#v1.3.0:
           files:
@@ -10,30 +8,22 @@ steps:
             - lib/**
 
   - label: ":sparkles:"
-    agents:
-      queue: "hosted"
     plugins:
       - plugin-linter#v3.3.0:
           id: docker
 
   - label: ":docker: :hammer:"
-    agents:
-      queue: "hosted"
     plugins:
       - plugin-tester#v1.1.1: ~
 
   - wait
   - label: run the plugin
     command: "echo hello world"
-    agents:
-      queue: "hosted"
     plugins:
       - ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
           image: ubuntu:22.04
   - label: ensure exit codes are propagated
     command: "exit 3"
-    agents:
-      queue: "hosted"
     plugins:
       - ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
           image: ubuntu:22.04
