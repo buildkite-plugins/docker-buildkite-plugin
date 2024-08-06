@@ -223,6 +223,14 @@ if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
   )
 fi
 
+if [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" ]] ; then
+  args+=(
+    "--env" "BUILDKITE_AGENT_JOB_API_SOCKET"
+    "--env" "BUILDKITE_AGENT_JOB_API_TOKEN"
+    "--volume" "$BUILDKITE_AGENT_JOB_API_SOCKET:$BUILDKITE_AGENT_JOB_API_SOCKET"
+  )
+fi
+
 # Parse extra env vars and add them to the docker args
 while IFS='=' read -r name _ ; do
   if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_[0-9]+) ]] ; then

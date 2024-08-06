@@ -119,6 +119,29 @@ setup() {
   unstub buildkite-agent || true
 }
 
+@test "Runs BUILDKITE_COMMAND with mount-buildkite-agent enabled and Job API" {
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=true
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/special/path
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_JOB_ID --env BUILDKITE_BUILD_ID --env BUILDKITE_AGENT_ACCESS_TOKEN --volume \* --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN --volume \* --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker with buildkite agent mounted at \${23}"
+
+  # only for the command to exist
+  stub buildkite-agent \
+    " : exit 1"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  refute_output --partial "🚨 Failed to find buildkite-agent"
+  assert_output --partial "ran command in docker"
+  assert_output --partial "/bin/buildkite-agent:/usr/bin/buildkite-agent"  # check agent is mounted
+
+  unstub docker
+  unstub buildkite-agent || true
+}
+
 @test "Runs BUILDKITE_COMMAND with volumes" {
   export BUILDKITE_PLUGIN_DOCKER_WORKDIR=/app
   export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0=/var/run/docker.sock:/var/run/docker.sock

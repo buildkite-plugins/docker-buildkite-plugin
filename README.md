@@ -327,7 +327,7 @@ Set to `true` if you want to enable and are sure that the binary running in the 
 
 Default: `false`
 
-**Important:** enabling this option will share `BUILDKITE_AGENT_TOKEN` environment variable (and others) with the container
+**Important:** enabling this option will share the `BUILDKITE_AGENT_TOKEN` and `BUILDKITE_AGENT_JOB_API_TOKEN` environment variables (and other related ones) with the container if present.
 
 ### `mount-ssh-agent` (optional, boolean or string)
 
