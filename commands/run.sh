@@ -66,7 +66,7 @@ fi
 workdir=''
 
 if [[ -n "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-}" ]] || [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
-  workdir="${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}"
+  workdir="$(expand_relative_volume_path "${BUILDKITE_PLUGIN_DOCKER_WORKDIR:-$workdir_default}")"
 fi
 
 # By default, mount $PWD onto $WORKDIR
