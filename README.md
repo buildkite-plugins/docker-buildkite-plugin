@@ -437,7 +437,7 @@ Example: `[ "/var/run/docker.sock:/var/run/docker.sock" ]`
 
 ### `expand-volume-vars` (optional, boolean, run only, unsafe)
 
-When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
+When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array as well as `workdir`. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
 
 Environment variable interporation rules apply here. `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` is at run time. All things being equal, you likely want `$$VARIABLE_NAME`.
 
