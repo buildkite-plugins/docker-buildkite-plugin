@@ -11,6 +11,8 @@ configuration:
       type: array
     always-pull:
       type: boolean
+    chown:
+      type: boolean
     command:
       type: array
     cpus:
