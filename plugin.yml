@@ -11,6 +11,10 @@ configuration:
       type: array
     always-pull:
       type: boolean
+    chown:
+      type: boolean
+    chown-image:
+      type: string
     command:
       type: array
     cpus:

@@ -1,10 +1,19 @@
 #!/bin/bash
 set -euo pipefail
 
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+# shellcheck source=lib/shared.bash
+. "$DIR/../lib/shared.bash"
+
 if [[ "${BUILDKITE_PLUGIN_DOCKER_CLEANUP:-true}" =~ ^(true|on|1)$ ]] ; then
   for container in $(docker ps -a -q --filter "label=com.buildkite.job-id=${BUILDKITE_JOB_ID}") ; do
     echo "~~~ Cleaning up left-over container ${container}"
     docker stop "$container"
   done
+fi
+
+if ! is_windows && [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-true}" =~ ^(true|on|1)$ ]] && [[ "${BUILDKITE_PLUGIN_DOCKER_CHOWN:-false}" =~ ^(true|on|1)$ ]] ; then
+  docker run --rm -v "$PWD":"$PWD" "${BUILDKITE_PLUGIN_DOCKER_CHOWN_IMAGE:-busybox}" chown -Rh "$(id -u):$(id -g)" "$PWD"
 fi
 
