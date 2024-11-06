@@ -8,7 +8,7 @@ function retry {
   local attempts=1
 
   until "$@"; do
-    retry_exit_status=$?
+    local retry_exit_status=$?
     echo "Exited with $retry_exit_status"
     if (( retries == "0" )); then
       return $retry_exit_status
