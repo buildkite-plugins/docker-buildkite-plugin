@@ -287,7 +287,7 @@ Will propagate `GOOGLE_APPLICATION_CREDENTIALS`, `CLOUDSDK_AUTH_CREDENTIAL_FILE_
 
 Whether to match the user ID and group ID for the container user to the user ID and group ID for the host user. It is similar to specifying `user: 1000:1000`, except it avoids hardcoding a particular user/group ID.
 
-Using this option ensures that any files created on shared mounts from within the container will be accessible to the host user. It is otherwise common to accidentally create root-owned files that Buildkite will be unable to remove, since containers by default run as the root user.
+Using this option ensures that any files created on shared mounts from within the container will be accessible to the host user. It is otherwise common to accidentally create root-owned files that the agent will be unable to remove, since a lot of images by default run as the root user. This can also be mitigated for the checkout directory by using the `chown` option of this plugin.
 
 ### `privileged` (optional, boolean)
 
@@ -318,6 +318,20 @@ Whether to automatically mount the current working directory which contains your
 If there's a git mirror path and `mount-checkout` is enabled, the (mirror path)[https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_REPO_MIRROR] is mounted into the docker container as an added volume. Otherwise, the git mirror path will have to be explicitly added as an extra volume to mount into the container. 
 
 Default: `true`
+
+### `chown` (optional, boolean)
+
+Whether to `chown` the directory mounted with `mount-checkout` to the Buildkite agent user before exiting, to ensure that the agent can clean up any additional files created there. This will happen even if the command fails or is cancelled. This option has no effect on Windows or if `mount-checkout` is false.
+
+Prefer using `propagate-uid-gid` over this option, as the `chown`–which can take some time if your checkout is of considerable size—is likely not needed at all in that case.
+
+Default: `false`
+
+### `chown-image` (optional, string)
+
+The Docker image in which to run the `chown` command.
+
+Default: `busybox`
 
 ### `mount-buildkite-agent` (optional, boolean)
 
