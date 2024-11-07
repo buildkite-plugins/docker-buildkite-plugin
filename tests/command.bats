@@ -91,11 +91,11 @@ setup() {
 
   stub docker \
     "pull image:tag" \
-    "pull image:tag"
+    "pull image:tag : exit 3"
 
   run "$PWD"/hooks/command
 
-  assert_failure
+  assert_failure 3
   assert_output --partial "Retrying 1 more times..."
   assert_output --partial "!!! :docker: Pull failed."
 
