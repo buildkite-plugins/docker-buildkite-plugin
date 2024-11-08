@@ -66,6 +66,42 @@ setup() {
   unstub docker
 }
 
+@test "Pull image first before running BUILDKITE_COMMAND, success on retries" {
+  export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
+  export BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES=2
+
+  stub docker \
+    "pull image:tag" \
+    "pull image:tag : echo pulled latest image on retry" \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Retrying 1 more times..."
+  assert_output --partial "pulled latest image on retry"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Pull image first before running BUILDKITE_COMMAND, failure on retries" {
+  export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
+  export BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES=2
+
+  stub docker \
+    "pull image:tag" \
+    "pull image:tag : exit 3"
+
+  run "$PWD"/hooks/command
+
+  assert_failure 3
+  assert_output --partial "Retrying 1 more times..."
+  assert_output --partial "!!! :docker: Pull failed."
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with mount-buildkite-agent disabled specifically" {
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
   export BUILDKITE_COMMAND="pwd"
