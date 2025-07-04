@@ -397,6 +397,18 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_STORAGE_OPT:-}" ]] ; then
   args+=("--storage-opt" "${BUILDKITE_PLUGIN_DOCKER_STORAGE_OPT:-}")
 fi
 
+# Support docker run --log-driver
+if [[ -n "${BUILDKITE_PLUGIN_DOCKER_LOG_DRIVER:-}" ]] ; then
+  args+=("--log-driver" "${BUILDKITE_PLUGIN_DOCKER_LOG_DRIVER}")
+fi
+
+# Support docker run --log-opt
+if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_LOG_OPT; then
+  for arg in "${result[@]}"; do
+    args+=("--log-opt" "$arg")
+  done
+fi
+
 shell=()
 shell_disabled=1
 

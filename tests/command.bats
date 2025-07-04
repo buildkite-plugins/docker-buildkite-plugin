@@ -1382,6 +1382,70 @@ EOF
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with log-driver" {
+  export BUILDKITE_PLUGIN_DOCKER_LOG_DRIVER=json-file
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --log-driver json-file --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with log-opt" {
+  export BUILDKITE_PLUGIN_DOCKER_LOG_OPT_0=max-size=10m
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --log-opt max-size=10m --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with multiple log-opt" {
+  export BUILDKITE_PLUGIN_DOCKER_LOG_OPT_0=max-size=10m
+  export BUILDKITE_PLUGIN_DOCKER_LOG_OPT_1=max-file=3
+  export BUILDKITE_PLUGIN_DOCKER_LOG_OPT_2=labels=production
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --log-opt max-size=10m --log-opt max-file=3 --log-opt labels=production --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with log-driver and log-opt" {
+  export BUILDKITE_PLUGIN_DOCKER_LOG_DRIVER=syslog
+  export BUILDKITE_PLUGIN_DOCKER_LOG_OPT_0=syslog-address=tcp://192.168.1.3:514
+  export BUILDKITE_PLUGIN_DOCKER_LOG_OPT_1=tag=myapp
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --log-driver syslog --log-opt syslog-address=tcp://192.168.1.3:514 --log-opt tag=myapp --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Run with BUILDKITE_COMMAND that exits with a failure" {
   export BUILDKITE_COMMAND='pwd'
 
