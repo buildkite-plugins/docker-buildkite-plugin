@@ -15,7 +15,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "golang:1.11"
 ```
 
@@ -25,7 +25,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -37,7 +37,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -52,7 +52,7 @@ Note: If you are utilizing Buildkite's [Elastic CI Stack S3 Secrets plugin](http
 steps:
   - command: "yarn install; yarn run test"
     plugins:
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "node:7"
           always-pull: true
           environment:
@@ -70,7 +70,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "node:7"
           always-pull: true
           propagate-environment: true
@@ -84,7 +84,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "node:7"
           always-pull: true
           propagate-aws-auth-tokens: true
@@ -96,7 +96,7 @@ You can pass in additional volumes to be mounted. This is useful for running Doc
 steps:
   - command: "docker build . -t image:tag; docker push image:tag"
     plugins:
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -109,10 +109,26 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "node:7"
           always-pull: true
           mount-checkout: false
+```
+
+You can enable custom logging drivers and logging options with the use of `log-driver` and `log-opt`:
+
+```yml
+steps:
+  - command: "npm run start"
+    plugins:
+      - docker#v5.13.0:
+          image: "node:7"
+          log-driver: "awslogs"
+          log-opt:
+            - "awslogs-group=my-buildkite-logs"
+            - "awslogs-region=us-east-1"
+            - "awslogs-stream-prefix=buildkite"
+            - "awslogs-create-group=true"
 ```
 
 Variable interpolation can be tricky due to the 3 layers involved (Buildkite, agent VM, and docker). For example, if you want to use [ECR Buildkite plugin](https://github.com/buildkite-plugins/ecr-buildkite-plugin), you will need to use the following syntax. Note the `$$` prefix for variables that would otherwise resolve at pipeline upload time, not runtime:
@@ -128,7 +144,7 @@ steps:
           - "p"
           region: us-west-2
           no-include-email: true
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           image: "d.dkr.ecr.us-west-2.amazonaws.com/imagename"
           command: ["./run-integration-tests.sh"]
           expand-volume-vars: true
@@ -156,7 +172,7 @@ steps:
     plugins:
       - artifacts#v1.9.0:
           download: "node-7-image.tar.gz"
-      - docker#v5.12.0:
+      - docker#v5.13.0:
           load: "node-7-image.tar.gz"
           image: "node:7"
 ```
@@ -306,6 +322,20 @@ Default: `true` for Linux and macOS, `false` for Windows.
 Whether or not to leave the container after the run, or immediately remove it with `--rm`.
 
 Default: `false`
+
+### `log-driver` (optional, string)
+
+The logging driver for the container. This allows you to configure how Docker handles logs for the container.
+
+Common drivers include: `json-file`, `syslog`, `journald`, `gelf`, `fluentd`, `awslogs`, `splunk`, `etwlogs`, `gcplogs`, `logentries`, `none`.
+
+Default: `json-file`
+
+See [Docker's logging documentation](https://docs.docker.com/config/containers/logging/) for complete details.
+
+### `log-opt` (optional, array)
+
+Options for the logging driver. These are key-value pairs that configure the behavior of the selected logging driver.
 
 ### `load` (optional, string)
 
