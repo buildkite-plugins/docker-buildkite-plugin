@@ -115,6 +115,22 @@ steps:
           mount-checkout: false
 ```
 
+You can enable custom logging drivers and logging options with the use of `log-driver` and `log-opt`:
+
+```yml
+steps:
+  - command: "npm run start"
+    plugins:
+      - docker#v5.12.0:
+          image: "node:7"
+          log-driver: "awslogs"
+          log-opt:
+            - "awslogs-group=my-buildkite-logs"
+            - "awslogs-region=us-east-1"
+            - "awslogs-stream-prefix=buildkite"
+            - "awslogs-create-group=true"
+```
+
 Variable interpolation can be tricky due to the 3 layers involved (Buildkite, agent VM, and docker). For example, if you want to use [ECR Buildkite plugin](https://github.com/buildkite-plugins/ecr-buildkite-plugin), you will need to use the following syntax. Note the `$$` prefix for variables that would otherwise resolve at pipeline upload time, not runtime:
 
 ```yml
@@ -307,6 +323,20 @@ Whether or not to leave the container after the run, or immediately remove it wi
 
 Default: `false`
 
+### `log-driver` (optional, string)
+
+The logging driver for the container. This allows you to configure how Docker handles logs for the container.
+
+Common drivers include: `json-file`, `syslog`, `journald`, `gelf`, `fluentd`, `awslogs`, `splunk`, `etwlogs`, `gcplogs`, `logentries`, `none`.
+
+:information_source: As a default, Docker uses the [json-file logging driver](https://docs.docker.com/engine/logging/drivers/json-file/)
+
+See [Docker's logging documentation](https://docs.docker.com/config/containers/logging/) for complete details.
+
+### `log-opt` (optional, array)
+
+Options for the logging driver. These are key-value pairs that configure the behavior of the selected logging driver.
+
 ### `load` (optional, string)
 
 Specify a file to load a docker image from. If omitted no load will be done.
@@ -315,7 +345,7 @@ Specify a file to load a docker image from. If omitted no load will be done.
 
 Whether to automatically mount the current working directory which contains your checked out codebase. Mounts onto `/workdir`, unless `workdir` is set, in which case that will be used.
 
-If there's a git mirror path and `mount-checkout` is enabled, the (mirror path)[https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_REPO_MIRROR] is mounted into the docker container as an added volume. Otherwise, the git mirror path will have to be explicitly added as an extra volume to mount into the container. 
+If there's a git mirror path and `mount-checkout` is enabled, the (mirror path)[https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_REPO_MIRROR] is mounted into the docker container as an added volume. Otherwise, the git mirror path will have to be explicitly added as an extra volume to mount into the container.
 
 Default: `true`
 

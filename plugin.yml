@@ -47,6 +47,10 @@ configuration:
       type: boolean
     load:
       type: string
+    log-driver:
+      type: string
+    log-opt:
+      type: array
     memory:
       type: string
     memory-swap:
