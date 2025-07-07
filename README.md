@@ -329,7 +329,7 @@ The logging driver for the container. This allows you to configure how Docker ha
 
 Common drivers include: `json-file`, `syslog`, `journald`, `gelf`, `fluentd`, `awslogs`, `splunk`, `etwlogs`, `gcplogs`, `logentries`, `none`.
 
-Default: `json-file`
+:information_source: As a default, Docker uses the [json-file logging driver](https://docs.docker.com/engine/logging/drivers/json-file/)
 
 See [Docker's logging documentation](https://docs.docker.com/config/containers/logging/) for complete details.
 
