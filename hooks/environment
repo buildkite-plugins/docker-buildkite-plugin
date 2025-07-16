@@ -1,0 +1,7 @@
+#!/bin/bash
+set -euo pipefail
+
+if [[ -z "${BUILDKITE_COMMAND:-}" ]]; then
+  export BUILDKITE_COMMAND="echo 'Running deployment logic...' && echo 'Add your actual deployment commands here'"
+  echo "~~~ No user command, plugin will run as command inside container"
+fi

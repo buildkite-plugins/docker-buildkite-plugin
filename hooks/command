@@ -11,6 +11,5 @@ if [[ -n "${BUILDKITE_PLUGIN_DOCKER_LOAD:-}" ]]; then
   . "$DIR/../commands/load.sh"
 fi
 
-# for now we always execute the run command since it doesn't make sense to only do a load
 # shellcheck source=commands/run.sh
 . "$DIR/../commands/run.sh"
