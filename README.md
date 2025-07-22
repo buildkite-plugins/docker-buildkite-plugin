@@ -313,7 +313,7 @@ Whether or not to run the container in [privileged mode](https://docs.docker.com
 
 Whether or not to run an init process inside the container. This ensures that responsibilities like reaping zombie processes are performed inside the container.
 
-See [Docker's documentation](https://docs.docker.com/engine/reference/run/#specify-an-init-process) for background and implementation details.
+See [Docker's documentation](https://docs.docker.com/reference/cli/docker/container/run/#init) for background and implementation details.
 
 Default: `true` for Linux and macOS, `false` for Windows.
 
