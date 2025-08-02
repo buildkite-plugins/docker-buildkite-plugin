@@ -279,6 +279,50 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_ENVIRONMENT:-false}" =~ ^(true|on|1)$
   else
     echo -n "🚨 Not propagating environment variables to container as \$BUILDKITE_ENV_FILE is not set"
   fi
+
+  # Tracing variables
+  [[ -n "${BUILDKITE_TRACING_BACKEND:-}" ]] && args+=( --env "BUILDKITE_TRACING_BACKEND" )
+  [[ -n "${BUILDKITE_TRACING_SERVICE_NAME:-}" ]] && args+=( --env "BUILDKITE_TRACING_SERVICE_NAME" )
+  [[ -n "${BUILDKITE_TRACING_PROPAGATE_TRACEPARENT:-}" ]] && args+=( --env "BUILDKITE_TRACING_PROPAGATE_TRACEPARENT" )
+  [[ -n "${BUILDKITE_TRACING_TRACEPARENT:-}" ]] && args+=( --env "BUILDKITE_TRACING_TRACEPARENT" )
+  [[ -n "${BUILDKITE_TRACE_CONTEXT_ENCODING:-}" ]] && args+=( --env "BUILDKITE_TRACE_CONTEXT_ENCODING" )
+
+  # Pipeline signing variables
+  [[ -n "${BUILDKITE_AGENT_JWKS_FILE:-}" ]] && args+=( --env "BUILDKITE_AGENT_JWKS_FILE" )
+  [[ -n "${BUILDKITE_AGENT_JWKS_KEY_ID:-}" ]] && args+=( --env "BUILDKITE_AGENT_JWKS_KEY_ID" )
+  [[ -n "${BUILDKITE_AGENT_AWS_KMS_KEY:-}" ]] && args+=( --env "BUILDKITE_AGENT_AWS_KMS_KEY" )
+  
+  # Analytics and testing variables
+  [[ -n "${BUILDKITE_ANALYTICS_TOKEN:-}" ]] && args+=( --env "BUILDKITE_ANALYTICS_TOKEN" )
+  [[ -n "${BUILDKITE_TEST_SUITE_SLUG:-}" ]] && args+=( --env "BUILDKITE_TEST_SUITE_SLUG" )
+  
+  # Build configuration variables
+  [[ -n "${BUILDKITE_CANCEL_GRACE_PERIOD:-}" ]] && args+=( --env "BUILDKITE_CANCEL_GRACE_PERIOD" )
+  [[ -n "${BUILDKITE_COMMAND_EVAL:-}" ]] && args+=( --env "BUILDKITE_COMMAND_EVAL" )
+  [[ -n "${BUILDKITE_LAST_HOOK_EXIT_STATUS:-}" ]] && args+=( --env "BUILDKITE_LAST_HOOK_EXIT_STATUS" )
+  [[ -n "${BUILDKITE_LOCAL_HOOKS_ENABLED:-}" ]] && args+=( --env "BUILDKITE_LOCAL_HOOKS_ENABLED" )
+  [[ -n "${BUILDKITE_NO_HTTP2:-}" ]] && args+=( --env "BUILDKITE_NO_HTTP2" )
+  [[ -n "${BUILDKITE_PLUGIN_VALIDATION:-}" ]] && args+=( --env "BUILDKITE_PLUGIN_VALIDATION" )
+  [[ -n "${BUILDKITE_PLUGINS_ENABLED:-}" ]] && args+=( --env "BUILDKITE_PLUGINS_ENABLED" )
+  [[ -n "${BUILDKITE_REDACTED_VARS:-}" ]] && args+=( --env "BUILDKITE_REDACTED_VARS" )
+  [[ -n "${BUILDKITE_SHELL:-}" ]] && args+=( --env "BUILDKITE_SHELL" )
+  [[ -n "${BUILDKITE_SIGNAL_GRACE_PERIOD_SECONDS:-}" ]] && args+=( --env "BUILDKITE_SIGNAL_GRACE_PERIOD_SECONDS" )
+  [[ -n "${BUILDKITE_SSH_KEYSCAN:-}" ]] && args+=( --env "BUILDKITE_SSH_KEYSCAN" )
+  [[ -n "${BUILDKITE_STRICT_SINGLE_HOOKS:-}" ]] && args+=( --env "BUILDKITE_STRICT_SINGLE_HOOKS" )
+  
+  # Git configuration variables
+  [[ -n "${BUILDKITE_GIT_CHECKOUT_FLAGS:-}" ]] && args+=( --env "BUILDKITE_GIT_CHECKOUT_FLAGS" )
+  [[ -n "${BUILDKITE_GIT_CLEAN_FLAGS:-}" ]] && args+=( --env "BUILDKITE_GIT_CLEAN_FLAGS" )
+  [[ -n "${BUILDKITE_GIT_CLONE_FLAGS:-}" ]] && args+=( --env "BUILDKITE_GIT_CLONE_FLAGS" )
+  [[ -n "${BUILDKITE_GIT_CLONE_MIRROR_FLAGS:-}" ]] && args+=( --env "BUILDKITE_GIT_CLONE_MIRROR_FLAGS" )
+  [[ -n "${BUILDKITE_GIT_FETCH_FLAGS:-}" ]] && args+=( --env "BUILDKITE_GIT_FETCH_FLAGS" )
+  [[ -n "${BUILDKITE_GIT_MIRRORS_LOCK_TIMEOUT:-}" ]] && args+=( --env "BUILDKITE_GIT_MIRRORS_LOCK_TIMEOUT" )
+  [[ -n "${BUILDKITE_GIT_MIRRORS_PATH:-}" ]] && args+=( --env "BUILDKITE_GIT_MIRRORS_PATH" )
+  [[ -n "${BUILDKITE_GIT_MIRRORS_SKIP_UPDATE:-}" ]] && args+=( --env "BUILDKITE_GIT_MIRRORS_SKIP_UPDATE" )
+  [[ -n "${BUILDKITE_GIT_SUBMODULES:-}" ]] && args+=( --env "BUILDKITE_GIT_SUBMODULES" )
+  
+  # Network variables
+  [[ -n "${BUILDKITE_REQUEST_HEADER_BUILDKITE_PIPELINES_SHARD_ID:-}" ]] && args+=( --env "BUILDKITE_REQUEST_HEADER_BUILDKITE_PIPELINES_SHARD_ID" )
 fi
 
 # Propagate aws auth environment variables into the container e.g. from assume role plugins
@@ -340,6 +384,7 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_PROPAGATE_GCP_AUTH_TOKENS:-false}" =~ ^(true|on
 
 fi
 
+# Parse the image and expand any variables if requested
 if [[ "${BUILDKITE_PLUGIN_DOCKER_EXPAND_IMAGE_VARS:-false}" =~ ^(true|on|1)$ ]] ; then
   image=$(eval echo "${BUILDKITE_PLUGIN_DOCKER_IMAGE}")
 else
