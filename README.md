@@ -560,6 +560,60 @@ can be found in https://docs.docker.com/config/containers/resource_constraints/#
 
 Example: `0`
 
+## Troubleshooting
+
+### File and Directory Permissions with Volume Mounts
+
+When using volume mounts with Docker containers, file and directory permissions can become problematic due to user ID (UID) and group ID (GID) mismatches between the host and container environments.
+
+#### Common Permission Issues
+
+1. **Root-owned files**: Many Docker images run as root by default, creating files owned by root that the host user cannot modify or delete
+2. **Permission denied errors**: Host files may be inaccessible inside the container if UIDs/GIDs don't match
+3. **Build artifacts**: Generated files may have incorrect ownership, preventing cleanup by the Buildkite agent
+
+#### Solutions
+
+**Option 1: Use `propagate-uid-gid` (Recommended)**
+```yml
+steps:
+  - command: "make build"
+    plugins:
+      - docker#v5.13.0:
+          image: "node:18"
+          propagate-uid-gid: true
+```
+This matches the container user's UID/GID to the host user, ensuring files created in volume mounts have correct ownership.
+
+**Option 2: Use `chown` for cleanup**
+```yml
+steps:
+  - command: "npm run build"
+    plugins:
+      - docker#v5.13.0:
+          image: "node:18"
+          chown: true
+```
+This changes ownership of the checkout directory back to the agent user after the container exits.
+
+**Option 3: Specify explicit user**
+```yml
+steps:
+  - command: "python setup.py build"
+    plugins:
+      - docker#v5.13.0:
+          image: "python:3.9"
+          user: "1000:1000"  # Match your host user's UID:GID
+```
+
+#### Troubleshooting Permission Issues
+
+If you encounter permission errors:
+1. Check file ownership with `ls -la` on both host and container
+2. Verify UID/GID matching between host user and container user
+3. Consider using `propagate-uid-gid: true` to automatically handle ID mapping
+4. For persistent issues, use `chown: true` as a fallback solution
+
 ## Container Labels
 
 When running a command, the plugin will automatically add the following Docker labels to the container:
