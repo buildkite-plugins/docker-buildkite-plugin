@@ -8,7 +8,7 @@ Also see the [Docker Compose Buildkite Plugin](https://github.com/buildkite-plug
 
 ### `run`
 
-The following pipeline will build a binary in the dist directory using [golang Docker image](https://hub.docker.com/_/golang/) and then uploaded as an artifact.
+The following pipeline will build a binary in the dist directory using the [golang Docker image](https://hub.docker.com/_/golang/) and then uploaded as an artifact.
 
 ```yml
 steps:
@@ -164,7 +164,7 @@ You can read more about runtime variable interpolation from the [docs](https://b
 
 If the image that you want to run is not in a registry the `load` property can be used to load an image from a tar file.
 
-This can be useful if a previous step builds an image and uploads it as an artifact. The below example shows how a artifact can be downloaded and then passed to the `load` property to load the image which can then be referred to in the `image` property to start a container and run a command as explained above.
+This can be useful if a previous step builds an image and uploads it as an artifact. The below example shows how an artifact can be downloaded and then passed to the `load` property to load the image which can then be referred to in the `image` property to start a container and run a command as explained above.
 
 ```yml
 steps:
@@ -177,9 +177,9 @@ steps:
           image: "node:7"
 ```
 
-### 🚨 Warning
+### :warning: Warning
 
-You need to be careful when/if [running the BuildKite agent itself in docker](https://buildkite.com/docs/agent/v3/docker) that, itself, runs pipelines that use this plugin. Make sure to read all the documentation on the matter, specially the caveats and warnings listed.
+You need to be careful when/if [running the Buildkite agent itself in docker](https://buildkite.com/docs/agent/v3/docker) that, itself, runs pipelines that use this plugin. Make sure to read all the documentation on the matter, specially the caveats and warnings listed.
 
 ## Configuration
 
@@ -273,7 +273,7 @@ If you set this to `VALUE`, and `VALUE` is an environment variable containing a 
 
 When set to true, it will activate interpolation of variables in the elements of the `image` configuration variable. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed as the image name.
 
-Environment variable interporation rules apply here. `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` is at run time. All things being equal, you likely want `$$VARIABLE_NAME`.
+Environment variable interpolation rules apply here. `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` is at run time. All things being equal, you likely want `$$VARIABLE_NAME`.
 
 :warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
 
@@ -283,7 +283,7 @@ Whether or not to automatically propagate all* pipeline environment variables in
 
 Note that only pipeline variables will automatically be propagated (what you see in the Buildkite UI). Variables set in proceeding hook scripts will not be propagated to the container.
 
-\* Caveat: only environment variables listed in $BUILDKITE_ENV_FILE will be propagated. This does not include e.g. variables that you exported in an `environment` hook. If you wish for those to be propagated, try `env-propagation-list`.
+\* Caveat: only environment variables listed in $BUILDKITE_ENV_FILE will be propagated. This does not include for example variables that you exported in an `environment` hook. If you wish for those to be propagated, try `env-propagation-list`.
 
 ### `propagate-aws-auth-tokens` (optional, boolean)
 
@@ -345,7 +345,7 @@ Specify a file to load a docker image from. If omitted no load will be done.
 
 Whether to automatically mount the current working directory which contains your checked out codebase. Mounts onto `/workdir`, unless `workdir` is set, in which case that will be used.
 
-If there's a git mirror path and `mount-checkout` is enabled, the (mirror path)[https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_REPO_MIRROR] is mounted into the docker container as an added volume. Otherwise, the git mirror path will have to be explicitly added as an extra volume to mount into the container.
+If there's a git mirror path and `mount-checkout` is enabled, the [mirror path](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_REPO_MIRROR) is mounted into the docker container as an added volume. Otherwise, the git mirror path will have to be explicitly added as an extra volume to mount into the container.
 
 Default: `true`
 
@@ -435,7 +435,7 @@ Example: `[ "powershell", "-Command" ]`
 
 ### `shm-size` (optional, string)
 
-Set the size of the `/dev/shm` shared memory filesystem mount inside the docker contianer. If unset, uses the default for the platform (typically `64mb`). See [docker run’s runtime constraints documentation](https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources) for information on allowed formats.
+Set the size of the `/dev/shm` shared memory filesystem mount inside the docker container. If unset, uses the default for the platform (typically `64mb`). See [docker run's runtime constraints documentation](https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources) for information on allowed formats.
 
 Example: `2gb`
 
@@ -475,7 +475,7 @@ Example: `mynamespace`
 
 ### `volumes` (optional, array or boolean)
 
-Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter. Relative local paths are converted to their full-path (e.g `./code:/app`).
+Extra volume mounts to pass to the docker container, in an array. Items are specified as `SOURCE:TARGET`. Each entry corresponds to a Docker CLI `--volume` parameter. Relative local paths are converted to their full-path (for example `./code:/app`).
 
 Example: `[ "/var/run/docker.sock:/var/run/docker.sock" ]`
 
@@ -483,7 +483,7 @@ Example: `[ "/var/run/docker.sock:/var/run/docker.sock" ]`
 
 When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array as well as `workdir`. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
 
-Environment variable interporation rules apply here. `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` is at run time. All things being equal, you likely want `$$VARIABLE_NAME`.
+Environment variable interpolation rules apply here. `$VARIABLE_NAME` is resolved at pipeline upload time, whereas `$$VARIABLE_NAME` is at run time. All things being equal, you likely want `$$VARIABLE_NAME`.
 
 :warning: **Important:** this is considered an unsafe option as the most compatible way to achieve this is to run the strings through `eval` which could lead to arbitrary code execution or information leaking if you don't have complete control of the pipeline
 
@@ -493,13 +493,13 @@ Tmpfs mounts to pass to the docker container, in an array. Each entry correspond
 
 Example: `[ "/tmp", "/root/.cache" ]`
 
-### `workdir`(optional, string)
+### `workdir` (optional, string)
 
 The working directory to run the command in, inside the container. The default is `/workdir`. This path is also used by `mount-checkout` to determine where to mount the checkout in the container.
 
 Example: `/app`
 
-### `sysctls`(optional, array)
+### `sysctls` (optional, array)
 
 Set namespaced kernel parameters in the container. More information can be found in https://docs.docker.com/engine/reference/commandline/run/.
 
@@ -560,6 +560,60 @@ can be found in https://docs.docker.com/config/containers/resource_constraints/#
 
 Example: `0`
 
+## Troubleshooting
+
+### File and Directory Permissions with Volume Mounts
+
+When using volume mounts with Docker containers, file and directory permissions can become problematic due to user ID (UID) and group ID (GID) mismatches between the host and container environments.
+
+#### Common Permission Issues
+
+1. **Root-owned files**: Many Docker images run as root by default, creating files owned by root that the host user cannot modify or delete
+2. **Permission denied errors**: Host files may be inaccessible inside the container if UIDs/GIDs don't match
+3. **Build artifacts**: Generated files may have incorrect ownership, preventing cleanup by the Buildkite agent
+
+#### Solutions
+
+**Option 1: Use `propagate-uid-gid` (Recommended)**
+```yml
+steps:
+  - command: "make build"
+    plugins:
+      - docker#v5.13.0:
+          image: "node:18"
+          propagate-uid-gid: true
+```
+This matches the container user's UID/GID to the host user, ensuring files created in volume mounts have correct ownership.
+
+**Option 2: Use `chown` for cleanup**
+```yml
+steps:
+  - command: "npm run build"
+    plugins:
+      - docker#v5.13.0:
+          image: "node:18"
+          chown: true
+```
+This changes ownership of the checkout directory back to the agent user after the container exits.
+
+**Option 3: Specify explicit user**
+```yml
+steps:
+  - command: "python setup.py build"
+    plugins:
+      - docker#v5.13.0:
+          image: "python:3.9"
+          user: "1000:1000"  # Match your host user's UID:GID
+```
+
+#### Troubleshooting Permission Issues
+
+If you encounter permission errors:
+1. Check file ownership with `ls -la` on both host and container
+2. Verify UID/GID matching between host user and container user
+3. Consider using `propagate-uid-gid: true` to automatically handle ID mapping
+4. For persistent issues, use `chown: true` as a fallback solution
+
 ## Container Labels
 
 When running a command, the plugin will automatically add the following Docker labels to the container:
@@ -582,7 +636,7 @@ This behaviour can be disabled with the `run-labels: false` option.
 
 ## Developing
 
-To run testing, shellchecks and plugin linting use use `bk run` with the [Buildkite CLI](https://github.com/buildkite/cli).
+To run testing, shellchecks and plugin linting use `bk run` with the [Buildkite CLI](https://github.com/buildkite/cli).
 
 ```bash
 bk run
