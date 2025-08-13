@@ -19,13 +19,11 @@ agent_mount_folder="/usr/bin/buildkite-agent"
 if is_windows ; then
   tty_default=''
   init_default=''
-  workdir_default="C:\\workdir"
-  # escaping /C is a necessary workaround for an issue with Git for Windows 2.24.1.2
-  # https://github.com/git-for-windows/git/issues/2442
+  workdir_default="C:/workdir"
   pwd_default="$(cmd.exe //C "echo %CD%")"
 
-  # single quotes are important to avoid double-escaping the already escaped backslash
-  agent_mount_folder='C:\\buildkite-agent'
+  # Use Windows-style path for Windows containers (backslashes work in Windows containers)
+  agent_mount_folder='C:\buildkite-agent'
 fi
 
 
@@ -71,7 +69,13 @@ fi
 
 # By default, mount $PWD onto $WORKDIR
 if [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]] ; then
-  args+=( "--volume" "${pwd_default}:${workdir}" )
+  if is_windows; then
+    # Normalize Windows source path for Docker volume syntax, keep destination as Windows path
+    normalized_pwd="${pwd_default//\\//}"
+    args+=( "--volume" "${normalized_pwd}:${workdir}" )
+  else
+    args+=( "--volume" "${pwd_default}:${workdir}" )
+  fi
 fi
 
 # Parse volumes (and deprecated mounts) and add them to the docker args
@@ -215,12 +219,30 @@ fi
 
 # Mount buildkite-agent if we have a path for it
 if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
-  args+=(
-    "--env" "BUILDKITE_JOB_ID"
-    "--env" "BUILDKITE_BUILD_ID"
-    "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
-    "--volume" "$BUILDKITE_AGENT_BINARY_PATH:${agent_mount_folder}"
-  )
+  # Normalize paths for Windows to avoid Docker volume specification errors
+  if is_windows; then
+    # Convert backslashes to forward slashes for Docker volume syntax (source side only as Docker will accept C:/)
+    # Handle both single and double backslashes properly
+    # Replace double backslashes first
+    normalized_source_path="${BUILDKITE_AGENT_BINARY_PATH//\\\\//}"
+    # Then replace remaining single backslashes
+    normalized_source_path="${normalized_source_path//\\//}"
+    # Keep destination path as-is for Windows containers to preserve compatibility with Windows
+
+    args+=(
+      "--env" "BUILDKITE_JOB_ID"
+      "--env" "BUILDKITE_BUILD_ID"
+      "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
+      "--volume" "${normalized_source_path}:${agent_mount_folder}"
+    )
+  else
+    args+=(
+      "--env" "BUILDKITE_JOB_ID"
+      "--env" "BUILDKITE_BUILD_ID"
+      "--env" "BUILDKITE_AGENT_ACCESS_TOKEN"
+      "--volume" "$BUILDKITE_AGENT_BINARY_PATH:${agent_mount_folder}"
+    )
+  fi
 fi
 
 if [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" ]] ; then
