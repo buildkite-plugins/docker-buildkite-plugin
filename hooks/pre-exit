@@ -14,6 +14,6 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_CLEANUP:-true}" =~ ^(true|on|1)$ ]] ; then
 fi
 
 if ! is_windows && [[ "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-true}" =~ ^(true|on|1)$ ]] && [[ "${BUILDKITE_PLUGIN_DOCKER_CHOWN:-false}" =~ ^(true|on|1)$ ]] ; then
-  docker run --rm -v "$PWD":"$PWD" "${BUILDKITE_PLUGIN_DOCKER_CHOWN_IMAGE:-busybox}" chown -Rh "$(id -u):$(id -g)" "$PWD"
+  docker run --rm -v "$PWD":"$PWD" --userns host "${BUILDKITE_PLUGIN_DOCKER_CHOWN_IMAGE:-busybox}" chown -Rh "$(id -u):$(id -g)" "$PWD"
 fi
 
