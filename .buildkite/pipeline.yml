@@ -14,7 +14,7 @@ steps:
 
   - label: ":docker: :hammer:"
     plugins:
-      - plugin-tester#v1.2.0: ~
+      - plugin-tester#v1.3.0: ~
 
   - label: "Security Scan"
     key: security_scan
