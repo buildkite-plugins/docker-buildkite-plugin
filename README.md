@@ -355,6 +355,8 @@ Whether to `chown` the directory mounted with `mount-checkout` to the Buildkite 
 
 Prefer using `propagate-uid-gid` over this option, as the `chown`–which can take some time if your checkout is of considerable size—is likely not needed at all in that case.
 
+**Security**: This option runs a container with [user namespace remapping disabled](https://docs.docker.com/reference/cli/docker/container/run/#userns).
+
 Default: `false`
 
 ### `chown-image` (optional, string)
