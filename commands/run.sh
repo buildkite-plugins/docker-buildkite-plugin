@@ -39,7 +39,8 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_INTERACTIVE:-$interactive_default}" =~ ^(true|o
   args+=("-i")
 fi
 
-if [[ ! "${BUILDKITE_PLUGIN_DOCKER_LEAVE_CONTAINER:-off}" =~ ^(true|on|1)$ ]] ; then
+if [[ ! "${BUILDKITE_PLUGIN_DOCKER_LEAVE_CONTAINER:-off}" =~ ^(true|on|1)$ ]] \
+   && [[ ! "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]] ; then
   args+=("--rm")
 fi
 
@@ -543,6 +544,11 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_RUN_LABELS:-true}" =~ ^(true|on|1)$ ]] ; then
   )
 fi
 
+# Snapshot run flags before image/shell/command for reuse-container mode.
+# These are pure "docker run" flags (volumes, env, network, etc.) without the
+# trailing image or command, which lets us reuse them for container creation.
+run_flags=("${args[@]}")
+
 # Add the image in before the shell and command
 args+=("${image}")
 
@@ -591,28 +597,137 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
-echo "--- :docker: Running command in ${image}"
-echo -ne '\033[90m$\033[0m docker run ' >&2
+if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]]; then
+  # --- Reuse-container path ---
+  container_name=$(get_reuse_container_name "${image}")
 
-# Print all the arguments, with a space after, properly shell quoted
-printf "%q " "${args[@]}"
-echo
+  # Build exec_args by extracting only the flags that docker exec supports
+  # from the run_flags snapshot (tty, interactive, env, workdir, user).
+  exec_args=()
+  i=0
+  while [[ $i -lt ${#run_flags[@]} ]]; do
+    case "${run_flags[$i]}" in
+      -t|-i)
+        exec_args+=("${run_flags[$i]}")
+        ;;
+      --env|--env-file|--workdir|-u)
+        exec_args+=("${run_flags[$i]}" "${run_flags[$((i+1))]}")
+        i=$((i+1))
+        ;;
+    esac
+    i=$((i+1))
+  done
 
-# Disable -e outside of the subshell; since the subshell returning a failure
-# would exit the parent shell (here) early.
-set +e
+  # Build the command to execute inside the container
+  exec_cmd=()
+  if [[ ${#shell[@]} -gt 0 ]]; then
+    for shell_arg in "${shell[@]}"; do
+      exec_cmd+=("$shell_arg")
+    done
+  fi
+  if [[ -n "${BUILDKITE_COMMAND}" ]]; then
+    if is_windows; then
+      windows_multi_command=${BUILDKITE_COMMAND//$'\n'/ && }
+      exec_cmd+=("${windows_multi_command}")
+    else
+      exec_cmd+=("${BUILDKITE_COMMAND}")
+    fi
+  elif [[ ${#command[@]} -gt 0 ]]; then
+    for command_arg in "${command[@]}"; do
+      exec_cmd+=("$command_arg")
+    done
+  fi
 
-# Prevent SIGTERM from killing this script. SIGTERM will still be passed to the Docker container, which can exit
-# gracefully (or, if necessary, non-gracefully per the `--stop-timeout` flag passed above).
-trap '' SIGTERM
+  need_create=true
 
-# Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
-# See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.
-# `trap` is used in this subshell for the same reason it is used above.
-( if is_windows ; then export MSYS_NO_PATHCONV=1; fi && trap '' SIGTERM && docker run "${args[@]}" )
+  # Check if container already exists
+  container_running=$(docker container inspect --format '{{.State.Running}}' "${container_name}" 2>/dev/null || true)
 
-exit_code=$?
+  if [[ "${container_running}" == "true" ]]; then
+    container_image_id=$(get_container_image_id "${container_name}")
+    expected_image_id=$(get_image_id "${image}")
+    if [[ -n "${expected_image_id}" ]] && [[ "${container_image_id}" == "${expected_image_id}" ]]; then
+      echo "--- :docker: Reusing existing container ${container_name} (${image})"
+      need_create=false
+    else
+      echo "+++ WARNING: Container image mismatch for ${container_name}"
+      echo "    Expected image: ${image} (${expected_image_id:-unknown})"
+      echo "    Container image ID: ${container_image_id:-unknown}"
+      echo "    Removing old container and creating a new one."
+      docker rm -f "${container_name}"
+    fi
+  elif [[ -n "${container_running}" ]]; then
+    echo "--- :docker: Removing stopped container ${container_name}"
+    docker rm -f "${container_name}"
+  fi
 
-set -e
+  if [[ "${need_create}" == "true" ]]; then
+    # Strip --env and --env-file from run_flags for the creation run.
+    # The detached container only runs "sleep infinity" and needs no env vars.
+    # All job env vars are injected per-exec to avoid leaking secrets from
+    # one job's environment into subsequent jobs that reuse the container.
+    create_flags=()
+    i=0
+    while [[ $i -lt ${#run_flags[@]} ]]; do
+      case "${run_flags[$i]}" in
+        --env|--env-file)
+          i=$((i+1))
+          ;;
+        *)
+          create_flags+=("${run_flags[$i]}")
+          ;;
+      esac
+      i=$((i+1))
+    done
 
-exit $exit_code  # propagate exit code
+    echo "--- :docker: Creating persistent container ${container_name} (${image})"
+    echo -ne '\033[90m$\033[0m docker run -d --name ' >&2
+    echo -n "${container_name} " >&2
+    printf "%q " "${create_flags[@]}" >&2
+    echo "--entrypoint '' ${image} sleep infinity" >&2
+
+    docker run -d --name "${container_name}" "${create_flags[@]}" \
+      --entrypoint "" "${image}" sleep infinity >/dev/null
+  fi
+
+  echo "--- :docker: Executing command in container ${container_name}"
+  echo -ne '\033[90m$\033[0m docker exec ' >&2
+  printf "%q " "${exec_args[@]}" "${container_name}" "${exec_cmd[@]}" >&2
+  echo >&2
+
+  set +e
+  trap '' SIGTERM
+  ( if is_windows; then export MSYS_NO_PATHCONV=1; fi && trap '' SIGTERM && docker exec "${exec_args[@]}" "${container_name}" "${exec_cmd[@]}" )
+
+  exit_code=$?
+  set -e
+  exit $exit_code
+
+else
+  # --- Normal path ---
+  echo "--- :docker: Running command in ${image}"
+  echo -ne '\033[90m$\033[0m docker run ' >&2
+
+  # Print all the arguments, with a space after, properly shell quoted
+  printf "%q " "${args[@]}"
+  echo
+
+  # Disable -e outside of the subshell; since the subshell returning a failure
+  # would exit the parent shell (here) early.
+  set +e
+
+  # Prevent SIGTERM from killing this script. SIGTERM will still be passed to the Docker container, which can exit
+  # gracefully (or, if necessary, non-gracefully per the `--stop-timeout` flag passed above).
+  trap '' SIGTERM
+
+  # Don't convert paths on gitbash on windows, as that can mangle user paths and cmd options.
+  # See https://github.com/buildkite-plugins/docker-buildkite-plugin/issues/81 for more information.
+  # `trap` is used in this subshell for the same reason it is used above.
+  ( if is_windows ; then export MSYS_NO_PATHCONV=1; fi && trap '' SIGTERM && docker run "${args[@]}" )
+
+  exit_code=$?
+
+  set -e
+
+  exit $exit_code
+fi

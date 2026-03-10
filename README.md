@@ -323,6 +323,20 @@ Whether or not to leave the container after the run, or immediately remove it wi
 
 Default: `false`
 
+### `reuse-container` (optional, boolean)
+
+When set to `true`, the plugin keeps a named container running across pipeline steps instead of creating and destroying one each time. On each step, the plugin checks for an existing container: if the image digest matches, the command runs via `docker exec`; if the digest differs, the old container is removed and a fresh one is created. Environment variables are injected per-exec only (not baked into the container) to prevent secrets from leaking between jobs.
+
+The container name is derived from the image name and the agent's spawn index. If the agent name does not follow the `name-%spawn` convention, set `reuse-container-name` to avoid potential container name collisions between agents on the same host.
+
+Default: `false`
+
+### `reuse-container-name` (optional, string)
+
+Override the auto-generated container name used by the `reuse-container` feature. Use this when the default name derivation does not produce unique names (for example, when multiple agents on the same host do not use the standard `-%spawn` agent name suffix).
+
+Example: `my-build-container`
+
 ### `log-driver` (optional, string)
 
 The logging driver for the container. This allows you to configure how Docker handles logs for the container.
