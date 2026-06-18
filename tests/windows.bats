@@ -53,6 +53,30 @@ setup() {
   unstub cmd.exe
 }
 
+@test "Does not mount Job API socket on Windows" {
+  export OSTYPE="win"
+  export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=false
+  export BUILDKITE_COMMAND="pwd"
+  export BUILDKITE_AGENT_JOB_API_SOCKET='C:\buildkite-agent\.buildkite-agent\sockets\job-api\3568-11799.sock'
+  export BUILDKITE_AGENT_JOB_API_TOKEN="sometoken"
+
+  stub cmd.exe \
+    "//C $'echo %CD%' : echo WIN_PATH"
+
+  stub docker \
+    "run -i --rm --volume WIN_PATH:C:/workdir --workdir C:/workdir --label com.buildkite.job-id=1-2-3-4 image:tag CMD.EXE /c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+  assert_output --partial "Skipping Job API socket mount on Windows"
+  refute_output --partial "job-api"
+
+  unstub docker
+  unstub cmd.exe
+}
+
 @test "Run with double backslash Windows agent path" {
   export OSTYPE="win"
   export BUILDKITE_PLUGIN_DOCKER_MOUNT_BUILDKITE_AGENT=true
