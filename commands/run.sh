@@ -246,11 +246,20 @@ if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
 fi
 
 if [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" ]] ; then
-  args+=(
-    "--env" "BUILDKITE_AGENT_JOB_API_SOCKET"
-    "--env" "BUILDKITE_AGENT_JOB_API_TOKEN"
-    "--volume" "$BUILDKITE_AGENT_JOB_API_SOCKET:$BUILDKITE_AGENT_JOB_API_SOCKET"
-  )
+  # The Job API socket is a Unix domain socket and cannot be bind-mounted into
+  # Windows containers (Docker requires the bind source to be a directory),
+  # so we skip mounting it on Windows. See issue #305.
+  if is_windows; then
+    echo "~~~ :warning: Skipping Job API socket mount on Windows"
+    echo "The Buildkite Agent Job API is not supported inside Windows containers, so"
+    echo "BUILDKITE_AGENT_JOB_API_SOCKET will not be mounted into the container."
+  else
+    args+=(
+      "--env" "BUILDKITE_AGENT_JOB_API_SOCKET"
+      "--env" "BUILDKITE_AGENT_JOB_API_TOKEN"
+      "--volume" "$BUILDKITE_AGENT_JOB_API_SOCKET:$BUILDKITE_AGENT_JOB_API_SOCKET"
+    )
+  fi
 fi
 
 # Parse extra env vars and add them to the docker args

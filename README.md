@@ -377,6 +377,12 @@ Default: `false`
 
 **Important:** enabling this option will share the `BUILDKITE_AGENT_TOKEN` and `BUILDKITE_AGENT_JOB_API_TOKEN` environment variables (and other related ones) with the container if present.
 
+#### Job API
+
+When the agent exposes the [Job API](https://buildkite.com/docs/agent/v3/cli-redact) (i.e. `BUILDKITE_AGENT_JOB_API_SOCKET` is present), the plugin automatically mounts its Unix domain socket into the container and shares the related environment variables, so that tools running inside the container can talk to the agent. This happens regardless of the `mount-buildkite-agent` option.
+
+**Note:** this is skipped on Windows agents. The Job API socket is a Unix domain socket, which cannot be bind-mounted into [Windows containers](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/), so it is not available inside the container on Windows.
+
 ### `mount-ssh-agent` (optional, boolean or string)
 
 Whether to mount the ssh-agent socket (at `/ssh-agent`) from the host agent machine into the container or not. Instead of just `true` or `false`, you can specify absolute path in the container for the home directory of the user used to run on which the agent's `.ssh/known_hosts` will be mounted (by default, `/root`).
