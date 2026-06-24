@@ -76,6 +76,19 @@ function is_macos() {
   [[ "$OSTYPE" =~ ^(darwin) ]]
 }
 
+# Returns the agent's numeric spawn index (the trailing "-N" of
+# BUILDKITE_AGENT_NAME), or nothing if it cannot be determined. This is the
+# per-slot key that scopes reuse containers and their cleanup to one agent on a
+# shared host. Computed from BUILDKITE_AGENT_NAME directly so it stays correct
+# even when an explicit reuse-container-name is used.
+function get_spawn_slot() {
+  local agent_name="${BUILDKITE_AGENT_NAME:-}"
+  local spawn_suffix="${agent_name##*-}"
+  if [[ "${spawn_suffix}" =~ ^[0-9]+$ ]]; then
+    echo "${spawn_suffix}"
+  fi
+}
+
 # Returns a stable container name for the reuse-container feature.
 # Uses the explicit override if set, otherwise derives from the image name
 # and the agent's spawn index (to isolate containers per agent on a host).
@@ -90,16 +103,124 @@ function get_reuse_container_name() {
   local sanitized="${image//[^a-zA-Z0-9_.-]/-}"
   local name="${sanitized}"
 
-  local spawn_suffix="${BUILDKITE_AGENT_NAME##*-}"
-  if [[ "${spawn_suffix}" =~ ^[0-9]+$ ]]; then
+  local spawn_suffix
+  spawn_suffix="$(get_spawn_slot)"
+  if [[ -n "${spawn_suffix}" ]]; then
     name="${name}-${spawn_suffix}"
   else
-    echo "Warning: Could not extract numeric spawn index from BUILDKITE_AGENT_NAME '${BUILDKITE_AGENT_NAME}'." >&2
+    echo "Warning: Could not extract numeric spawn index from BUILDKITE_AGENT_NAME '${BUILDKITE_AGENT_NAME:-}'." >&2
     echo "  Multiple agents on the same host may share container name '${name}'." >&2
     echo "  Set 'reuse-container-name' to specify an explicit container name." >&2
   fi
 
   echo "${name}"
+}
+
+# Returns the inode number of a host path, portably across GNU and BSD/macOS
+# (avoids the GNU-only `stat -c %i`). Prints "missing" when the path does not
+# exist, which still yields a deterministic, comparable fingerprint entry.
+function get_host_inode() {
+  local path="$1"
+  if [[ -e "${path}" ]]; then
+    # `ls -d -i` prints "<inode> <path>" for the path itself (not contents).
+    # shellcheck disable=SC2012  # `find -printf` is GNU-only; ls keeps this
+    # portable to BSD/macOS, and we only read the leading inode field.
+    ls -di "${path}" 2>/dev/null | awk '{print $1}'
+  else
+    echo "missing"
+  fi
+}
+
+# Computes a deterministic fingerprint of the create-time flags a reuse
+# container is (re)created with, so a later job can detect when it would reuse a
+# container that was built with different flags (mismatch) or with a bind-mount
+# source that has since been wiped and re-created on the host (staleness, e.g. a
+# re-cloned checkout). This covers EVERY flag frozen at container creation
+# (volumes, tmpfs, network, devices, caps, resources, etc.), so changing any of
+# them forces a fresh container.
+#
+# Excluded (deliberately):
+#   - flags re-applied on each `docker exec` and therefore allowed to differ
+#     between jobs without a recreate: -t, -i, --env, --env-file, --workdir, -u;
+#   - all --label values (volatile per-job metadata and the plugin's own labels);
+#   - the plugin-internal tainted-marker --volume (identified by <tainted_target>).
+# For each remaining bind-mount --volume the host source inode is appended
+# (absolute source, Unix only) so a wiped/re-created source is detected.
+#
+# Flags are kept in their (deterministic) build order and joined with ",". The
+# raw string is returned (not hashed) to avoid depending on sha256sum vs shasum.
+#
+# Usage: compute_reuse_fingerprint <tainted_target> <flag>...
+function compute_reuse_fingerprint() {
+  local tainted_target="$1"; shift
+  local -a flags=("$@")
+  local -a entries=()
+  local i=0
+
+  while [[ $i -lt ${#flags[@]} ]]; do
+    local flag="${flags[$i]}"
+    case "${flag}" in
+      -t|-i)
+        # Per-exec flag (no value); not frozen.
+        ;;
+      --workdir|-u|--env|--env-file|--label)
+        # Per-exec or volatile; skip the flag and its value.
+        i=$((i+1))
+        ;;
+      --volume)
+        local spec="${flags[$((i+1))]}"
+        i=$((i+1))
+        local rest="${spec#*:}"
+        local dst="${rest%%:*}"
+        if [[ -n "${tainted_target}" && "${dst}" == "${tainted_target}" ]]; then
+          : # plugin-internal tainted-marker mount; not part of user config
+        else
+          local src="${spec%%:*}"
+          if [[ "${src}" == /* ]] && ! is_windows; then
+            entries+=("--volume=${spec}#$(get_host_inode "${src}")")
+          else
+            entries+=("--volume=${spec}")
+          fi
+        fi
+        ;;
+      *)
+        # Any other create-time flag (or a value token of one): keep verbatim,
+        # in order, so it contributes to the fingerprint.
+        entries+=("${flag}")
+        ;;
+    esac
+    i=$((i+1))
+  done
+
+  if [[ ${#entries[@]} -gt 0 ]]; then
+    local IFS=','
+    echo "${entries[*]}"
+  fi
+}
+
+# Removes persistent reuse containers belonging to this agent's spawn slot that
+# this job does not need, freeing their memory. Scoped per slot via labels so it
+# never touches another agent's container on a shared host.
+#   <slot>  the agent spawn slot (from get_spawn_slot).
+#   <keep>  the one container name to preserve (the desired reuse container for
+#           this job); pass "" for non-reuse jobs to discard all slot containers.
+function cleanup_foreign_reuse_containers() {
+  local slot="$1" keep="$2"
+  local names
+  names="$(docker ps -a \
+    --filter "label=com.buildkite.docker-plugin.reuse=true" \
+    --filter "label=com.buildkite.docker-plugin.spawn-slot=${slot}" \
+    --format '{{.Names}}' 2>/dev/null || true)"
+
+  [[ -z "${names}" ]] && return 0
+
+  local name
+  while IFS= read -r name; do
+    [[ -z "${name}" ]] && continue
+    [[ -n "${keep}" && "${name}" == "${keep}" ]] && continue
+    echo "--- :docker: Discarding persistent container ${name} (not needed by this job on slot ${slot})"
+    docker rm -f "${name}" >/dev/null 2>&1 || true
+  done <<< "${names}"
 }
 
 # Returns the image ID (digest) of the image a container was created from.

@@ -597,9 +597,52 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
   done
 fi
 
+# Constants shared by the reuse-container path. The tainted dir is a fixed
+# contract between this plugin and the in-container job (e.g. Cinder), not a
+# user-facing option: a job touches "${reuse_tainted_target}/tainted" to opt its
+# container out of reuse. The host base is overridable only via an internal env
+# var so tests can redirect it away from the real /var/tmp.
+reuse_tainted_target="/var/run/buildkite-docker-reuse"
+reuse_tainted_base="${BUILDKITE_PLUGIN_DOCKER_REUSE_TAINTED_BASE:-/var/tmp/buildkite-docker-reuse}"
+
+# Discard persistent reuse containers from previous jobs that this job does not
+# need, scoped to this agent's spawn slot. Runs for both reuse and non-reuse
+# jobs (a non-reuse job should not leave a stale persistent container hogging
+# memory), but only when a numeric spawn slot is determinable -- otherwise we
+# cannot safely tell this agent's containers apart from another agent's.
+if ! is_windows ; then
+  reuse_spawn_slot="$(get_spawn_slot)"
+  if [[ -n "${reuse_spawn_slot}" ]]; then
+    keep_container=""
+    if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]]; then
+      keep_container="$(get_reuse_container_name "${image}")"
+    fi
+    cleanup_foreign_reuse_containers "${reuse_spawn_slot}" "${keep_container}"
+  fi
+fi
+
 if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]]; then
   # --- Reuse-container path ---
   container_name=$(get_reuse_container_name "${image}")
+
+  # Enforce Docker's container-name rules before deriving any host path from the
+  # name. This rejects path-traversal values (e.g. an explicit reuse-container-
+  # name of ".." or "a/b") that would otherwise make the "rm -rf" of the tainted
+  # scratch dir below operate outside its base.
+  if [[ ! "${container_name}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]]; then
+    echo "+++ Error: Invalid reuse container name '${container_name}'." >&2
+    echo "    Must match Docker's naming rules: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$" >&2
+    exit 1
+  fi
+
+  host_tainted_dir="${reuse_tainted_base}/${container_name}"
+
+  # Fingerprint of this job's create-time flags (+ bind-mount source inodes).
+  # Used to detect, before reuse, both a flag mismatch (e.g. a changed tmpfs,
+  # volume, network, ...) and a wiped/re-created bind-mount source (the stale-
+  # mount breakout). Computed from run_flags, excluding per-exec flags, labels,
+  # and the internal tainted-marker mount.
+  current_fingerprint="$(compute_reuse_fingerprint "${reuse_tainted_target}" "${run_flags[@]}")"
 
   # Build exec_args by extracting only the flags that docker exec supports
   # from the run_flags snapshot (tty, interactive, env, workdir, user).
@@ -649,6 +692,31 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]]; t
     if [[ -n "${expected_image_id}" ]] && [[ "${container_image_id}" == "${expected_image_id}" ]]; then
       echo "--- :docker: Reusing existing container ${container_name} (${image})"
       need_create=false
+
+      # Compare the create-flag fingerprint stamped at creation against this
+      # job's. A difference means either a create-time flag changed (mismatch,
+      # e.g. a tmpfs/volume/network change) or a bind-mount source was wiped and
+      # re-created on the host (staleness, e.g. a re-cloned checkout). The latter
+      # is the breakout that fails every subsequent `docker exec --workdir` with
+      # "current working directory is outside of container mount namespace root"
+      # (exit 128). A missing/empty label (a container from before this feature)
+      # is treated as a mismatch.
+      stored_fingerprint="$(docker inspect --format '{{ index .Config.Labels "com.buildkite.docker-plugin.fingerprint" }}' "${container_name}" 2>/dev/null || true)"
+      if [[ "${stored_fingerprint}" != "${current_fingerprint}" ]]; then
+        echo "+++ :docker: Create-flag fingerprint changed for ${container_name}; recreating container"
+        echo "    (a create-time flag changed, or a bind-mount source was wiped and re-created on the host)"
+        docker rm -f "${container_name}" >/dev/null 2>&1 || true
+        need_create=true
+      # Honor an out-of-band tainted marker written by the in-container job (e.g.
+      # Cinder's error analysis on OOM) to opt this container out of reuse.
+      elif [[ -f "${host_tainted_dir}/tainted" ]]; then
+        echo "+++ :docker: Container ${container_name} is tainted; recreating container"
+        if [[ -s "${host_tainted_dir}/tainted" ]]; then
+          echo "    reason: $(tr -d '\n' < "${host_tainted_dir}/tainted")"
+        fi
+        docker rm -f "${container_name}" >/dev/null 2>&1 || true
+        need_create=true
+      fi
     else
       echo "+++ WARNING: Container image mismatch for ${container_name}"
       echo "    Expected image: ${image} (${expected_image_id:-unknown})"
@@ -679,6 +747,27 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]]; t
       esac
       i=$((i+1))
     done
+
+    # Discovery + fingerprint labels. The reuse/spawn-slot labels let later jobs
+    # find and scope-clean this slot's containers; the fingerprint records the
+    # create-time flags (+ inodes) this container was built with. Labels are
+    # excluded from the fingerprint, so adding them here does not perturb it.
+    create_flags+=("--label" "com.buildkite.docker-plugin.reuse=true")
+    if [[ -n "${reuse_spawn_slot:-}" ]]; then
+      create_flags+=("--label" "com.buildkite.docker-plugin.spawn-slot=${reuse_spawn_slot}")
+    fi
+    create_flags+=("--label" "com.buildkite.docker-plugin.fingerprint=${current_fingerprint}")
+
+    # Out-of-band tainted-marker channel: a fresh, per-container host scratch dir bind-
+    # mounted into the container. Reset on every creation so a new container
+    # never inherits a stale marker, and world-writable so the in-container job
+    # (which may run as a different uid) can create the marker file. Unix only.
+    if ! is_windows ; then
+      rm -rf "${host_tainted_dir}"
+      mkdir -p "${host_tainted_dir}"
+      chmod 0777 "${host_tainted_dir}"
+      create_flags+=("--volume" "${host_tainted_dir}:${reuse_tainted_target}")
+    fi
 
     echo "--- :docker: Creating persistent container ${container_name} (${image})"
     echo -ne '\033[90m$\033[0m docker run -d --name ' >&2
