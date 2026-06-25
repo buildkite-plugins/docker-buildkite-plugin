@@ -107,6 +107,10 @@ configuration:
       type: boolean
     privileged:
       type: boolean
+    reuse-container:
+      type: boolean
+    reuse-container-name:
+      type: string
     publish:
       type: array
     init:

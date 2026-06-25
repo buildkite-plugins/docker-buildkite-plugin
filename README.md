@@ -323,6 +323,36 @@ Whether or not to leave the container after the run, or immediately remove it wi
 
 Default: `false`
 
+### `reuse-container` (optional, boolean)
+
+When set to `true`, the plugin keeps a named container running across pipeline steps instead of creating and destroying one each time. On each step, the plugin checks for an existing container: if the image digest matches, the command runs via `docker exec`; if the digest differs, the old container is removed and a fresh one is created. Environment variables are injected per-exec only (not baked into the container) to prevent secrets from leaking between jobs.
+
+The container name is derived from the image name and the agent's spawn index. If the agent name does not follow the `name-%spawn` convention, set `reuse-container-name` to avoid potential container name collisions between agents on the same host.
+
+Default: `false`
+
+#### Reuse safety and lifecycle
+
+A persistent container freezes its bind mounts and other create-time flags, so the plugin guards against reusing one that is no longer correct for the current job:
+
+- **Create-flag fingerprint.** At creation the container is labelled with a fingerprint of every flag frozen at container-creation time — volumes, `tmpfs`, `network`, devices, capabilities, resource limits, and so on — plus each bind-mount source's host inode. Flags that are re-applied on each `docker exec` (`-t`, `-i`, environment, `workdir`, `user`) and the per-job labels are excluded, since those can legitimately differ between jobs. Before reusing, the plugin recomputes the fingerprint and recreates the container if it differs. This catches two cases: a job whose create-time flags changed (for example a `tmpfs` mount that is now a bind `volume`, or a different `network`), and — importantly — a bind-mount source that was wiped and re-created on the host (for example a checkout that a failed `git clean` caused the agent to delete and re-clone). Without this, a reused container can run with the wrong mounts, and a stale bind mount makes every subsequent `docker exec` fail with `current working directory is outside of container mount namespace root ... possible container breakout detected` (exit 128). A container created before this feature (no fingerprint label) is treated as a mismatch and recreated once.
+
+- **Per-slot cleanup.** Persistent containers are labelled with `com.buildkite.docker-plugin.reuse=true` and the agent's spawn slot. At the start of every job (whether or not it uses `reuse-container`), the plugin discards this slot's persistent containers that the job does not need — a non-reuse job discards any leftover, and a reuse job discards any container other than the one it wants — so unused containers do not accumulate and exhaust host memory. Cleanup is scoped strictly to the agent's own spawn slot and is skipped when the agent name has no numeric `-%spawn` suffix (so it can never disturb another agent's container).
+
+- **Tainted marker.** A job running inside the container can opt the container out of reuse by creating the file `/var/run/buildkite-docker-reuse/tainted` (the plugin bind-mounts a fresh, world-writable host scratch dir there for each container). On the next job the plugin sees the marker and recreates the container instead of reusing it. This lets the job's own logic decide a container is no longer safe to reuse — for example a CI runner that detects an out-of-memory condition — without the plugin needing to interpret exit codes. Anything written into the `tainted` file is logged as the recreation reason.
+
+Notes and limitations:
+
+- Reuse safety applies on Unix agents; on Windows the fingerprint compares flags without bind-mount inode annotations.
+- The fingerprint covers create-time flags only (those frozen for the container's lifetime). Flags re-applied on each `docker exec` — TTY/interactive, environment, `workdir`, and `user` — are intentionally excluded, so changing them does not force a recreate.
+- The tainted-marker mechanism relies on the in-container job writing the marker; a job killed so abruptly that it cannot write the file will not mark the container as tainted (in which case the container is typically still healthy, and if its main process died it is recreated anyway).
+
+### `reuse-container-name` (optional, string)
+
+Override the auto-generated container name used by the `reuse-container` feature. Use this when the default name derivation does not produce unique names (for example, when multiple agents on the same host do not use the standard `-%spawn` agent name suffix).
+
+Example: `my-build-container`
+
 ### `log-driver` (optional, string)
 
 The logging driver for the container. This allows you to configure how Docker handles logs for the container.
