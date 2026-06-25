@@ -341,11 +341,14 @@ A persistent container freezes its bind mounts and other create-time flags, so t
 
 - **Tainted marker.** A job running inside the container can opt the container out of reuse by creating the file `/var/run/buildkite-docker-reuse/tainted` (the plugin bind-mounts a fresh, world-writable host scratch dir there for each container). On the next job the plugin sees the marker and recreates the container instead of reusing it. This lets the job's own logic decide a container is no longer safe to reuse — for example a CI runner that detects an out-of-memory condition — without the plugin needing to interpret exit codes. Anything written into the `tainted` file is logged as the recreation reason.
 
+- **Job API socket.** The Buildkite Agent's Job API socket (`BUILDKITE_AGENT_JOB_API_SOCKET`, backing `buildkite-agent env`) lives at a per-job host path. In reuse mode the plugin therefore mounts the socket's stable **parent directory** (at the same path) rather than the per-job socket file: a directory bind mount is live, so each reused job sees its own current socket while the mount path stays constant, keeping the fingerprint stable and the Job API working on every job. (Mounting the per-job file instead would change the fingerprint every job, defeating reuse, and leave reused containers pinned to a stale socket.) The non-reuse path still mounts the single socket file. Note: this directory may also contain other concurrent jobs' Job API sockets on a shared agent host; access is gated by each job's `BUILDKITE_AGENT_JOB_API_TOKEN`, so a container can only use its own job's socket.
+
 Notes and limitations:
 
 - Reuse safety applies on Unix agents; on Windows the fingerprint compares flags without bind-mount inode annotations.
 - The fingerprint covers create-time flags only (those frozen for the container's lifetime). Flags re-applied on each `docker exec` — TTY/interactive, environment, `workdir`, and `user` — are intentionally excluded, so changing them does not force a recreate.
 - The tainted-marker mechanism relies on the in-container job writing the marker; a job killed so abruptly that it cannot write the file will not mark the container as tainted (in which case the container is typically still healthy, and if its main process died it is recreated anyway).
+- `mount-ssh-agent` uses `SSH_AUTH_SOCK`, a stable per-agent-session path, so it does not perturb the fingerprint across jobs on the same agent.
 
 ### `reuse-container-name` (optional, string)
 

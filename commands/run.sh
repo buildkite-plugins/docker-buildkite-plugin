@@ -250,8 +250,28 @@ if [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" ]] ; then
   args+=(
     "--env" "BUILDKITE_AGENT_JOB_API_SOCKET"
     "--env" "BUILDKITE_AGENT_JOB_API_TOKEN"
-    "--volume" "$BUILDKITE_AGENT_JOB_API_SOCKET:$BUILDKITE_AGENT_JOB_API_SOCKET"
   )
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]] ; then
+    # Reuse containers are long-lived, but the Job API socket lives at a
+    # per-job host path. Mounting the per-job socket file would (a) make the
+    # create-flag fingerprint differ every job, forcing a recreate and
+    # defeating reuse, and (b) leave the reused container pinned to a stale,
+    # closed socket. Instead mount the socket's stable parent directory: a
+    # directory bind mount is live, so each reused job sees its own current
+    # socket (and the agent's cleanup of old ones), the fingerprint stays
+    # stable, and the Job API works on every job.
+    #
+    # Security: this directory can also hold other concurrent jobs' Job API
+    # sockets on a shared agent host. Use is gated by each job's
+    # BUILDKITE_AGENT_JOB_API_TOKEN (a container only holds its own job's
+    # token), and the mount must be read-write because connecting to a unix
+    # domain socket requires write access. Mount only the job-api directory,
+    # never a broader parent.
+    job_api_dir="${BUILDKITE_AGENT_JOB_API_SOCKET%/*}"
+    args+=( "--volume" "${job_api_dir}:${job_api_dir}" )
+  else
+    args+=( "--volume" "$BUILDKITE_AGENT_JOB_API_SOCKET:$BUILDKITE_AGENT_JOB_API_SOCKET" )
+  fi
 fi
 
 # Parse extra env vars and add them to the docker args

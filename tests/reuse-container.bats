@@ -29,6 +29,9 @@ setup() {
 
 teardown() {
   rm -rf "${TAINTED_BASE}"
+  if [[ -n "${JOBAPI_DIR:-}" ]]; then
+    rm -rf "${JOBAPI_DIR}"
+  fi
 }
 
 @test "Reuse container: creates new container when none exists" {
@@ -124,6 +127,72 @@ teardown() {
 
   assert_success
   assert_output --partial "Create-flag fingerprint changed"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Reuse container: mounts the Job API socket directory (not the file) on create" {
+  JOBAPI_DIR="$(mktemp -d)"
+  export BUILDKITE_AGENT_JOB_API_SOCKET="${JOBAPI_DIR}/3760-27802.sock"
+  export BUILDKITE_AGENT_JOB_API_TOKEN="tok"
+  local jfp="--init,--volume=${PWD}:/workdir#$(ls -di "$PWD" | awk '{print $1}'),--volume=${JOBAPI_DIR}:${JOBAPI_DIR}#$(ls -di "$JOBAPI_DIR" | awk '{print $1}')"
+
+  stub docker \
+    "ps -a --filter label=com.buildkite.docker-plugin.reuse=true --filter label=com.buildkite.docker-plugin.spawn-slot=3 --format '{{.Names}}' : echo ''" \
+    "container inspect --format '{{.State.Running}}' image-tag-3 : exit 1" \
+    "run -d --name image-tag-3 -t -i --init --volume $PWD:/workdir --workdir /workdir --volume ${JOBAPI_DIR}:${JOBAPI_DIR} --label com.buildkite.job-id=1-2-3-4 --label com.buildkite.docker-plugin.reuse=true --label com.buildkite.docker-plugin.spawn-slot=3 --label com.buildkite.docker-plugin.fingerprint=${jfp} --volume ${TAINTED_BASE}/image-tag-3:/var/run/buildkite-docker-reuse --entrypoint '' image:tag sleep infinity : echo abc123" \
+    "exec -t -i --workdir /workdir --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Creating persistent container"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Reuse container: reuses despite a changed Job API socket filename" {
+  JOBAPI_DIR="$(mktemp -d)"
+  # A later job's socket lives in the same dir under a different filename.
+  export BUILDKITE_AGENT_JOB_API_SOCKET="${JOBAPI_DIR}/4178-50521.sock"
+  export BUILDKITE_AGENT_JOB_API_TOKEN="tok2"
+  # The stored fingerprint (from the job that created the container) keys off
+  # the stable directory mount, so it matches this job's recomputed value.
+  local jfp="--init,--volume=${PWD}:/workdir#$(ls -di "$PWD" | awk '{print $1}'),--volume=${JOBAPI_DIR}:${JOBAPI_DIR}#$(ls -di "$JOBAPI_DIR" | awk '{print $1}')"
+
+  stub docker \
+    "ps -a --filter label=com.buildkite.docker-plugin.reuse=true --filter label=com.buildkite.docker-plugin.spawn-slot=3 --format '{{.Names}}' : echo image-tag-3" \
+    "container inspect --format '{{.State.Running}}' image-tag-3 : echo true" \
+    "inspect --format '{{.Image}}' image-tag-3 : echo sha256:abc123" \
+    "image inspect --format '{{.Id}}' image:tag : echo sha256:abc123" \
+    "inspect --format \* image-tag-3 : echo ${jfp}" \
+    "exec -t -i --workdir /workdir --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Reusing existing container"
+  refute_output --partial "fingerprint changed"
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Reuse container: non-reuse path mounts the single Job API socket file" {
+  export BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER=false
+  JOBAPI_DIR="$(mktemp -d)"
+  export BUILDKITE_AGENT_JOB_API_SOCKET="${JOBAPI_DIR}/3760-27802.sock"
+  export BUILDKITE_AGENT_JOB_API_TOKEN="tok"
+
+  stub docker \
+    "ps -a --filter label=com.buildkite.docker-plugin.reuse=true --filter label=com.buildkite.docker-plugin.spawn-slot=3 --format '{{.Names}}' : echo ''" \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN --volume ${JOBAPI_DIR}/3760-27802.sock:${JOBAPI_DIR}/3760-27802.sock --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
   assert_output --partial "ran command in docker"
 
   unstub docker
