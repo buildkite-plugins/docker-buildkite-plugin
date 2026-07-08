@@ -725,7 +725,7 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]]; t
       if [[ "${stored_fingerprint}" != "${current_fingerprint}" ]]; then
         echo "+++ :docker: Create-flag fingerprint changed for ${container_name}; recreating container"
         echo "    (a create-time flag changed, or a bind-mount source was wiped and re-created on the host)"
-        docker rm -f "${container_name}" >/dev/null 2>&1 || true
+        remove_reuse_container "${container_name}" || fail_reuse_cleanup "${container_name}"
         need_create=true
       # Honor an out-of-band tainted marker written by the in-container job (e.g.
       # Cinder's error analysis on OOM) to opt this container out of reuse.
@@ -734,7 +734,7 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]]; t
         if [[ -s "${host_tainted_dir}/tainted" ]]; then
           echo "    reason: $(tr -d '\n' < "${host_tainted_dir}/tainted")"
         fi
-        docker rm -f "${container_name}" >/dev/null 2>&1 || true
+        remove_reuse_container "${container_name}" || fail_reuse_cleanup "${container_name}"
         need_create=true
       fi
     else
@@ -742,11 +742,11 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER:-false}" =~ ^(true|on|1)$ ]]; t
       echo "    Expected image: ${image} (${expected_image_id:-unknown})"
       echo "    Container image ID: ${container_image_id:-unknown}"
       echo "    Removing old container and creating a new one."
-      docker rm -f "${container_name}"
+      remove_reuse_container "${container_name}" || fail_reuse_cleanup "${container_name}"
     fi
   elif [[ -n "${container_running}" ]]; then
     echo "--- :docker: Removing stopped container ${container_name}"
-    docker rm -f "${container_name}"
+    remove_reuse_container "${container_name}" || fail_reuse_cleanup "${container_name}"
   fi
 
   if [[ "${need_create}" == "true" ]]; then

@@ -219,7 +219,7 @@ function cleanup_foreign_reuse_containers() {
     [[ -z "${name}" ]] && continue
     [[ -n "${keep}" && "${name}" == "${keep}" ]] && continue
     echo "--- :docker: Discarding persistent container ${name} (not needed by this job on slot ${slot})"
-    docker rm -f "${name}" >/dev/null 2>&1 || true
+    rm_reuse_container_logged "${name}" || true
   done <<< "${names}"
 }
 
@@ -233,5 +233,85 @@ function get_container_image_id() {
 function get_image_id() {
   local image="$1"
   docker image inspect --format '{{.Id}}' "${image}" 2>/dev/null
+}
+
+# Force-removes a container and logs the REAL error on failure instead of
+# swallowing it. `docker rm -f` failures were previously always redirected to
+# /dev/null, so production has never once shown why a removal actually failed
+# (a slow-but-eventual async teardown vs. a permanently stuck mount vs.
+# something else) -- every occurrence of this bug has only ever been diagnosed
+# from the downstream "name already in use" symptom on the next `docker run`.
+# Returns docker rm's exit code; "No such container" is treated as success
+# (0) since the name is already free.
+function rm_reuse_container_logged() {
+  local name="$1"
+  local out rc
+  out="$(docker rm -f "${name}" 2>&1)"
+  rc=$?
+  [[ "${rc}" -eq 0 ]] && return 0
+  [[ "${out}" == *"No such container"* ]] && return 0
+  echo "--- :docker: 'docker rm -f ${name}' failed (exit ${rc}): ${out}" >&2
+  return "${rc}"
+}
+
+# Robustly free a reuse container's NAME so a fresh container can be created
+# under the same name. Replaces a plain `docker rm -f ... >/dev/null 2>&1 || true`
+# which silently ignored removal failures and then let `docker run --name` die
+# with a cryptic "name is already in use" (exit 125).
+#
+# Docker can leave a container wedged in "Removal In Progress"/"Dead" (e.g. busy
+# mounts left by an in-container build, or a bind-mount source wiped on the host);
+# the name stays reserved until removal actually completes (moby/moby#37698 and
+# related). So we force-remove, then VERIFY the name is gone via `docker container
+# inspect`, retrying removal with a short backoff until it is free or the attempt
+# budget is exhausted. Every attempt logs the real docker error on failure
+# (rm_reuse_container_logged), instead of the previous `|| true` that discarded it.
+#
+# Returns 0 when the name is free, non-zero when it could not be freed.
+# The attempt budget and delay are overridable via env (used by tests).
+function remove_reuse_container() {
+  local name="$1"
+  local attempts="${REUSE_RM_VERIFY_ATTEMPTS:-10}"
+  local sleep_secs="${REUSE_RM_VERIFY_SLEEP:-1}"
+  local i
+
+  rm_reuse_container_logged "${name}"
+  if ! docker container inspect "${name}" >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "--- :docker: ${name} still registered after 'docker rm -f'; waiting for release" >&2
+
+  # Poll + retry: a container can sit in "Removal In Progress"/"Dead" while a
+  # busy mount clears. Re-attempt removal until the name is free or we give up.
+  for (( i=1; i<=attempts; i++ )); do
+    sleep "${sleep_secs}"
+    if ! docker container inspect "${name}" >/dev/null 2>&1; then
+      return 0
+    fi
+    rm_reuse_container_logged "${name}"
+  done
+
+  # Final verdict: success iff the name is now free. `!` also exempts this from
+  # `set -e` so the caller receives the return value.
+  ! docker container inspect "${name}" >/dev/null 2>&1
+}
+
+# Abort the job with a distinct, greppable failure signature when a reuse
+# container's name cannot be freed for recreation. Failing here (instead of
+# letting `docker run --name` throw a cryptic exit 125) gives a clear,
+# machine-detectable reason that Error Analysis / auto-retry can key on to retry
+# the job on a clean host. The "REUSE_CONTAINER_CLEANUP_FAILED" marker is a
+# stable contract; do not reword it without updating downstream matchers.
+function fail_reuse_cleanup() {
+  local name="$1"
+  echo "+++ :docker: 🚨 REUSE_CONTAINER_CLEANUP_FAILED" >&2
+  echo "    Could not remove the existing reuse container '${name}', so it cannot be" >&2
+  echo "    recreated under the same name. The container is likely wedged" >&2
+  echo "    ('Removal In Progress'/'Dead', e.g. from busy mounts or a wiped bind-mount" >&2
+  echo "    source). Failing intentionally instead of dying on a cryptic 'name already" >&2
+  echo "    in use' error. This is an environmental failure and is safe to retry." >&2
+  echo "    Container state:" >&2
+  docker ps -a --filter "name=^/${name}$" --format '      {{.ID}} {{.Image}} {{.Status}} {{.Names}}' >&2 2>/dev/null || true
+  exit 125
 }
 

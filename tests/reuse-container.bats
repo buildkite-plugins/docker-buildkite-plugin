@@ -15,6 +15,9 @@ setup() {
   export BUILDKITE_PLUGIN_DOCKER_REUSE_CONTAINER=true
   export BUILDKITE_AGENT_NAME="builder-3"
 
+  # Keep the removal verify/retry loop instant in tests (no real sleeping).
+  export REUSE_RM_VERIFY_SLEEP=0
+
   # Redirect the host tainted-marker scratch base away from the real /var/tmp so
   # tests never write outside their sandbox.
   TAINTED_BASE="$(mktemp -d)"
@@ -76,6 +79,7 @@ teardown() {
     "image inspect --format '{{.Id}}' image:tag : echo sha256:abc123" \
     "inspect --format \* image-tag-3 : echo some-old-fingerprint" \
     "rm -f image-tag-3 : echo removed" \
+    "container inspect image-tag-3 : exit 1" \
     "run -d --name image-tag-3 -t -i --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 --label com.buildkite.docker-plugin.reuse=true --label com.buildkite.docker-plugin.spawn-slot=3 --label com.buildkite.docker-plugin.fingerprint=${FP} --volume ${TAINTED_BASE}/image-tag-3:/var/run/buildkite-docker-reuse --entrypoint '' image:tag sleep infinity : echo abc123" \
     "exec -t -i --workdir /workdir image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
 
@@ -97,6 +101,7 @@ teardown() {
     "image inspect --format '{{.Id}}' image:tag : echo sha256:abc123" \
     "inspect --format \* image-tag-3 : echo ''" \
     "rm -f image-tag-3 : echo removed" \
+    "container inspect image-tag-3 : exit 1" \
     "run -d --name image-tag-3 -t -i --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 --label com.buildkite.docker-plugin.reuse=true --label com.buildkite.docker-plugin.spawn-slot=3 --label com.buildkite.docker-plugin.fingerprint=${FP} --volume ${TAINTED_BASE}/image-tag-3:/var/run/buildkite-docker-reuse --entrypoint '' image:tag sleep infinity : echo abc123" \
     "exec -t -i --workdir /workdir image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
 
@@ -120,6 +125,7 @@ teardown() {
     "image inspect --format '{{.Id}}' image:tag : echo sha256:abc123" \
     "inspect --format \* image-tag-3 : echo ${FP}" \
     "rm -f image-tag-3 : echo removed" \
+    "container inspect image-tag-3 : exit 1" \
     "run -d --name image-tag-3 -t -i --init --tmpfs /home/zoox/.cache:mode=777 --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 --label com.buildkite.docker-plugin.reuse=true --label com.buildkite.docker-plugin.spawn-slot=3 --label com.buildkite.docker-plugin.fingerprint=${TMPFS_FP} --volume ${TAINTED_BASE}/image-tag-3:/var/run/buildkite-docker-reuse --entrypoint '' image:tag sleep infinity : echo abc123" \
     "exec -t -i --workdir /workdir image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
 
@@ -128,6 +134,65 @@ teardown() {
   assert_success
   assert_output --partial "Create-flag fingerprint changed"
   assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Reuse container: retries removal until the name is freed, then recreates" {
+  # docker rm -f "succeeds" but the container lingers ("Removal In Progress");
+  # the verify loop re-checks and re-removes until the name is actually free,
+  # then the recreate proceeds normally (no cleanup-failure, no name conflict).
+  stub docker \
+    "ps -a --filter label=com.buildkite.docker-plugin.reuse=true --filter label=com.buildkite.docker-plugin.spawn-slot=3 --format '{{.Names}}' : echo image-tag-3" \
+    "container inspect --format '{{.State.Running}}' image-tag-3 : echo true" \
+    "inspect --format '{{.Image}}' image-tag-3 : echo sha256:abc123" \
+    "image inspect --format '{{.Id}}' image:tag : echo sha256:abc123" \
+    "inspect --format \* image-tag-3 : echo some-old-fingerprint" \
+    "rm -f image-tag-3 : echo removed" \
+    "container inspect image-tag-3 : echo still-here" \
+    "container inspect image-tag-3 : echo still-here" \
+    "rm -f image-tag-3 : echo removed" \
+    "container inspect image-tag-3 : exit 1" \
+    "run -d --name image-tag-3 -t -i --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 --label com.buildkite.docker-plugin.reuse=true --label com.buildkite.docker-plugin.spawn-slot=3 --label com.buildkite.docker-plugin.fingerprint=${FP} --volume ${TAINTED_BASE}/image-tag-3:/var/run/buildkite-docker-reuse --entrypoint '' image:tag sleep infinity : echo abc123" \
+    "exec -t -i --workdir /workdir image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "Create-flag fingerprint changed"
+  assert_output --partial "Creating persistent container"
+  assert_output --partial "ran command in docker"
+  refute_output --partial "REUSE_CONTAINER_CLEANUP_FAILED"
+
+  unstub docker
+}
+
+@test "Reuse container: fails with known signature when the container cannot be removed" {
+  # docker rm -f fails and the container never leaves; after the attempt budget
+  # is exhausted the job aborts with the greppable REUSE_CONTAINER_CLEANUP_FAILED
+  # signature instead of blindly running into a cryptic name conflict.
+  export REUSE_RM_VERIFY_ATTEMPTS=2
+
+  stub docker \
+    "ps -a --filter label=com.buildkite.docker-plugin.reuse=true --filter label=com.buildkite.docker-plugin.spawn-slot=3 --format '{{.Names}}' : echo image-tag-3" \
+    "container inspect --format '{{.State.Running}}' image-tag-3 : echo true" \
+    "inspect --format '{{.Image}}' image-tag-3 : echo sha256:abc123" \
+    "image inspect --format '{{.Id}}' image:tag : echo sha256:abc123" \
+    "inspect --format \* image-tag-3 : echo some-old-fingerprint" \
+    "rm -f image-tag-3 : echo 'Error response from daemon: device or resource busy' >&2; exit 1" \
+    "container inspect image-tag-3 : echo still-here" \
+    "container inspect image-tag-3 : echo still-here" \
+    "rm -f image-tag-3 : exit 1" \
+    "container inspect image-tag-3 : echo still-here" \
+    "rm -f image-tag-3 : exit 1" \
+    "container inspect image-tag-3 : echo still-here" \
+    "ps -a --filter name=^/image-tag-3\$ --format '      {{.ID}} {{.Image}} {{.Status}} {{.Names}}' : echo 'deadbeef image:tag Dead image-tag-3'"
+
+  run "$PWD"/hooks/command
+
+  assert_failure
+  assert_output --partial "REUSE_CONTAINER_CLEANUP_FAILED"
+  refute_output --partial "ran command in docker"
 
   unstub docker
 }
@@ -209,6 +274,7 @@ teardown() {
     "image inspect --format '{{.Id}}' image:tag : echo sha256:abc123" \
     "inspect --format \* image-tag-3 : echo ${FP}" \
     "rm -f image-tag-3 : echo removed" \
+    "container inspect image-tag-3 : exit 1" \
     "run -d --name image-tag-3 -t -i --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 --label com.buildkite.docker-plugin.reuse=true --label com.buildkite.docker-plugin.spawn-slot=3 --label com.buildkite.docker-plugin.fingerprint=${FP} --volume ${TAINTED_BASE}/image-tag-3:/var/run/buildkite-docker-reuse --entrypoint '' image:tag sleep infinity : echo abc123" \
     "exec -t -i --workdir /workdir image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
 
@@ -232,6 +298,7 @@ teardown() {
     "inspect --format '{{.Image}}' image-tag-3 : echo sha256:olddigest" \
     "image inspect --format '{{.Id}}' image:tag : echo sha256:newdigest" \
     "rm -f image-tag-3 : echo removed" \
+    "container inspect image-tag-3 : exit 1" \
     "run -d --name image-tag-3 -t -i --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 --label com.buildkite.docker-plugin.reuse=true --label com.buildkite.docker-plugin.spawn-slot=3 --label com.buildkite.docker-plugin.fingerprint=${FP} --volume ${TAINTED_BASE}/image-tag-3:/var/run/buildkite-docker-reuse --entrypoint '' image:tag sleep infinity : echo abc123" \
     "exec -t -i --workdir /workdir image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
 
@@ -251,6 +318,7 @@ teardown() {
     "ps -a --filter label=com.buildkite.docker-plugin.reuse=true --filter label=com.buildkite.docker-plugin.spawn-slot=3 --format '{{.Names}}' : echo image-tag-3" \
     "container inspect --format '{{.State.Running}}' image-tag-3 : echo false" \
     "rm -f image-tag-3 : echo removed" \
+    "container inspect image-tag-3 : exit 1" \
     "run -d --name image-tag-3 -t -i --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 --label com.buildkite.docker-plugin.reuse=true --label com.buildkite.docker-plugin.spawn-slot=3 --label com.buildkite.docker-plugin.fingerprint=${FP} --volume ${TAINTED_BASE}/image-tag-3:/var/run/buildkite-docker-reuse --entrypoint '' image:tag sleep infinity : echo abc123" \
     "exec -t -i --workdir /workdir image-tag-3 /bin/sh -e -c 'pwd' : echo ran command in docker"
 
