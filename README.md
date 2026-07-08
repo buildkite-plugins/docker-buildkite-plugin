@@ -15,7 +15,7 @@ steps:
   - command: "go build -o dist/my-app ."
     artifact_paths: "./dist/my-app"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "golang:1.11"
 ```
 
@@ -25,7 +25,7 @@ Windows images are also supported:
 steps:
   - command: "dotnet publish -c Release -o published"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "microsoft/dotnet:latest"
           always-pull: true
 ```
@@ -37,7 +37,7 @@ If you want to control how your command is passed to the docker container, you c
 ```yml
 steps:
   - plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "mesosphere/aws-cli"
           always-pull: true
           command: ["s3", "sync", "s3://my-bucket/dist/", "/app/dist"]
@@ -52,7 +52,7 @@ Note: If you are utilizing Buildkite's [Elastic CI Stack S3 Secrets plugin](http
 steps:
   - command: "yarn install; yarn run test"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "node:7"
           always-pull: true
           environment:
@@ -70,7 +70,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "node:7"
           always-pull: true
           propagate-environment: true
@@ -84,7 +84,7 @@ steps:
     env:
       MY_SPECIAL_BUT_PUBLIC_VALUE: kittens
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "node:7"
           always-pull: true
           propagate-aws-auth-tokens: true
@@ -96,7 +96,7 @@ You can pass in additional volumes to be mounted. This is useful for running Doc
 steps:
   - command: "docker build . -t image:tag; docker push image:tag"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "docker:latest"
           always-pull: true
           volumes:
@@ -109,7 +109,7 @@ You can disable the default behaviour of mounting in the checkout to `workdir`:
 steps:
   - command: "npm start"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "node:7"
           always-pull: true
           mount-checkout: false
@@ -121,7 +121,7 @@ You can enable custom logging drivers and logging options with the use of `log-d
 steps:
   - command: "npm run start"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "node:7"
           log-driver: "awslogs"
           log-opt:
@@ -144,7 +144,7 @@ steps:
           - "p"
           region: us-west-2
           no-include-email: true
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "d.dkr.ecr.us-west-2.amazonaws.com/imagename"
           command: ["./run-integration-tests.sh"]
           expand-volume-vars: true
@@ -172,7 +172,7 @@ steps:
     plugins:
       - artifacts#v1.9.0:
           download: "node-7-image.tar.gz"
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           load: "node-7-image.tar.gz"
           image: "node:7"
 ```
@@ -589,7 +589,7 @@ When using volume mounts with Docker containers, file and directory permissions 
 steps:
   - command: "make build"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "node:18"
           propagate-uid-gid: true
 ```
@@ -600,7 +600,7 @@ This matches the container user's UID/GID to the host user, ensuring files creat
 steps:
   - command: "npm run build"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "node:18"
           chown: true
 ```
@@ -611,7 +611,7 @@ This changes ownership of the checkout directory back to the agent user after th
 steps:
   - command: "python setup.py build"
     plugins:
-      - docker#v5.13.0:
+      - docker#v5.14.0:
           image: "python:3.9"
           user: "1000:1000"  # Match your host user's UID:GID
 ```
