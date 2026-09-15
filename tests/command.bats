@@ -397,6 +397,69 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with agent-level default volumes" {
+  export BUILDKITE_DOCKER_DEFAULT_VOLUMES="/usr/local/bin/thing:/usr/bin/thing;buildkite:/buildkite"
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --volume /usr/local/bin/thing:/usr/bin/thing --volume buildkite:/buildkite --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with agent-level default volumes with extra delimiters" {
+  export BUILDKITE_DOCKER_DEFAULT_VOLUMES="buildkite:/buildkite; ./dist:/app/dist;; ;   ;"
+  export BUILDKITE_COMMAND="pwd"
+
+  # the doubled slash is how expand_relative_volume_path expands a leading `./`,
+  # exactly as it does for the step-level volumes option
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --volume buildkite:/buildkite --volume $PWD//dist:/app/dist --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with agent-level default volumes in addition to volumes" {
+  export BUILDKITE_PLUGIN_DOCKER_VOLUMES_0=/one:/a
+  export BUILDKITE_DOCKER_DEFAULT_VOLUMES="buildkite:/buildkite"
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --volume /one:/a --volume buildkite:/buildkite --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with a read-only agent-level default volume" {
+  export BUILDKITE_DOCKER_DEFAULT_VOLUMES="/usr/local/bin/thing:/usr/bin/thing:ro"
+  export BUILDKITE_COMMAND="pwd"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --volume /usr/local/bin/thing:/usr/bin/thing:ro --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with environment" {
   export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0=MY_TAG=value
   export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_1=ANOTHER_TAG=llamas
