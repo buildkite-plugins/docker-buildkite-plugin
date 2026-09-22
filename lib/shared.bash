@@ -36,14 +36,14 @@ function json_escape {
 
 # Reporting is best-effort and preserves Docker's original exit status.
 function capture_docker_error {
-  local code="$1" operation="$2" exit_status="$3" image="$4" message="$5" payload
+  local code="$1" operation="$2" exit_status="$3" image="$4" message="$5" context
   [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
   [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
 
-  payload=$(printf '{"code":"%s","message":"%s","context":{"plugin":"docker","operation":"%s","image":"%s","exit_status":%d}}' \
-    "$(json_escape "$code")" "$(json_escape "$message")" "$(json_escape "$operation")" \
+  context=$(printf '{"plugin":"docker","operation":"%s","image":"%s","exit_status":%d}' \
+    "$(json_escape "$operation")" \
     "$(json_escape "$image")" "$exit_status")
-  buildkite-agent job capture-error "$payload" >/dev/null 2>&1 || true
+  buildkite-agent job capture-error "$code" --message "$message" --context "$context" >/dev/null 2>&1 || true
 }
 
 function docker_run_error_code {
