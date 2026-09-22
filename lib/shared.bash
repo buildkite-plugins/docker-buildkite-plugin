@@ -23,6 +23,38 @@ function retry {
   done
 }
 
+function json_escape {
+  local value="$1"
+  value="$(printf '%s' "$value" | LC_ALL=C tr -d '\000-\010\013\014\016-\037')"
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  value=${value//$'\r'/\\r}
+  value=${value//$'\n'/\\n}
+  value=${value//$'\t'/\\t}
+  printf '%s' "$value"
+}
+
+# Reporting is best-effort and preserves Docker's original exit status.
+function capture_docker_error {
+  local error_code="$1" operation="$2" exit_status="$3" image="$4" message="$5" context
+  [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
+  [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
+
+  context=$(printf '{"plugin":"docker","operation":"%s","image":"%s","exit_status":%d}' \
+    "$(json_escape "$operation")" \
+    "$(json_escape "$image")" "$exit_status")
+  buildkite-agent job capture-error "$error_code" --message "$message" --context "$context" >/dev/null 2>&1 || true
+}
+
+function docker_run_error_code {
+  case "$1" in
+    125) echo "container_runtime_failed" ;;
+    126) echo "container_command_not_executable" ;;
+    127) echo "container_command_not_found" ;;
+    *) echo "container_process_failed" ;;
+  esac
+}
+
 # Reads a list from plugin config into a global result array
 # Returns success if values were read
 function plugin_read_list_into_result() {
@@ -75,4 +107,3 @@ function is_windows() {
 function is_macos() {
   [[ "$OSTYPE" =~ ^(darwin) ]]
 }
-
