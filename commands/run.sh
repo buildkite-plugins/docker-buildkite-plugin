@@ -381,6 +381,8 @@ if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   echo "--- :docker: Pulling ${image}"
   retry "${BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES:-3}" docker pull "${image}" || retry_exit_status="$?"
   if [ "${retry_exit_status:-0}" -ne 0 ] ; then
+    capture_docker_error "image_pull_failed" "pull" "$retry_exit_status" "$image" \
+      "Failed to pull image"
     echo "!!! :docker: Pull failed."
     exit "$retry_exit_status"
   fi
@@ -623,5 +625,11 @@ trap '' SIGTERM
 exit_code=$?
 
 set -e
+
+if [[ $exit_code -ne 0 ]]; then
+  error_code="$(docker_run_error_code "$exit_code")"
+  capture_docker_error "$error_code" "run" "$exit_code" "$image" \
+    "Container command failed"
+fi
 
 exit $exit_code  # propagate exit code
