@@ -4,6 +4,7 @@ load "${BATS_PLUGIN_PATH}/load.bash"
 
 setup() {
   source "$PWD/lib/shared.bash"
+  export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
 }
 
 function configure_docker_hook {
@@ -120,6 +121,24 @@ function configure_docker_hook {
   [[ "$(jq -r '.context.image' "$payload_file")" == "registry/image:tag" ]]
   [[ "$(jq -r '.message' "$payload_file")" == 'executable "tool" not found' ]]
   [[ "$(jq -r 'has("command") or (.context | has("command"))' "$payload_file")" == "false" ]]
+}
+
+@test "capture is skipped unless the agent advertises support" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  marker="$BATS_TEST_TMPDIR/called"
+  function buildkite-agent() { printf called >"$marker"; }
+  for capability in unset false; do
+    export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR="$capability"
+    if [[ "$capability" == unset ]]; then
+      unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
+    fi
+
+    run capture_docker_error image_pull_failed pull 42 image:tag diagnostic
+
+    assert_success
+    [[ ! -e "$marker" ]]
+  done
 }
 
 @test "capture is skipped when the Local Job API is unavailable" {

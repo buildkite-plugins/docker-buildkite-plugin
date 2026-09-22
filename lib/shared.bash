@@ -38,6 +38,7 @@ function json_escape {
 # can never alter the Docker operation's status.
 function capture_docker_error {
   local code="$1" operation="$2" exit_status="$3" image="$4" message="$5" payload
+  [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
   [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
 
   payload=$(printf '{"code":"%s","message":"%s","context":{"plugin":"docker","operation":"%s","image":"%s","exit_status":%d}}' \
