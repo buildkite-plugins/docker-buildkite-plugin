@@ -34,8 +34,7 @@ function json_escape {
   printf '%s' "$value"
 }
 
-# Best-effort by design. Older agents and unavailable Job APIs are silent and
-# can never alter the Docker operation's status.
+# Reporting is best-effort and preserves Docker's original exit status.
 function capture_docker_error {
   local code="$1" operation="$2" exit_status="$3" image="$4" message="$5" payload
   [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
