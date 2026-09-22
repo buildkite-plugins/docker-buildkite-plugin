@@ -629,7 +629,7 @@ set -e
 if [[ $exit_code -ne 0 ]]; then
   error_code="$(docker_run_error_code "$exit_code")"
   capture_docker_error "$error_code" "run" "$exit_code" "$image" \
-    "Container command failed"
+    "Docker run failed"
 fi
 
 exit $exit_code  # propagate exit code

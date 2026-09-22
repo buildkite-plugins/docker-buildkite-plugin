@@ -70,11 +70,31 @@ function configure_docker_hook {
 
   assert_failure 126
   [[ "$(jq -r '.code' "$payload_file")" == "container_command_not_executable" ]]
-  [[ "$(jq -r '.message' "$payload_file")" == "Container command failed" ]]
+  [[ "$(jq -r '.message' "$payload_file")" == "Docker run failed" ]]
   [[ "$(grep -c '^cannot-execute$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
   [[ "$output" != *'Unknown command'* ]]
   ! grep -q cannot-execute "$payload_file"
+  unstub docker
+}
+
+@test "Docker runtime failure does not claim the container command failed" {
+  configure_docker_hook
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  export -f buildkite-agent
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN --volume /tmp/job.sock:/tmp/job.sock --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo runtime-failed >&2; exit 125"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 125
+  [[ "$(jq -r '.code' "$payload_file")" == "container_runtime_failed" ]]
+  [[ "$(jq -r '.message' "$payload_file")" == "Docker run failed" ]]
+  [[ "$(jq -r '.context.exit_status' "$payload_file")" == "125" ]]
+  [[ "$(grep -c '^runtime-failed$' <<<"$output")" -eq 1 ]]
+  [[ "$(wc -l <"$payload_file")" -eq 1 ]]
   unstub docker
 }
 
