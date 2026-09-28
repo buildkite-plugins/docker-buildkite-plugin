@@ -627,8 +627,8 @@ exit_code=$?
 set -e
 
 if [[ $exit_code -ne 0 ]]; then
-  error_code="$(docker_run_error_code "$exit_code")"
-  capture_docker_error "$error_code" "run" "$exit_code" "$image" \
+  # The contained command can return 125/126/127 too, so status alone does not identify the cause.
+  capture_docker_error "docker_run_failed" "run" "$exit_code" "$image" \
     "Docker run failed"
 fi
 

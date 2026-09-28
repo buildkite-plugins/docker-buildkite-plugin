@@ -25,13 +25,6 @@ function configure_docker_hook {
   export BUILDKITE_AGENT_JOB_API_TOKEN=token
 }
 
-@test "Docker run exit statuses have customer-facing classifications" {
-  [[ "$(docker_run_error_code 125)" == "container_runtime_failed" ]]
-  [[ "$(docker_run_error_code 126)" == "container_command_not_executable" ]]
-  [[ "$(docker_run_error_code 127)" == "container_command_not_found" ]]
-  [[ "$(docker_run_error_code 23)" == "container_process_failed" ]]
-}
-
 @test "successful Docker run after a pull retry emits no captured error" {
   configure_docker_hook
   export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
@@ -53,7 +46,7 @@ function configure_docker_hook {
   unstub docker
 }
 
-@test "failed Docker run captures classification without changing status" {
+@test "failed Docker run captures the failure without changing status or output" {
   configure_docker_hook
   payload_file="$BATS_TEST_TMPDIR/payload"
   export payload_file
@@ -69,7 +62,8 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 126
-  [[ "$(jq -r '.code' "$payload_file")" == "container_command_not_executable" ]]
+  [[ "$(jq -r '.code' "$payload_file")" == "docker_run_failed" ]]
+  [[ "$(jq -r '.context.exit_status' "$payload_file")" == "126" ]]
   [[ "$(jq -r '.message' "$payload_file")" == "Docker run failed" ]]
   [[ "$(grep -c '^cannot-execute$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
@@ -78,24 +72,28 @@ function configure_docker_hook {
   unstub docker
 }
 
-@test "Docker runtime failure does not claim the container command failed" {
+@test "Docker run failures do not infer a cause from the exit status" {
   configure_docker_hook
-  payload_file="$BATS_TEST_TMPDIR/payload"
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
   export -f buildkite-agent
-  stub docker \
-    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN --volume /tmp/job.sock:/tmp/job.sock --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo runtime-failed >&2; exit 125"
 
-  run "$PWD/hooks/command"
+  # A contained command can return Docker's documented failure statuses too.
+  for exit_status in 125 126 127 23; do
+    payload_file="$BATS_TEST_TMPDIR/payload-$exit_status"
+    export BUILDKITE_COMMAND="exit $exit_status"
+    stub docker \
+      "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN --volume /tmp/job.sock:/tmp/job.sock --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'exit $exit_status' : /bin/sh -e -c 'exit $exit_status'"
 
-  assert_failure 125
-  [[ "$(jq -r '.code' "$payload_file")" == "container_runtime_failed" ]]
-  [[ "$(jq -r '.message' "$payload_file")" == "Docker run failed" ]]
-  [[ "$(jq -r '.context.exit_status' "$payload_file")" == "125" ]]
-  [[ "$(grep -c '^runtime-failed$' <<<"$output")" -eq 1 ]]
-  [[ "$(wc -l <"$payload_file")" -eq 1 ]]
-  unstub docker
+    run "$PWD/hooks/command"
+
+    assert_failure "$exit_status"
+    [[ "$(jq -r '.code' "$payload_file")" == "docker_run_failed" ]]
+    [[ "$(jq -r '.message' "$payload_file")" == "Docker run failed" ]]
+    [[ "$(jq -r '.context.exit_status' "$payload_file")" == "$exit_status" ]]
+    [[ "$(wc -l <"$payload_file")" -eq 1 ]]
+    unstub docker
+  done
 }
 
 @test "failed Docker pull captures image failure without changing status" {
@@ -140,10 +138,10 @@ function configure_docker_hook {
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
 
-  run capture_docker_error container_command_not_found run 127 registry/image:tag 'executable "tool" not found'
+  run capture_docker_error docker_run_failed run 127 registry/image:tag 'executable "tool" not found'
 
   assert_success
-  [[ "$(jq -r '.code' "$payload_file")" == "container_command_not_found" ]]
+  [[ "$(jq -r '.code' "$payload_file")" == "docker_run_failed" ]]
   [[ "$(jq -r '.context.exit_status' "$payload_file")" == "127" ]]
   [[ "$(jq -r '.context.image' "$payload_file")" == "registry/image:tag" ]]
   [[ "$(jq -r '.message' "$payload_file")" == 'executable "tool" not found' ]]

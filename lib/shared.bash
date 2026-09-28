@@ -46,15 +46,6 @@ function capture_docker_error {
   buildkite-agent job capture-error "$error_code" --message "$message" --context "$context" >/dev/null 2>&1 || true
 }
 
-function docker_run_error_code {
-  case "$1" in
-    125) echo "container_runtime_failed" ;;
-    126) echo "container_command_not_executable" ;;
-    127) echo "container_command_not_found" ;;
-    *) echo "container_process_failed" ;;
-  esac
-}
-
 # Reads a list from plugin config into a global result array
 # Returns success if values were read
 function plugin_read_list_into_result() {
