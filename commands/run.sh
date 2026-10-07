@@ -85,6 +85,14 @@ if plugin_read_list_into_result BUILDKITE_PLUGIN_DOCKER_VOLUMES BUILDKITE_PLUGIN
   done
 fi
 
+# Parse BUILDKITE_DOCKER_DEFAULT_VOLUMES delimited by semi-colons, normalized to
+# ignore spaces and leading or trailing semi-colons
+IFS=';' read -r -a default_volumes <<< "${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
+for vol in "${default_volumes[@]:-}" ; do
+  trimmed="$(echo -n "$vol" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+  [[ -n "$trimmed" ]] && args+=( "--volume" "$(expand_relative_volume_path "$trimmed" )" )
+done
+
 # If there's a git mirror, mount it so that git references can be followed.
 # But not if mount-checkout is disabled.
 if [[ -n "${BUILDKITE_REPO_MIRROR:-}" && "${BUILDKITE_PLUGIN_DOCKER_MOUNT_CHECKOUT:-on}" =~ ^(true|on|1)$ ]]; then
