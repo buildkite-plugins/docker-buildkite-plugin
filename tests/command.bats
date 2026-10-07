@@ -413,6 +413,67 @@ setup() {
   unstub docker
 }
 
+@test "Runs BUILDKITE_COMMAND with BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT" {
+  export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="MY_TAG; ANOTHER_TAG=llamas"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_TAG --env ANOTHER_TAG=llamas --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT with extra delimiters" {
+  export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="FOO; BAR=baz;; ;   ;"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env FOO --env BAR=baz --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT is added after the environment option" {
+  export BUILDKITE_PLUGIN_DOCKER_ENVIRONMENT_0=MY_TAG=step-value
+  export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="MY_TAG=agent-value"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env MY_TAG=step-value --env MY_TAG=agent-value --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
+@test "Runs BUILDKITE_COMMAND with BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT with spaces in a value" {
+  export BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT="GREETING=hello world; FOO"
+  export BUILDKITE_COMMAND="echo hello world"
+
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env 'GREETING=hello world' --env FOO --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'echo hello world' : echo ran command in docker"
+
+  run "$PWD"/hooks/command
+
+  assert_success
+  assert_output --partial "ran command in docker"
+
+  unstub docker
+}
+
 @test "Runs BUILDKITE_COMMAND with environment files" {
   export BUILDKITE_PLUGIN_DOCKER_ENV_FILE_0='one-path'
   export BUILDKITE_PLUGIN_DOCKER_ENV_FILE_1='a path with spaces'
