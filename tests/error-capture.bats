@@ -277,7 +277,7 @@ function configure_docker_hook {
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf '%01000d\n' 0 >"$stderr_file"
+  printf '%0750d\n' 0 >"$stderr_file"
 
   run capture_docker_error image_pull_failed "Failed to pull image" "$stderr_file"
 
