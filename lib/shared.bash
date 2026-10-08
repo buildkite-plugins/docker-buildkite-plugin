@@ -73,9 +73,9 @@ function stderr_error_line {
   fi
 }
 
-# The agent accepts up to 1,500 characters. This leaves room for [REDACTED]
+# The agent accepts up to 1,000 characters. This leaves room for [REDACTED]
 # replacements.
-CAPTURED_ERROR_MESSAGE_MAX_CHARS=1000
+CAPTURED_ERROR_MESSAGE_MAX_CHARS=750
 
 # Captures a job error. If stderr_file is given, Docker's error is added to
 # the message. Reporting failures are ignored.
