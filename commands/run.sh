@@ -379,15 +379,16 @@ fi
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL:-false}" =~ ^(true|on|1)$ ]] ; then
   echo "--- :docker: Pulling ${image}"
-  pull_stderr_file=$(mktemp)
+  pull_stderr_file=$(capture_stderr_file)
   run_copying_stderr "$pull_stderr_file" retry "${BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES:-3}" docker pull "${image}" || retry_exit_status="$?"
   if [ "${retry_exit_status:-0}" -ne 0 ] ; then
     capture_docker_error "image_pull_failed" "Failed to pull image" "$pull_stderr_file"
-    rm -f "$pull_stderr_file"
+  fi
+  [[ -z "$pull_stderr_file" ]] || rm -f "$pull_stderr_file"
+  if [ "${retry_exit_status:-0}" -ne 0 ] ; then
     echo "!!! :docker: Pull failed."
     exit "$retry_exit_status"
   fi
-  rm -f "$pull_stderr_file"
 fi
 
 # Parse network and create it if it don't exist.

@@ -126,6 +126,26 @@ function configure_docker_hook {
   unstub docker
 }
 
+@test "Docker pull still runs when a temporary file can't be created" {
+  configure_docker_hook
+  export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
+  export BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES=1
+  export TMPDIR="$BATS_TEST_TMPDIR/missing"
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  export -f buildkite-agent
+  stub docker \
+    "pull image:tag : echo pull-denied >&2; exit 41"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 41
+  assert_captured image_pull_failed "Failed to pull image"
+  [[ "$(grep -c '^pull-denied$' <<<"$output")" -eq 1 ]]
+  unstub docker
+}
+
 @test "Docker pull message uses Docker's error without stdout or terminal codes" {
   configure_docker_hook
   export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
@@ -215,20 +235,29 @@ function configure_docker_hook {
   assert_output '0123456789'
 }
 
-@test "stderr error line counts HTML characters as JSON escapes" {
+@test "stderr error line limit counts characters, not bytes" {
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf 'a>&b\n' >"$stderr_file"
+  printf 'café <&>\n' >"$stderr_file"
 
-  # "a>&b" is 14 bytes once escaped: 2 plain characters plus 2 six-byte escapes.
-  run stderr_error_line "$stderr_file" 13
+  run stderr_error_line "$stderr_file" 7
 
   assert_success
   assert_output ''
 
-  run stderr_error_line "$stderr_file" 14
+  run stderr_error_line "$stderr_file" 8
 
   assert_success
-  assert_output 'a>&b'
+  assert_output 'café <&>'
+}
+
+@test "stderr error line removes colon-form colour codes and other control characters" {
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  printf 'Error: sec\033[38:2::255:0:0mret\033[0m den\001ied\n' >"$stderr_file"
+
+  run stderr_error_line "$stderr_file" 100
+
+  assert_success
+  assert_output 'Error: secret denied'
 }
 
 @test "stderr error line is empty for empty stderr" {
@@ -248,7 +277,7 @@ function configure_docker_hook {
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
   stderr_file="$BATS_TEST_TMPDIR/stderr"
-  printf '%01100d\n' 0 >"$stderr_file"
+  printf '%01000d\n' 0 >"$stderr_file"
 
   run capture_docker_error image_pull_failed "Failed to pull image" "$stderr_file"
 
@@ -325,4 +354,48 @@ function configure_docker_hook {
     assert_success
     [[ ! -e "$marker" ]]
   done
+}
+
+@test "stderr is not copied when error capture is unavailable" {
+  unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
+
+  run capture_stderr_file
+
+  assert_success
+  assert_output ''
+}
+
+@test "stderr is not copied when a temporary file can't be created" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  export TMPDIR="$BATS_TEST_TMPDIR/missing"
+
+  run capture_stderr_file
+
+  assert_success
+  assert_output ''
+}
+
+@test "run_copying_stderr runs the command normally without a file" {
+  function noisy() { echo out; echo err >&2; return 7; }
+
+  run --separate-stderr run_copying_stderr "" noisy
+
+  assert_failure 7
+  [[ "$output" == out ]]
+  [[ "$stderr" == err ]]
+}
+
+@test "run_copying_stderr keeps the command's status when the copy can't be written" {
+  function noisy() { echo err >&2; return 7; }
+  function quiet() { echo err >&2; }
+
+  run --separate-stderr run_copying_stderr "$BATS_TEST_TMPDIR/missing/stderr" noisy
+
+  assert_failure 7
+  [[ "$stderr" == *err* ]]
+
+  run --separate-stderr run_copying_stderr "$BATS_TEST_TMPDIR/missing/stderr" quiet
+
+  assert_success
 }
