@@ -23,27 +23,59 @@ function retry {
   done
 }
 
-function json_escape {
-  local value="$1"
-  value="$(printf '%s' "$value" | LC_ALL=C tr -d '\000-\010\013\014\016-\037')"
-  value=${value//\\/\\\\}
-  value=${value//\"/\\\"}
-  value=${value//$'\r'/\\r}
-  value=${value//$'\n'/\\n}
-  value=${value//$'\t'/\\t}
-  printf '%s' "$value"
+# Runs a command and also saves its stderr to a file. Output and exit status
+# are unchanged. Without a file, the command runs normally.
+function run_copying_stderr {
+  local stderr_file="$1"; shift
+  if [[ -z "$stderr_file" ]]; then
+    "$@"
+    return
+  fi
+  { "$@" 2>&1 1>&3 3>&- | tee "$stderr_file" >&2 3>&-; return "${PIPESTATUS[0]}"; } 3>&1
 }
 
-# Reporting is best-effort and preserves Docker's original exit status.
+# Prints a temporary file path for a stderr copy, or nothing if error capture
+# is unavailable or a file can't be created.
+function capture_stderr_file {
+  [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
+  [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
+  mktemp 2>/dev/null || true
+}
+
+# Prints the last non-blank line of a stderr file, which is usually the error,
+# without terminal escape codes.
+function stderr_error_line {
+  local stderr_file="$1"
+  [[ -s "$stderr_file" ]] || return 0
+  tr '\r' '\n' <"$stderr_file" \
+    | sed -e $'s/\x1b\\[[0-?]*[ -/]*[@-~]//g' \
+      -e $'s/\x1b][^\x07\x1b]*\x07//g' -e $'s/\x1b][^\x07\x1b]*\x1b\\\\//g' \
+      -e $'s/\x1b[()][0-9A-Za-z]//g' \
+      -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
+    | tr -d '\000-\010\013-\037\177' \
+    | grep -v '^$' \
+    | tail -n 1 || true
+}
+
+# The agent shortens long messages itself, but rejects any request over
+# 32 KiB, which would lose the whole error. Lines longer than this are left
+# out of the message.
+CAPTURED_ERROR_DETAIL_MAX_BYTES=16384
+
+# Captures a job error. If stderr_file is given, Docker's error is added to
+# the message. Reporting failures are ignored.
 function capture_docker_error {
-  local error_code="$1" operation="$2" exit_status="$3" image="$4" message="$5" context
+  local error_code="$1" message="$2" stderr_file="${3:-}" detail
   [[ "${BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR:-}" == "true" ]] || return 0
   [[ -n "${BUILDKITE_AGENT_JOB_API_SOCKET:-}" && -n "${BUILDKITE_AGENT_JOB_API_TOKEN:-}" ]] || return 0
 
-  context=$(printf '{"plugin":"docker","operation":"%s","image":"%s","exit_status":%d}' \
-    "$(json_escape "$operation")" \
-    "$(json_escape "$image")" "$exit_status")
-  buildkite-agent job capture-error "$error_code" --message "$message" --context "$context" >/dev/null 2>&1 || true
+  if [[ -n "$stderr_file" ]]; then
+    detail=$(stderr_error_line "$stderr_file")
+    if [[ -n "$detail" ]] && (( $(printf '%s' "$detail" | wc -c) <= CAPTURED_ERROR_DETAIL_MAX_BYTES )); then
+      message+=": $detail"
+    fi
+  fi
+  buildkite-agent job capture-error "$error_code" --message "$message" >/dev/null 2>&1 || true
 }
 
 # Reads a list from plugin config into a global result array

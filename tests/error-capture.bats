@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 load "${BATS_PLUGIN_PATH}/load.bash"
+bats_require_minimum_version 1.5.0
 
 setup() {
   source "$PWD/lib/shared.bash"
@@ -8,10 +9,23 @@ setup() {
   export -f record_capture
 }
 
+# Records every argument of a capture-error call.
 function record_capture {
-  [[ "$1" == job && "$2" == capture-error && "$4" == --message && "$6" == --context && $# -eq 7 ]] || return 1
-  jq -nc --arg code "$3" --arg message "$5" --argjson context "$7" \
-    '{code:$code,message:$message,context:$context}' >>"$payload_file"
+  [[ "$1" == job && "$2" == capture-error ]] || return 1
+  local arg
+  for arg in "${@:3}"; do
+    jq -n --arg arg "$arg" '$arg'
+  done | jq -sc '{args: .}' >>"$payload_file"
+}
+
+# Asserts that one error was captured with exactly this code and message, and
+# no other arguments.
+function assert_captured {
+  local code="$1" message="$2"
+  cat "$payload_file"
+  [[ "$(wc -l <"$payload_file")" -eq 1 ]]
+  jq -e --arg code "$code" --arg message "$message" \
+    '.args == [$code, "--message", $message]' "$payload_file" >/dev/null
 }
 
 function configure_docker_hook {
@@ -62,9 +76,7 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 126
-  [[ "$(jq -r '.code' "$payload_file")" == "docker_run_failed" ]]
-  [[ "$(jq -r '.context.exit_status' "$payload_file")" == "126" ]]
-  [[ "$(jq -r '.message' "$payload_file")" == "Docker run failed" ]]
+  assert_captured docker_run_failed "Docker run failed"
   [[ "$(grep -c '^cannot-execute$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
   [[ "$output" != *'Unknown command'* ]]
@@ -88,10 +100,7 @@ function configure_docker_hook {
     run "$PWD/hooks/command"
 
     assert_failure "$exit_status"
-    [[ "$(jq -r '.code' "$payload_file")" == "docker_run_failed" ]]
-    [[ "$(jq -r '.message' "$payload_file")" == "Docker run failed" ]]
-    [[ "$(jq -r '.context.exit_status' "$payload_file")" == "$exit_status" ]]
-    [[ "$(wc -l <"$payload_file")" -eq 1 ]]
+    assert_captured docker_run_failed "Docker run failed"
     unstub docker
   done
 }
@@ -111,11 +120,168 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 41
-  [[ "$(jq -r '.code' "$payload_file")" == "image_pull_failed" ]]
-  [[ "$(wc -l <"$payload_file")" -eq 1 ]]
+  assert_captured image_pull_failed "Failed to pull image: pull-denied"
   [[ "$(grep -c '^pull-retrying$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c '^pull-denied$' <<<"$output")" -eq 1 ]]
   unstub docker
+}
+
+@test "Docker pull still runs when a temporary file can't be created" {
+  configure_docker_hook
+  export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
+  export BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES=1
+  export TMPDIR="$BATS_TEST_TMPDIR/missing"
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  export -f buildkite-agent
+  stub docker \
+    "pull image:tag : echo pull-denied >&2; exit 41"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 41
+  assert_captured image_pull_failed "Failed to pull image"
+  [[ "$(grep -c '^pull-denied$' <<<"$output")" -eq 1 ]]
+  unstub docker
+}
+
+@test "Docker pull message uses Docker's error without stdout or terminal codes" {
+  configure_docker_hook
+  export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
+  export BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES=1
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  export -f buildkite-agent
+  stub docker \
+    "pull image:tag : printf '\\033[31mError response from daemon: manifest unknown\\033[0m   \\n' >&2; echo pull-progress; exit 1"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 1
+  assert_captured image_pull_failed "Failed to pull image: Error response from daemon: manifest unknown"
+  [[ "$(grep -c '^pull-progress$' <<<"$output")" -eq 1 ]]
+  unstub docker
+}
+
+@test "Docker pull without error output keeps the generic message" {
+  configure_docker_hook
+  export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
+  export BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES=1
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  export -f buildkite-agent
+  stub docker \
+    "pull image:tag : echo pull-progress; exit 1"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 1
+  assert_captured image_pull_failed "Failed to pull image"
+  unstub docker
+}
+
+@test "Docker run failures do not include output in the message" {
+  configure_docker_hook
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  export -f buildkite-agent
+  stub docker \
+    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN --volume /tmp/job.sock:/tmp/job.sock --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : echo workload-error >&2; exit 3"
+
+  run "$PWD/hooks/command"
+
+  assert_failure 3
+  assert_captured docker_run_failed "Docker run failed"
+  unstub docker
+}
+
+@test "stderr error line is the last line without terminal codes or surrounding whitespace" {
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  printf 'earlier line\r\n\033[1;33m \t Error: "quoted"  failure\033[0m \t\r\n\n\t\n  \n' >"$stderr_file"
+
+  run stderr_error_line "$stderr_file"
+
+  assert_success
+  # Spaces inside the line are kept so redaction still matches secrets.
+  assert_output 'Error: "quoted"  failure'
+}
+
+@test "stderr error line removes title and character set escape sequences" {
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  printf '\033]0;title\007\033(BError\033]8;;https://example.invalid\033\\: denied\n' >"$stderr_file"
+
+  run stderr_error_line "$stderr_file"
+
+  assert_success
+  assert_output 'Error: denied'
+}
+
+@test "captured message keeps a long error line for the agent to shorten" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  line="$(printf 'x%.0s' {1..1500})"
+  printf 'earlier\n%s\n' "$line" >"$stderr_file"
+
+  run capture_docker_error image_pull_failed "Failed to pull image" "$stderr_file"
+
+  assert_success
+  assert_captured image_pull_failed "Failed to pull image: $line"
+}
+
+@test "captured message leaves out an error line too large for the agent to accept" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  payload_file="$BATS_TEST_TMPDIR/payload"
+  export payload_file
+  function buildkite-agent() { record_capture "$@"; }
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  # 6,000 three-byte characters: under 16,000 characters, but over 16 KiB.
+  printf '€%.0s' {1..6000} >"$stderr_file"
+
+  run capture_docker_error image_pull_failed "Failed to pull image" "$stderr_file"
+
+  assert_success
+  assert_captured image_pull_failed "Failed to pull image"
+}
+
+@test "stderr error line removes colon-form colour codes and other control characters" {
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  printf 'Error: sec\033[38:2::255:0:0mret\033[0m den\001ied\n' >"$stderr_file"
+
+  run stderr_error_line "$stderr_file"
+
+  assert_success
+  assert_output 'Error: secret denied'
+}
+
+@test "stderr error line is empty for empty stderr" {
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  : >"$stderr_file"
+
+  run stderr_error_line "$stderr_file"
+
+  assert_success
+  assert_output ''
+}
+
+@test "run_copying_stderr preserves output streams and exit status" {
+  stderr_file="$BATS_TEST_TMPDIR/stderr"
+  function noisy() { echo out; echo err >&2; return 7; }
+
+  run --separate-stderr run_copying_stderr "$stderr_file" noisy
+
+  assert_failure 7
+  [[ "$output" == out ]]
+  [[ "$stderr" == err ]]
+  [[ "$(cat "$stderr_file")" == err ]]
 }
 
 @test "capture reporting failure is ignored" {
@@ -125,27 +291,23 @@ function configure_docker_hook {
   export marker
   function buildkite-agent() { printf called >"$marker"; return 19; }
 
-  run capture_docker_error image_pull_failed pull 42 image:tag diagnostic
+  run capture_docker_error image_pull_failed diagnostic
 
   assert_success
   [[ "$(cat "$marker")" == "called" ]]
 }
 
-@test "capture sends structured context without command arguments" {
+@test "capture sends only a code and a message" {
   export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
   export BUILDKITE_AGENT_JOB_API_TOKEN=token
   payload_file="$BATS_TEST_TMPDIR/payload"
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
 
-  run capture_docker_error docker_run_failed run 127 registry/image:tag 'executable "tool" not found'
+  run capture_docker_error docker_run_failed 'Docker run failed'
 
   assert_success
-  [[ "$(jq -r '.code' "$payload_file")" == "docker_run_failed" ]]
-  [[ "$(jq -r '.context.exit_status' "$payload_file")" == "127" ]]
-  [[ "$(jq -r '.context.image' "$payload_file")" == "registry/image:tag" ]]
-  [[ "$(jq -r '.message' "$payload_file")" == 'executable "tool" not found' ]]
-  [[ "$(jq -r 'has("command") or (.context | has("command"))' "$payload_file")" == "false" ]]
+  assert_captured docker_run_failed 'Docker run failed'
 }
 
 @test "capture is skipped unless the agent advertises support" {
@@ -159,7 +321,7 @@ function configure_docker_hook {
       unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
     fi
 
-    run capture_docker_error image_pull_failed pull 42 image:tag diagnostic
+    run capture_docker_error image_pull_failed diagnostic
 
     assert_success
     [[ ! -e "$marker" ]]
@@ -174,9 +336,53 @@ function configure_docker_hook {
     export BUILDKITE_AGENT_JOB_API_TOKEN=token
     unset "$missing"
 
-    run capture_docker_error image_pull_failed pull 42 image:tag diagnostic
+    run capture_docker_error image_pull_failed diagnostic
 
     assert_success
     [[ ! -e "$marker" ]]
   done
+}
+
+@test "stderr is not copied when error capture is unavailable" {
+  unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
+
+  run capture_stderr_file
+
+  assert_success
+  assert_output ''
+}
+
+@test "stderr is not copied when a temporary file can't be created" {
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  export TMPDIR="$BATS_TEST_TMPDIR/missing"
+
+  run capture_stderr_file
+
+  assert_success
+  assert_output ''
+}
+
+@test "run_copying_stderr runs the command normally without a file" {
+  function noisy() { echo out; echo err >&2; return 7; }
+
+  run --separate-stderr run_copying_stderr "" noisy
+
+  assert_failure 7
+  [[ "$output" == out ]]
+  [[ "$stderr" == err ]]
+}
+
+@test "run_copying_stderr keeps the command's status when the copy can't be written" {
+  function noisy() { echo err >&2; return 7; }
+  function quiet() { echo err >&2; }
+
+  run --separate-stderr run_copying_stderr "$BATS_TEST_TMPDIR/missing/stderr" noisy
+
+  assert_failure 7
+  [[ "$stderr" == *err* ]]
+
+  run --separate-stderr run_copying_stderr "$BATS_TEST_TMPDIR/missing/stderr" quiet
+
+  assert_success
 }
