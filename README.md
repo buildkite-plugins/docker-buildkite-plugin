@@ -489,6 +489,8 @@ Extra volume mounts to pass to the docker container, in an array. Items are spec
 
 Example: `[ "/var/run/docker.sock:/var/run/docker.sock" ]`
 
+Volumes can also be mounted into every container the agent runs, without editing any pipeline, via the `BUILDKITE_DOCKER_DEFAULT_VOLUMES` agent environment variable. See [Agent-level defaults](#agent-level-defaults).
+
 ### `expand-volume-vars` (optional, boolean, run only, unsafe)
 
 When set to true, it will activate interpolation of variables in the elements of the `volumes` configuration array as well as `workdir`. When turned off (the default), attempting to use variables will fail as the literal `$VARIABLE_NAME` string will be passed to the `-v` option.
@@ -569,6 +571,31 @@ Set the swappiness level to apply when running the container. More information
 can be found in https://docs.docker.com/config/containers/resource_constraints/#--memory-swappiness-details.
 
 Example: `0`
+
+## Agent-level defaults
+
+The following are not plugin options: they are environment variables read from the agent's own environment when the plugin runs your command. Exporting them from an agent `environment` or `pre-command` hook applies to every container this plugin runs a command in, on every pipeline, without editing any pipeline's configuration.
+
+They are `;` (semicolon) delimited lists. Each entry is trimmed of leading and trailing whitespace and empty entries are ignored, so stray or repeated delimiters are harmless. That makes it safe for several hooks to append to the same variable, even when none of them ran first:
+
+```bash
+export BUILDKITE_DOCKER_DEFAULT_VOLUMES="/usr/local/bin/my-tool:/usr/local/bin/my-tool:ro; ${BUILDKITE_DOCKER_DEFAULT_VOLUMES:-}"
+```
+
+If the variable is unset or empty, nothing is added.
+
+### `BUILDKITE_DOCKER_DEFAULT_VOLUMES` (run only)
+
+A list of mounts in the raw `--volume` syntax, each passed to the container as a `--volume` argument (for example `buildkite:/buildkite;./app:/app`). Suffixes such as `:ro` are passed through as-is.
+
+A leading `.` in an entry is expanded to the job's working directory, so `./app:/app` mounts the checkout's `app` directory, exactly as it does for the `volumes` option. Only a leading `.` is expanded. If the step activates the (unsafe) `expand-volume-vars` option, variables in these entries are interpolated as well.
+
+These mounts are added in addition to the step's `volumes` option; the agent-level list does not replace what a pipeline configures.
+
+```bash
+# in the agent's environment hook
+export BUILDKITE_DOCKER_DEFAULT_VOLUMES="/usr/local/bin/build-helper:/usr/local/bin/build-helper:ro;/etc/ssl/certs/internal-ca.crt:/etc/ssl/certs/internal-ca.crt:ro"
+```
 
 ## Troubleshooting
 
