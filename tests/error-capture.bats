@@ -76,7 +76,7 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 126
-  assert_captured docker_run_failed "Docker run failed"
+  assert_captured buildkite.docker_run_failed "Docker run failed"
   [[ "$(grep -c '^cannot-execute$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
   [[ "$output" != *'Unknown command'* ]]
@@ -100,7 +100,7 @@ function configure_docker_hook {
     run "$PWD/hooks/command"
 
     assert_failure "$exit_status"
-    assert_captured docker_run_failed "Docker run failed"
+    assert_captured buildkite.docker_run_failed "Docker run failed"
     unstub docker
   done
 }
@@ -120,7 +120,7 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 41
-  assert_captured image_pull_failed "Failed to pull image: pull-denied"
+  assert_captured buildkite.docker_image_pull_failed "Failed to pull image: pull-denied"
   [[ "$(grep -c '^pull-retrying$' <<<"$output")" -eq 1 ]]
   [[ "$(grep -c '^pull-denied$' <<<"$output")" -eq 1 ]]
   unstub docker
@@ -141,7 +141,7 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 41
-  assert_captured image_pull_failed "Failed to pull image"
+  assert_captured buildkite.docker_image_pull_failed "Failed to pull image"
   [[ "$(grep -c '^pull-denied$' <<<"$output")" -eq 1 ]]
   unstub docker
 }
@@ -160,7 +160,7 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 1
-  assert_captured image_pull_failed "Failed to pull image: Error response from daemon: manifest unknown"
+  assert_captured buildkite.docker_image_pull_failed "Failed to pull image: Error response from daemon: manifest unknown"
   [[ "$(grep -c '^pull-progress$' <<<"$output")" -eq 1 ]]
   unstub docker
 }
@@ -179,7 +179,7 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 1
-  assert_captured image_pull_failed "Failed to pull image"
+  assert_captured buildkite.docker_image_pull_failed "Failed to pull image"
   unstub docker
 }
 
@@ -195,7 +195,7 @@ function configure_docker_hook {
   run "$PWD/hooks/command"
 
   assert_failure 3
-  assert_captured docker_run_failed "Docker run failed"
+  assert_captured buildkite.docker_run_failed "Docker run failed"
   unstub docker
 }
 
@@ -230,10 +230,10 @@ function configure_docker_hook {
   line="$(printf 'x%.0s' {1..1500})"
   printf 'earlier\n%s\n' "$line" >"$stderr_file"
 
-  run capture_docker_error image_pull_failed "Failed to pull image" "$stderr_file"
+  run capture_docker_error buildkite.docker_image_pull_failed "Failed to pull image" "$stderr_file"
 
   assert_success
-  assert_captured image_pull_failed "Failed to pull image: $line"
+  assert_captured buildkite.docker_image_pull_failed "Failed to pull image: $line"
 }
 
 @test "captured message leaves out an error line too large for the agent to accept" {
@@ -246,10 +246,10 @@ function configure_docker_hook {
   # 6,000 three-byte characters: under 16,000 characters, but over 16 KiB.
   printf '€%.0s' {1..6000} >"$stderr_file"
 
-  run capture_docker_error image_pull_failed "Failed to pull image" "$stderr_file"
+  run capture_docker_error buildkite.docker_image_pull_failed "Failed to pull image" "$stderr_file"
 
   assert_success
-  assert_captured image_pull_failed "Failed to pull image"
+  assert_captured buildkite.docker_image_pull_failed "Failed to pull image"
 }
 
 @test "stderr error line removes colon-form colour codes and other control characters" {
@@ -291,7 +291,7 @@ function configure_docker_hook {
   export marker
   function buildkite-agent() { printf called >"$marker"; return 19; }
 
-  run capture_docker_error image_pull_failed diagnostic
+  run capture_docker_error buildkite.docker_image_pull_failed diagnostic
 
   assert_success
   [[ "$(cat "$marker")" == "called" ]]
@@ -304,10 +304,10 @@ function configure_docker_hook {
   export payload_file
   function buildkite-agent() { record_capture "$@"; }
 
-  run capture_docker_error docker_run_failed 'Docker run failed'
+  run capture_docker_error buildkite.docker_run_failed 'Docker run failed'
 
   assert_success
-  assert_captured docker_run_failed 'Docker run failed'
+  assert_captured buildkite.docker_run_failed 'Docker run failed'
 }
 
 @test "capture is skipped unless the agent advertises support" {
@@ -321,7 +321,7 @@ function configure_docker_hook {
       unset BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR
     fi
 
-    run capture_docker_error image_pull_failed diagnostic
+    run capture_docker_error buildkite.docker_image_pull_failed diagnostic
 
     assert_success
     [[ ! -e "$marker" ]]
@@ -336,7 +336,7 @@ function configure_docker_hook {
     export BUILDKITE_AGENT_JOB_API_TOKEN=token
     unset "$missing"
 
-    run capture_docker_error image_pull_failed diagnostic
+    run capture_docker_error buildkite.docker_image_pull_failed diagnostic
 
     assert_success
     [[ ! -e "$marker" ]]
