@@ -269,6 +269,14 @@ while IFS='=' read -r name _ ; do
   fi
 done < <(env | sort)
 
+# Parse BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT delimited by semi-colons, normalized to
+# ignore spaces and leading or trailing semi-colons
+IFS=';' read -r -a default_environment <<< "${BUILDKITE_DOCKER_DEFAULT_ENVIRONMENT:-}"
+for entry in "${default_environment[@]:-}" ; do
+  trimmed="$(echo -n "$entry" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+  [[ -n "$trimmed" ]] && args+=( "--env" "$trimmed" )
+done
+
 # Parse host mappings and add them to the docker args
 while IFS='=' read -r name _ ; do
   if [[ $name =~ ^(BUILDKITE_PLUGIN_DOCKER_ADD_HOST_[0-9]+) ]] ; then
