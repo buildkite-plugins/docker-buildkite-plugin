@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 load "${BATS_PLUGIN_PATH}/load.bash"
+bats_require_minimum_version 1.5.0
 
 # Uncomment to enable stub debug output:
 # export DOCKER_STUB_DEBUG=/dev/tty
@@ -85,19 +86,30 @@ setup() {
   unstub docker
 }
 
-@test "Pull image first before running BUILDKITE_COMMAND, failure on retries" {
+@test "Pull failure preserves retries, output and status without calling the agent" {
   export BUILDKITE_PLUGIN_DOCKER_ALWAYS_PULL=true
   export BUILDKITE_PLUGIN_DOCKER_PULL_RETRIES=2
+  # Old agents may still advertise capture support during rollout.
+  export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  export agent_called="$BATS_TEST_TMPDIR/agent-called"
+  function buildkite-agent() { touch "$agent_called"; return 99; }
+  export -f buildkite-agent
 
   stub docker \
-    "pull image:tag" \
-    "pull image:tag : exit 3"
+    "pull image:tag : echo pull-progress; echo pull-retrying >&2; exit 40" \
+    "pull image:tag : echo pull-denied >&2; exit 41"
 
-  run "$PWD"/hooks/command
+  run --separate-stderr "$PWD"/hooks/command
 
-  assert_failure 3
+  assert_failure 41
+  assert_output --partial "pull-progress"
   assert_output --partial "Retrying 1 more times..."
+  assert_output --partial "Failed 2 retries"
   assert_output --partial "!!! :docker: Pull failed."
+  [[ "$stderr" == $'pull-retrying\npull-denied' ]]
+  [[ ! -e "$agent_called" ]]
 
   unstub docker
 }
@@ -1460,18 +1472,32 @@ EOF
   unstub docker
 }
 
-@test "Run with BUILDKITE_COMMAND propagates exit codes" {
-  export BUILDKITE_COMMAND='pwd'
+@test "Docker run preserves failure statuses and output without calling the agent" {
+  # Keep the Job API available for unrelated agent operations.
+  export BUILDKITE_AGENT_JOB_API_CAPTURE_ERROR=true
+  export BUILDKITE_AGENT_JOB_API_SOCKET=/tmp/job.sock
+  export BUILDKITE_AGENT_JOB_API_TOKEN=token
+  export agent_called="$BATS_TEST_TMPDIR/agent-called"
+  function buildkite-agent() { touch "$agent_called"; return 99; }
+  export -f buildkite-agent
 
-  stub docker \
-    "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'pwd' : exit 2"
+  # The contained command can return Docker's own failure statuses too.
+  for exit_status in 23 125 126 127; do
+    export BUILDKITE_COMMAND="exit $exit_status"
+    stub docker \
+      "run -t -i --rm --init --volume $PWD:/workdir --workdir /workdir --env BUILDKITE_AGENT_JOB_API_SOCKET --env BUILDKITE_AGENT_JOB_API_TOKEN --volume /tmp/job.sock:/tmp/job.sock --label com.buildkite.job-id=1-2-3-4 image:tag /bin/sh -e -c 'exit $exit_status' : echo command-stdout; echo command-stderr >&2; /bin/sh -e -c 'exit $exit_status'"
 
-  run "$PWD"/hooks/command
+    run --separate-stderr "-$exit_status" "$PWD"/hooks/command
 
-  assert_failure 2
-  assert_output --partial "Running command in"
+    assert_failure "$exit_status"
+    assert_output --partial "Running command in"
+    [[ "$(grep -c '^command-stdout$' <<<"$output")" -eq 1 ]]
+    refute_output --partial "command-stderr"
+    [[ "$(grep -o 'command-stderr' <<<"$stderr" | wc -l)" -eq 1 ]]
+    [[ ! -e "$agent_called" ]]
 
-  unstub docker
+    unstub docker
+  done
 }
 
 
